@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: Merbs Connect
+  profiles:
+    active: dev
