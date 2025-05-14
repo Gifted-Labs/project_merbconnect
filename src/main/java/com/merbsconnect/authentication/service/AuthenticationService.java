@@ -1,6 +1,11 @@
 package com.merbsconnect.authentication.service;
 
-import com.merbsconnect.authentication.dto.*;
+import com.merbsconnect.authentication.dto.request.LoginRequest;
+import com.merbsconnect.authentication.dto.request.PasswordResetRequest;
+import com.merbsconnect.authentication.dto.request.RegistrationRequest;
+import com.merbsconnect.authentication.dto.request.TokenRefreshRequest;
+import com.merbsconnect.authentication.dto.response.JwtResponse;
+import com.merbsconnect.authentication.dto.response.MessageResponse;
 
 
 public interface AuthenticationService {

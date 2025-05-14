@@ -2,10 +2,15 @@ package com.merbsconnect.authentication.service.impl;
 
 import com.merbsconnect.authentication.domain.RefreshToken;
 import com.merbsconnect.authentication.domain.User;
-import com.merbsconnect.authentication.dto.*;
+import com.merbsconnect.authentication.dto.request.LoginRequest;
+import com.merbsconnect.authentication.dto.request.PasswordResetRequest;
+import com.merbsconnect.authentication.dto.request.RegistrationRequest;
+import com.merbsconnect.authentication.dto.request.TokenRefreshRequest;
+import com.merbsconnect.authentication.dto.response.JwtResponse;
+import com.merbsconnect.authentication.dto.response.MessageResponse;
 import com.merbsconnect.authentication.repository.UserRepository;
 import com.merbsconnect.authentication.security.CustomUserDetails;
-import com.merbsconnect.authentication.security.JwtService;
+import com.merbsconnect.authentication.security.jwt.JwtService;
 import com.merbsconnect.authentication.service.AuthenticationService;
 import com.merbsconnect.authentication.service.RefreshTokenService;
 import com.merbsconnect.exception.InvalidTokenException;
@@ -104,20 +109,21 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         try {
             String email = jwtService.getUsernameFromToken(token);
             User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                    .orElseThrow(() -> new RuntimeException("Error: User is not found."));
 
-            if (user.isEnabled()) {
-                return new MessageResponse("User is already verified");
+            if(user.isEnabled()) {
+                return new MessageResponse("Error: User is already verified.");
             }
-
             user.setEnabled(true);
             userRepository.save(user);
 
-            return new MessageResponse("User verified successfully");
-        } catch (Exception e) {
-            log.error("Error verifying email: {}", e.getMessage());
+            return new MessageResponse("Account verified successfully");
         }
-        return null;
+        catch (ExpiredJwtException e) {
+            throw new TokenExpiredException("Verification token has expired");
+        } catch (Exception e) {
+            throw new InvalidTokenException("Invalid verification token");
+        }
     }
 
     @Override

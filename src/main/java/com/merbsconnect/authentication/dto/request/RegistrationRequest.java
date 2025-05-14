@@ -1,4 +1,4 @@
-package com.merbsconnect.authentication.dto;
+package com.merbsconnect.authentication.dto.request;
 
 import com.merbsconnect.enums.UserRole;
 import jakarta.validation.constraints.*;

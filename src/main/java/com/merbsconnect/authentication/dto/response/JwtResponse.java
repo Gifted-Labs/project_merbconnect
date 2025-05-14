@@ -1,6 +1,5 @@
-package com.merbsconnect.authentication.dto;
+package com.merbsconnect.authentication.dto.response;
 
-import com.merbsconnect.enums.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

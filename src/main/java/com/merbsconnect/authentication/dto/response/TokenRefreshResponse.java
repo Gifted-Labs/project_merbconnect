@@ -1,4 +1,4 @@
-package com.merbsconnect.authentication.dto;
+package com.merbsconnect.authentication.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

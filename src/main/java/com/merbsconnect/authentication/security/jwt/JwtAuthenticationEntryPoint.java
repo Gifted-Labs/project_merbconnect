@@ -1,4 +1,4 @@
-package com.merbsconnect.authentication.security;
+package com.merbsconnect.authentication.security.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
@@ -10,7 +10,6 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 
-import javax.print.attribute.standard.Media;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;

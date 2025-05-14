@@ -5,6 +5,7 @@ import com.merbsconnect.authentication.domain.User;
 import com.merbsconnect.authentication.repository.RefreshTokenRepository;
 import com.merbsconnect.authentication.repository.UserRepository;
 import com.merbsconnect.authentication.service.RefreshTokenService;
+import com.merbsconnect.exception.TokenRefreshException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,7 +53,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     public RefreshToken verifyExpiration(RefreshToken token) {
         if(token.isExpired()){
             refreshTokenRepository.delete(token);
-            throw new RuntimeException("Refresh token is expired. Please sign in again");
+            throw new TokenRefreshException(token.getToken(),"Refresh token was expired. Please make a new sign-in request");
         }
         return token;
     }

@@ -1,4 +1,4 @@
-package com.merbsconnect.authentication.dto;
+package com.merbsconnect.authentication.dto.request;
 
 
 import jakarta.validation.constraints.NotBlank;
