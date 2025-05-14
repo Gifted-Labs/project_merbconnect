@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -17,5 +19,5 @@ public class JwtResponse {
     private String refreshToken;
     private Long id;
     private String username;
-    private UserRole role;
+    private List<String> roles;
 }

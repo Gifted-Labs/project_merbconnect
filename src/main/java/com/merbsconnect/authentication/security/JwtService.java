@@ -64,13 +64,13 @@ public class JwtService {
                 .compact();
     }
 
-    public String generateTokenFromuser(String username, String role){
+    public String generateTokenFromEmail(String email, String role){
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", role);
 
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuer(jwtIssuer)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(jwtExpirationMs)))
@@ -85,6 +85,22 @@ public class JwtService {
                .parseClaimsJws(token)
                .getBody()
                .getSubject();
+    }
+
+    public String generateVerificationToken(String email) {
+
+        Map<String, Object> claims = Map.of(
+                "email", email,
+                "purpose", "verification"
+        );
+
+        return Jwts.builder()
+                .setClaims(claims)
+                .setSubject(email)
+                .setIssuedAt(new Date())
+                .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(jwtExpirationMs)))
+                .signWith(key(), SignatureAlgorithm.HS512)
+                .compact();
     }
 
     public boolean validateToken(String token){
@@ -106,5 +122,10 @@ public class JwtService {
 
         return false;
     }
+
+    private Key key()   {
+        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(jwtSecret));
+    }
+
 
 }
