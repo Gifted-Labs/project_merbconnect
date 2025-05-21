@@ -59,6 +59,5 @@ public class RegistrationRequest {
     /**
      * User's role in the system
      */
-    @NotNull(message = "User role is required")
     private UserRole role;
 }

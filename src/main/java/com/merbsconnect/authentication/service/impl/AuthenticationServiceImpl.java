@@ -13,6 +13,7 @@ import com.merbsconnect.authentication.security.CustomUserDetails;
 import com.merbsconnect.authentication.security.jwt.JwtService;
 import com.merbsconnect.authentication.service.AuthenticationService;
 import com.merbsconnect.authentication.service.RefreshTokenService;
+import com.merbsconnect.enums.UserRole;
 import com.merbsconnect.exception.InvalidTokenException;
 import com.merbsconnect.exception.TokenExpiredException;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -20,10 +21,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -37,7 +38,6 @@ import java.util.stream.Collectors;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final JwtService jwtService;
-    private final UserDetailsService userDetailsService;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
@@ -65,7 +65,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(request.getRole())
+                .role(UserRole.ROLE_ADMIN)
                 .isEnabled(false)
                 .build();
 
@@ -78,28 +78,31 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public JwtResponse authenticateUser(LoginRequest request) {
-        // Authenticate the user
+    public JwtResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
-                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                        request.getUsername(),
-                        request.getPassword()
-                )
-        );
+               new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+
+
+        log.info("I am done authenticating the user");
+
+        if (authentication == null) {
+            throw new UsernameNotFoundException("User not found with email/username: " + loginRequest.getEmail());
+        }
+
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        String accessToken = jwtService.generateToken(authentication);
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(userDetails.getUser().getId());
+        String jwt = jwtService.generateToken(authentication);
+        String refreshToken = jwtService.generateVerificationToken(userDetails.getUsername());
 
-        List<String> roles = userDetails.getAuthorities()
-                .stream()
+        List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
 
         return JwtResponse.builder()
-                .token(accessToken)
-                .refreshToken(refreshToken.getToken())
-                .id(userDetails.getUser().getId())
+                .token(jwt)
+                .refreshToken(refreshToken)
+                .id(userDetails.getId())
+                .username(userDetails.getUsername())
                 .roles(roles)
                 .build();
     }
@@ -188,4 +191,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     return new RuntimeException("Refresh token is not in the database!");
                 });
     }
+
 }

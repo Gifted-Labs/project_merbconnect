@@ -91,10 +91,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorDetails> handleBadCredentialsException(BadCredentialsException ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(
                 LocalDateTime.now(),
-                ex.getMessage(),
-                request.getDescription(false),
+                ex.toString(),
+                request.getDescription(true),
                 "BAD_CREDENTIALS"
         );
+        log.error("Bad credentials: {}", ex);
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
@@ -104,7 +105,7 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getAllErrors().forEach((error) -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
+            errors.put(fieldName, "This is coming from the global: "+errorMessage);
         });
         log.error("Validation errors: {}", errors);
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);

@@ -16,13 +16,26 @@ import java.util.Collections;
 @Getter
 @Setter
 public class CustomUserDetails implements UserDetails {
+    private static final long serialVersionUID = 1L;
 
-    private User user;
+    private final Long id;
+    private final String firstName;
+    private final String lastName;
+    private final String username;
+    private final String phoneNumber;
+    private final String password;
+    private final boolean isEnabled;
     private final Collection<? extends GrantedAuthority> authorities;
 
     public static CustomUserDetails build(User user){
         return new CustomUserDetails(
-                user,
+                user.getId(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getPassword(),
+                user.isEnabled(),
                 mapRolesToAuthorities(user.getRole()) // Map roles to authorities
         );
     }
@@ -42,15 +55,6 @@ public class CustomUserDetails implements UserDetails {
         return authorities;
     }
 
-    @Override
-    public String getPassword() {
-        return user.getPassword();
-    }
-
-    @Override
-    public String getUsername() {
-        return user.getEmail();
-    }
 
     @Override
     public boolean isAccountNonExpired() {
@@ -69,6 +73,18 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isEnabled() {
-        return user.isEnabled();
+        return isEnabled;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CustomUserDetails)) return false;
+        CustomUserDetails user = (CustomUserDetails) o;
+        return id.equals(user.id);
+    }
+    @Override
+    public int hashCode() {
+        return id.hashCode();
     }
 }
