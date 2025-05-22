@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -19,6 +20,7 @@ public class Department {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(nullable = false)
     private String departmentName;
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -26,5 +28,6 @@ public class Department {
     private Faculty faculty;
 
     @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
-    private Set<Program> programs;
+    @Builder.Default
+    private Set<Program> programs = new HashSet<>();
 }

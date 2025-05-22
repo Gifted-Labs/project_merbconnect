@@ -1,7 +1,9 @@
 package com.merbsconnect.academics.domain;
 
+import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +15,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Data
 @DiscriminatorValue("BOOK")
+@Table(name = "reference_resource")
 public class ReferenceMaterial extends Resource {
+
 
     private String fileUrl;
     private String author;
