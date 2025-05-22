@@ -14,15 +14,18 @@ import java.util.List;
 
 public class ResourceSpecification {
 
-    public static Specification<Resource> withFilter(ResourceFilterRequest filter) {
+    /**
+     * Creates a specification for filtering resources based on common criteria
+     */
+    public static <T extends Resource> Specification<T> withFilter(ResourceFilterRequest filter, Class<T> resourceClass) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
             
-            // Handle resource type
-            if (StringUtils.hasText(filter.getResourceType())) {
+            // Handle resource type if specified and we're querying the base Resource class
+            if (Resource.class.equals(resourceClass) && StringUtils.hasText(filter.getResourceType())) {
                 try {
-                    Class<?> resourceClass = Class.forName("com.merbsconnect.academics.domain." + filter.getResourceType());
-                    predicates.add(criteriaBuilder.equal(root.type(), resourceClass));
+                    Class<?> specificResourceClass = Class.forName("com.merbsconnect.academics.domain." + filter.getResourceType());
+                    predicates.add(criteriaBuilder.equal(root.type(), specificResourceClass));
                 } catch (ClassNotFoundException e) {
                     // Log error or handle invalid resource type
                 }
@@ -48,7 +51,7 @@ public class ResourceSpecification {
             if (filter.getProgramId() != null) {
                 // Handle program filtering with a subquery
                 Subquery<Long> programSubquery = query.subquery(Long.class);
-                var programRoot = programSubquery.from(Resource.class);
+                var programRoot = programSubquery.from(resourceClass);
                 Join<Object, Object> courseJoin = programRoot.join("course");
                 Join<Object, Object> programsJoin = courseJoin.join("programs");
                 
@@ -81,5 +84,12 @@ public class ResourceSpecification {
             
             return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
         };
+    }
+    
+    /**
+     * Overloaded method for backward compatibility
+     */
+    public static Specification<Resource> withFilter(ResourceFilterRequest filter) {
+        return withFilter(filter, Resource.class);
     }
 }
