@@ -7,14 +7,19 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * Generic response class for paginated data.
+ *
+ * @param <T> the type of content in the page
+ */
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class PageResponse<T> {
     private List<T> content;
-    private int pageNumber;
-    private int pageSize;
+    private int page;
+    private int size;
     private long totalElements;
     private int totalPages;
     private boolean last;

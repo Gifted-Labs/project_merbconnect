@@ -41,8 +41,8 @@ public class EntityMapper {
         
         return PageResponse.<R>builder()
                 .content(content)
-                .pageNumber(page.getNumber())
-                .pageSize(page.getSize())
+                .page(page.getNumber())
+                .size(page.getSize())
                 .totalElements(page.getTotalElements())
                 .totalPages(page.getTotalPages())
                 .last(page.isLast())
