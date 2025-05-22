@@ -20,6 +20,7 @@ public class ResourceSummaryResponse {
     private String courseCode;
     private String courseName;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
     
     // Additional fields for specific resource types
     private String difficultyLevel; // For quizzes
@@ -27,6 +28,7 @@ public class ResourceSummaryResponse {
     private String quizType; // For quizzes
     
     private String author; // For reference materials
+    private String format;
     private String publisher; // For reference materials
     private String coverImageUrl; // For reference materials
 }
