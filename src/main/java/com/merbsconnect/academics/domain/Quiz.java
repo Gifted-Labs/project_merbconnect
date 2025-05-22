@@ -15,7 +15,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 @DiscriminatorValue("QUIZ")
 public class Quiz extends Resource{
 
@@ -35,17 +35,5 @@ public class Quiz extends Resource{
     @Column(nullable = false)
     private QuizType quizType;
 
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
-    @PrePersist
-    private void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    private void onUpdate() {
-        updatedAt = LocalDateTime.now();
-    }
 }
