@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Repository
 public interface FacultyRepository extends JpaRepository<Faculty, Long> {
@@ -25,6 +26,6 @@ public interface FacultyRepository extends JpaRepository<Faculty, Long> {
     @Query("SELECT f FROM Faculty f LEFT JOIN FETCH f.departments WHERE f.id = :id")
     Optional<Faculty> findByIdWithDepartments(Long id);
 
-    @Query("SELECT f FROM Faculty f LEFT JOIN FETCH f.departments WHERE f.college.id = :collegeId")
+    @Query("SELECT DISTINCT f FROM Faculty f LEFT JOIN FETCH f.departments WHERE f.college.id = :collegeId")
     List<Faculty> findByCollegeIdWithDepartments(Long collegeId);
 }

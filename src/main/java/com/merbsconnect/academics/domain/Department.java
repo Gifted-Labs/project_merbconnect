@@ -23,7 +23,7 @@ public class Department {
     @Column(nullable = false)
     private String departmentName;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "faculty_id", nullable = false)
     private Faculty faculty;
 
