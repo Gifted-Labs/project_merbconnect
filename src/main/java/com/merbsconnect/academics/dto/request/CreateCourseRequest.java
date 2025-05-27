@@ -17,9 +17,9 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateCourseRequest {
-    
+
     @NotBlank(message = "Course code is required")
-    @Pattern(regexp = "^[A-Z]{2,4}\\d{3,4}$", message = "Course code must be in format: 2-4 uppercase letters followed by 3-4 digits")
+    @Pattern(regexp = "^[A-Z]{3}\\d{3}$", message = "Course code must be in format: 3 uppercase letters followed by 3 digits")
     private String courseCode;
     
     @NotBlank(message = "Course name is required")
