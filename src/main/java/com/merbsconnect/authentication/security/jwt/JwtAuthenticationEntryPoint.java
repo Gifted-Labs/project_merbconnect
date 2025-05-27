@@ -53,7 +53,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
             // Log the entire exception stack trace for debugging
             if (logger.isDebugEnabled()) {
-                logger.debug("Authentication exception details:", authException);
+                logger.debug("Authentication exception details:", authException.getMessage());
             }
 
             // Get the actual cause if available
@@ -81,7 +81,7 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         } catch (Exception e) {
             // Handle any exceptions that might occur during error handling
-            logger.error("Error during authentication failure handling", e);
+            logger.error("Error during authentication failure handling", e.getMessage());
 
             // Fallback to simpler response if JSON serialization fails
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

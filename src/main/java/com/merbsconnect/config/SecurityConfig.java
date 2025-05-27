@@ -73,9 +73,12 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth ->
                         auth.requestMatchers("/api/v1/auth/**").permitAll()
-                                .requestMatchers("/api/v1/programs/**","/api/v1/faculties/**").hasRole("ADMIN")
+                                .requestMatchers("/api/v1/programs/**", "/api/v1/faculties/**","/actuator/**",
+                                                "/api/v1/colleges/**", "/api/v1/departments/**","/api/v1/courses","/api/v1/resources/**").hasAnyRole("ADMIN", "USER")
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                                .requestMatchers("/", "/index.html","/index.html/api/auth/**", "/static/**", "/css/**", "/js/**", "/images/**").permitAll()
+                                .requestMatchers("/", "/index.html", "/admin.html", "/home.html", "/index.html/api/auth/**",
+                                                "/static/**", "/css/**", "/js/**", "/images/**",
+                                                "/favicon.ico", "/error", "/webjars/**").permitAll()
                                 .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -89,9 +92,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT","PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type","X-Requested-With"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", "Content-Type", "X-Requested-With",
+            "Accept", "Origin", "Access-Control-Request-Method",
+            "Access-Control-Request-Headers", "X-Auth-Token"
+        ));
+        configuration.setExposedHeaders(Arrays.asList("Authorization", "X-Auth-Token"));
+        configuration.setMaxAge(3600L); // 1 hour
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
