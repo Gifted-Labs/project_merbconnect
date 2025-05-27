@@ -18,7 +18,8 @@ public interface ReferenceMaterialRepository extends JpaRepository<ReferenceMate
     
     // Course filtering with format
     Page<ReferenceMaterial> findByCourseIdAndFormat(Long courseId, String format, Pageable pageable);
-    
+    Page<ReferenceMaterial> findByCourseId(Long courseId, Pageable pageable);
+
     // Department filtering with format
     @Query("SELECT r FROM ReferenceMaterial r WHERE r.course.department.id = :departmentId AND " +
            "(:format IS NULL OR r.format = :format)")
