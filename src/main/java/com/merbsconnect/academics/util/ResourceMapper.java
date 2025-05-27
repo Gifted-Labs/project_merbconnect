@@ -96,10 +96,42 @@ public class ResourceMapper {
     }
 
     /**
+     * Converts a Question entity to a QuestionResponse DTO
+     */
+    public static QuestionResponse toQuestionResponse(Question question) {
+        ResourceMinimalResponse referencedResource = null;
+        if (question.getReferencedResource() != null) {
+            Resource resource = question.getReferencedResource();
+            referencedResource = ResourceMinimalResponse.builder()
+                    .id(resource.getId())
+                    .title(resource.getTitle())
+                    .resourceType(resource.getClass().getSimpleName())
+                    .build();
+        }
+
+        return QuestionResponse.builder()
+                .id(question.getId())
+                .questionText(question.getQuestionText())
+                .possibleAnswers(question.getPossibleAnswers())
+                .correctAnswer(question.getCorrectAnswer())
+                .explanationSteps(question.getExplanationSteps())
+                .referencedResource(referencedResource)
+                .build();
+    }
+
+    /**
      * Converts a Quiz entity to a detailed response DTO
      */
     public static QuizResponse toQuizResponse(Quiz quiz) {
         Course course = quiz.getCourse();
+
+        // Map questions if available
+        List<QuestionResponse> questionResponses = null;
+        if (quiz.getQuestions() != null && !quiz.getQuestions().isEmpty()) {
+            questionResponses = quiz.getQuestions().stream()
+                    .map(ResourceMapper::toQuestionResponse)
+                    .collect(Collectors.toList());
+        }
 
         return QuizResponse.builder()
                 .id(quiz.getId())
@@ -114,6 +146,7 @@ public class ResourceMapper {
 //                .timeLimit(quiz.getTimeLimit())
 //                .passingScore(quiz.getPassingScore())
                 .yearGiven(quiz.getYearGiven())
+                .questions(questionResponses)
                 .createdAt(quiz.getCreatedAt())
                 .updatedAt(quiz.getUpdatedAt())
                 .build();

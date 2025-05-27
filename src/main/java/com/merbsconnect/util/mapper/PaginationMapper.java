@@ -1,5 +1,6 @@
 package com.merbsconnect.util.mapper;
 
+import com.merbsconnect.academics.dto.response.PageResponse;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -25,9 +26,9 @@ public class PaginationMapper {
     public static Pageable createPageable(Integer page, Integer size, String sortBy, String sortDirection) {
         int pageNumber = page != null ? page : 0;
         int pageSize = size != null ? size : 10;
-        
+
         if (sortBy != null && !sortBy.isEmpty()) {
-            Sort.Direction direction = sortDirection != null && sortDirection.equalsIgnoreCase("DESC") ? 
+            Sort.Direction direction = sortDirection != null && sortDirection.equalsIgnoreCase("DESC") ?
                     Sort.Direction.DESC : Sort.Direction.ASC;
             return PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortBy));
         } else {
@@ -48,7 +49,7 @@ public class PaginationMapper {
         metadata.put("last", page.isLast());
         metadata.put("hasNext", page.hasNext());
         metadata.put("hasPrevious", page.hasPrevious());
-        
+
         return metadata;
     }
 
@@ -136,5 +137,29 @@ public class PaginationMapper {
         } else {
             return PageRequest.of(pageNumber, pageSize);
         }
+    }
+
+    /**
+     * Maps a Page of entities to a PageResponse DTO using the provided mapper function
+     *
+     * @param page the Spring Data Page object
+     * @param mapper the function to map each entity to a DTO
+     * @param <T> the entity type
+     * @param <R> the DTO type
+     * @return a PageResponse containing the mapped content and pagination metadata
+     */
+    public static <T, R> PageResponse<R> mapToPageResponse(Page<T> page, Function<T, R> mapper) {
+        List<R> content = page.getContent().stream()
+                .map(mapper)
+                .collect(Collectors.toList());
+
+        return PageResponse.<R>builder()
+                .content(content)
+                .page(page.getNumber())
+                .size(page.getSize())
+                .totalElements(page.getTotalElements())
+                .totalPages(page.getTotalPages())
+                .last(page.isLast())
+                .build();
     }
 }
