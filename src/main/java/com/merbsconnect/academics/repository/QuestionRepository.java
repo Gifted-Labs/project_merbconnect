@@ -39,7 +39,6 @@ public interface    QuestionRepository extends JpaRepository<Question, Long>, Jp
     @Query("SELECT q FROM Question q WHERE q NOT IN (SELECT qz.questions FROM Quiz qz JOIN qz.questions)")
     Page<Question> findUnusedQuestions(Pageable pageable);
 
-
     // Find all questions by reference resource id
     @Query("SELECT q FROM Question q WHERE q.referencedResource.id = :resourceId")
     List<Question> findAllByReferencedResourceId(@Param("resourceId") Long resourceId);
