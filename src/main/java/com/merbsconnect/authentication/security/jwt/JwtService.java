@@ -28,7 +28,7 @@ public class JwtService {
     @Value("${app.jwt.expiration}")
     private String jwtExpirationMs;
 
-    @Value("{app.jwt.issuer}")
+    @Value("${app.jwt.issuer}")
     private String jwtIssuer;
 
     private Key key;
