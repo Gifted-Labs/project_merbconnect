@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
  * REST controller for managing academic resources.
  */
 @RestController
-@RequestMapping("/api/academics/resources")
+@RequestMapping("/api/v1/academics/resources")
 @RequiredArgsConstructor
 @Slf4j
 @Component("academicsResourceController")

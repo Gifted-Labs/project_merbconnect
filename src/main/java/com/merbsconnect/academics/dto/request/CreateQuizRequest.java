@@ -46,7 +46,7 @@ public class CreateQuizRequest {
     @NotNull(message = "Quiz type is required")
     private QuizType quizType;
     
-    @NotEmpty(message = "At least one question is required")
+//    @NotEmpty(message = "At least one question is required")
     @Valid
     private List<CreateQuestionRequest> questions;
 }
