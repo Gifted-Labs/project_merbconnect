@@ -173,6 +173,7 @@ public class ReferenceMaterialController {
         return ResponseEntity.ok(ApiResponse.success(response.getData()));
     }
 
+
     /**
      * Searches reference materials by title with pagination.
      *
@@ -192,6 +193,7 @@ public class ReferenceMaterialController {
                 referenceMaterialService.searchReferenceMaterialsByTitle(keyword, page, size);
         return ResponseEntity.ok(ApiResponse.success(response.getData()));
     }
+
 
     /**
      * Searches reference materials by author with pagination.
@@ -236,6 +238,7 @@ public class ReferenceMaterialController {
         ApiResponse<List<String>> response = referenceMaterialService.getDistinctLanguages();
         return ResponseEntity.ok(ApiResponse.success(response.getData()));
     }
+
 
     /**
      * Deletes a reference material by its ID.
