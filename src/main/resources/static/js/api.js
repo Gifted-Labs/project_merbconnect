@@ -564,8 +564,7 @@ const API = {
         getPaginated: async function(page = 0, size = 10) {
             try {
                 console.log(`API: Getting paginated courses (page ${page}, size ${size})`);
-                // The API might not support pagination yet, so we'll use getAll for now
-                const response = await API.request('/courses');
+                const response = await API.request(`/courses/paged?page=${page}&size=${size}`);
                 console.log("API: Got courses response", response);
                 return response;
             } catch (error) {
