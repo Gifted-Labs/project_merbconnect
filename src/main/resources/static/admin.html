@@ -38,6 +38,8 @@
                         <a href="#" class="hover:text-blue-200" data-page="department">Departments</a>
                         <a href="#" class="hover:text-blue-200" data-page="program">Programs</a>
                         <a href="#" class="hover:text-blue-200" data-page="course">Courses</a>
+                        <a href="#" class="hover:text-blue-200" data-page="resource">Resources</a>
+                        <a href="#" class="hover:text-blue-200" data-page="quiz">Quizzes</a>
                     </div>
                     <div class="flex items-center">
                         <span id="user-name" class="mr-4"></span>
@@ -63,6 +65,9 @@
             <a href="#" class="block py-2 px-4 hover:bg-blue-600" data-page="faculty">Faculties</a>
             <a href="#" class="block py-2 px-4 hover:bg-blue-600" data-page="department">Departments</a>
             <a href="#" class="block py-2 px-4 hover:bg-blue-600" data-page="program">Programs</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-600" data-page="course">Courses</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-600" data-page="resource">Resources</a>
+            <a href="#" class="block py-2 px-4 hover:bg-blue-600" data-page="quiz">Quizzes</a>
         </div>
 
         <!-- Main Content -->
@@ -127,7 +132,7 @@
             <!-- Dashboard -->
             <div id="dashboard-container" class="hidden">
                 <h1 class="text-3xl font-bold text-gray-800 mb-6">Dashboard</h1>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
                     <div class="bg-white rounded-lg shadow-md p-6">
                         <h2 class="text-xl font-semibold text-gray-800 mb-4">Colleges</h2>
                         <p class="text-4xl font-bold text-primary" id="college-count">0</p>
@@ -153,6 +158,11 @@
                         <p class="text-4xl font-bold text-blue-600" id="course-count">0</p>
                         <a href="#" data-page="course" class="text-blue-600 hover:underline mt-4 inline-block">Manage Courses</a>
                     </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">Resources</h2>
+                        <p class="text-4xl font-bold text-green-600" id="resource-count">0</p>
+                        <a href="#" data-page="resource" class="text-green-600 hover:underline mt-4 inline-block">Manage Resources</a>
+                    </div>
                 </div>
             </div>
 
@@ -162,6 +172,8 @@
             <div id="department-container" class="hidden"></div>
             <div id="program-container" class="hidden"></div>
             <div id="course-container" class="hidden"></div>
+            <div id="resource-container" class="hidden"></div>
+            <div id="quiz-container" class="hidden"></div>
         </main>
 
         <!-- Footer -->
@@ -196,6 +208,8 @@
     <script src="js/department.js"></script>
     <script src="js/program.js"></script>
     <script src="js/course.js"></script>
+    <script src="js/resource.js"></script>
+    <script src="js/quiz.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

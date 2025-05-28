@@ -100,9 +100,26 @@ const API = {
                 throw new Error(errorMessage);
             }
 
+            // Normalize response format
+            if (responseData && !responseData.data && !responseData.success) {
+                // If response is just an array or object without data property, wrap it
+                if (Array.isArray(responseData)) {
+                    return { success: true, data: responseData };
+                } else if (typeof responseData === 'object') {
+                    // Check if it's a paginated response
+                    if (responseData.content && responseData.pageable) {
+                        return { success: true, data: responseData };
+                    }
+                    // Otherwise, check if it's already a proper response
+                    if (!responseData.data) {
+                        return { success: true, data: responseData };
+                    }
+                }
+            }
+
             return responseData;
         } catch (error) {
-            console.error('API request error:', error);
+            console.error(`API Request Error: ${error.message}`);
             throw error;
         }
     },
@@ -149,8 +166,14 @@ const API = {
          * @returns {Promise} Promise resolving to colleges data
          */
         getAll: async function() {
-            const response = await API.request('/colleges');
-            return response.data;
+            try {
+                const response = await API.request('/academics/colleges');
+                console.log('College API response:', response);
+                return response;
+            } catch (error) {
+                console.error('Error in college.getAll:', error);
+                return { data: [] }; // Return empty array on error
+            }
         },
 
         /**
@@ -234,8 +257,14 @@ const API = {
          * @returns {Promise} Promise resolving to faculties data
          */
         getAll: async function() {
-            const response = await API.request('/faculties');
-            return response.data;
+            try {
+                const response = await API.request('/academics/faculties');
+                console.log('Faculty API response:', response);
+                return response;
+            } catch (error) {
+                console.error('Error in faculty.getAll:', error);
+                return { data: [] }; // Return empty array on error
+            }
         },
 
         /**
@@ -310,11 +339,12 @@ const API = {
          */
         getAll: async function() {
             try {
-                const response = await API.request('/departments');
-                return response.data;
+                const response = await API.request('/academics/departments');
+                console.log('Department API response:', response);
+                return response;
             } catch (error) {
                 console.error('Error in department.getAll:', error);
-                throw error;
+                return { data: [] }; // Return empty array on error
             }
         },
 
@@ -424,8 +454,14 @@ const API = {
          * @returns {Promise} Promise resolving to programs data
          */
         getAll: async function() {
-            const response = await API.request('/programs');
-            return response.data;
+            try {
+                const response = await API.request('/academics/programs');
+                console.log('Program API response:', response);
+                return response;
+            } catch (error) {
+                console.error('Error in program.getAll:', error);
+                return { data: [] }; // Return empty array on error
+            }
         },
 
         /**
@@ -551,8 +587,14 @@ const API = {
          * @returns {Promise} Promise resolving to courses data
          */
         getAll: async function() {
-            const response = await API.request('/courses');
-            return response;
+            try {
+                const response = await API.request('/courses');
+                console.log('Course API response:', response);
+                return response;
+            } catch (error) {
+                console.error('Error in course.getAll:', error);
+                return { data: [] }; // Return empty array on error
+            }
         },
         
         /**
@@ -739,6 +781,399 @@ const API = {
             
             const response = await API.request(url);
             return response;
+        }
+    },
+
+    /**
+     * Quiz API
+     */
+    quiz: {
+        /**
+         * Get all quizzes
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getAll: async function() {
+            const response = await API.request('/quizzes');
+            return response;
+        },
+        
+        /**
+         * Get quizzes with pagination
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to paginated quizzes data
+         */
+        getPaginated: async function(page = 0, size = 10) {
+            try {
+                console.log(`API: Getting paginated quizzes (page ${page}, size ${size})`);
+                const response = await API.request(`/quizzes/paged?page=${page}&size=${size}`);
+                console.log("API: Got quizzes response", response);
+                return response;
+            } catch (error) {
+                console.error("API: Error getting paginated quizzes", error);
+                throw error;
+            }
+        },
+        
+        /**
+         * Get quiz by ID
+         * @param {number} id - Quiz ID
+         * @returns {Promise} Promise resolving to quiz data
+         */
+        getById: async function(id) {
+            const response = await API.request(`/quizzes/${id}`);
+            return response;
+        },
+        
+        /**
+         * Create new quiz
+         * @param {Object} quizData - Quiz data
+         * @returns {Promise} Promise resolving to created quiz data
+         */
+        create: async function(quizData) {
+            const response = await API.request('/quizzes', 'POST', quizData);
+            return response;
+        },
+        
+        /**
+         * Update quiz
+         * @param {number} id - Quiz ID
+         * @param {Object} quizData - Updated quiz data
+         * @returns {Promise} Promise resolving to updated quiz data
+         */
+        update: async function(id, quizData) {
+            const response = await API.request(`/quizzes/${id}`, 'PUT', quizData);
+            return response;
+        },
+        
+        /**
+         * Delete quiz
+         * @param {number} id - Quiz ID
+         * @returns {Promise} Promise resolving to deletion response
+         */
+        delete: async function(id) {
+            return await API.request(`/quizzes/${id}`, 'DELETE');
+        },
+        
+        /**
+         * Get quizzes by course ID
+         * @param {number} courseId - Course ID
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getByCourse: async function(courseId, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/course/${courseId}?page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Get quizzes by quiz type
+         * @param {string} quizType - Quiz type
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getByType: async function(quizType, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/type/${quizType}?page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Get quizzes by year
+         * @param {number} year - Year
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getByYear: async function(year, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/year/${year}?page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Get quizzes by course ID and quiz type
+         * @param {number} courseId - Course ID
+         * @param {string} quizType - Quiz type
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getByCourseAndType: async function(courseId, quizType, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/course/${courseId}/type/${quizType}?page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Get quizzes by course ID and year
+         * @param {number} courseId - Course ID
+         * @param {number} year - Year
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getByCourseAndYear: async function(courseId, year, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/course/${courseId}/year/${year}?page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Get quizzes by quiz type and year
+         * @param {string} quizType - Quiz type
+         * @param {number} year - Year
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getByTypeAndYear: async function(quizType, year, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/type/${quizType}/year/${year}?page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Get quizzes by course ID, quiz type, and year
+         * @param {number} courseId - Course ID
+         * @param {string} quizType - Quiz type
+         * @param {number} year - Year
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to quizzes data
+         */
+        getByCourseAndTypeAndYear: async function(courseId, quizType, year, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/course/${courseId}/type/${quizType}/year/${year}?page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Search quizzes by title
+         * @param {string} title - Quiz title to search for
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to search results
+         */
+        search: async function(title, page = 0, size = 10) {
+            const response = await API.request(`/quizzes/search?title=${encodeURIComponent(title)}&page=${page}&size=${size}`);
+            return response;
+        },
+        
+        /**
+         * Get distinct years for quizzes
+         * @returns {Promise} Promise resolving to distinct years
+         */
+        getDistinctYears: async function() {
+            const response = await API.request('/quizzes/years');
+            return response;
+        },
+        
+        /**
+         * Add questions to quiz
+         * @param {number} quizId - Quiz ID
+         * @param {Object} questionsData - Questions data
+         * @returns {Promise} Promise resolving to updated quiz data
+         */
+        addQuestions: async function(quizId, questionsData) {
+            const response = await API.request(`/quizzes/${quizId}/questions`, 'POST', questionsData);
+            return response;
+        },
+        
+        /**
+         * Get filtered quizzes
+         * @param {Object} filters - Filter criteria
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to filtered quizzes data
+         */
+        getFiltered: async function(filters, page = 0, size = 10) {
+            let url = `/quizzes/filter?page=${page}&size=${size}`;
+            
+            if (filters.courseId) {
+                url += `&courseId=${filters.courseId}`;
+            }
+            
+            if (filters.quizType) {
+                url += `&quizType=${filters.quizType}`;
+            }
+            
+            if (filters.yearGiven) {
+                url += `&yearGiven=${filters.yearGiven}`;
+            }
+            
+            if (filters.difficultyLevel) {
+                url += `&difficultyLevel=${filters.difficultyLevel}`;
+            }
+            
+            if (filters.searchTerm) {
+                url += `&searchTerm=${encodeURIComponent(filters.searchTerm)}`;
+            }
+            
+            const response = await API.request(url);
+            return response;
+        }
+    },
+
+    /**
+     * Resource API
+     */
+    resource: {
+        /**
+         * Get all resources
+         * @returns {Promise} Promise resolving to resources data
+         */
+        getAll: async function() {
+            try {
+                const response = await API.request('/academics/resources');
+                return response;
+            } catch (error) {
+                console.error('Error getting all resources:', error);
+                return { data: [] };
+            }
+        },
+        
+        /**
+         * Get resource by ID
+         * @param {number} id - Resource ID
+         * @returns {Promise} Promise resolving to resource data
+         */
+        getById: async function(id) {
+            try {
+                const response = await API.request(`/academics/resources/${id}`);
+                return response;
+            } catch (error) {
+                console.error(`API: Error getting resource ${id}`, error);
+                throw error;
+            }
+        },
+        
+        /**
+         * Delete resource
+         * @param {number} id - Resource ID
+         * @returns {Promise} Promise resolving to deletion response
+         */
+        delete: async function(id) {
+            return await API.request(`/academics/resources/${id}`, 'DELETE');
+        },
+        
+        /**
+         * Get resources with pagination
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to paginated resources data
+         */
+        getPaginated: async function(page = 0, size = 10) {
+            try {
+                const response = await API.request(`/academics/resources/paged?page=${page}&size=${size}`);
+                return response.data;
+            } catch (error) {
+                console.error("API: Error getting paginated resources", error);
+                throw error;
+            }
+        },
+        
+        /**
+         * Get resources by course ID with pagination
+         * @param {number} courseId - Course ID
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to resources data
+         */
+        getByCourse: async function(courseId, page = 0, size = 10) {
+            const response = await API.request(`/academics/resources/course/${courseId}?page=${page}&size=${size}`);
+            return response.data;
+        },
+        
+        /**
+         * Get resources by department ID with pagination
+         * @param {number} departmentId - Department ID
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to resources data
+         */
+        getByDepartment: async function(departmentId, page = 0, size = 10) {
+            const response = await API.request(`/academics/resources/department/${departmentId}?page=${page}&size=${size}`);
+            return response.data;
+        },
+        
+        /**
+         * Get resources by faculty ID with pagination
+         * @param {number} facultyId - Faculty ID
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to resources data
+         */
+        getByFaculty: async function(facultyId, page = 0, size = 10) {
+            const response = await API.request(`/academics/resources/faculty/${facultyId}?page=${page}&size=${size}`);
+            return response.data;
+        },
+        
+        /**
+         * Get resources by college ID with pagination
+         * @param {number} collegeId - College ID
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to resources data
+         */
+        getByCollege: async function(collegeId, page = 0, size = 10) {
+            const response = await API.request(`/academics/resources/college/${collegeId}?page=${page}&size=${size}`);
+            return response.data;
+        },
+        
+        /**
+         * Search resources by title with pagination
+         * @param {string} keyword - Search keyword
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to search results
+         */
+        search: async function(keyword, page = 0, size = 10) {
+            const response = await API.request(`/academics/resources/search?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`);
+            return response.data;
+        },
+        
+        /**
+         * Search resources by title and course ID with pagination
+         * @param {string} keyword - Search keyword
+         * @param {number} courseId - Course ID
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to search results
+         */
+        searchByCourse: async function(keyword, courseId, page = 0, size = 10) {
+            const response = await API.request(`/academics/resources/search/course/${courseId}?keyword=${encodeURIComponent(keyword)}&page=${page}&size=${size}`);
+            return response.data;
+        },
+        
+        /**
+         * Get filtered resources
+         * @param {Object} filters - Filter criteria
+         * @param {number} page - Page number
+         * @param {number} size - Page size
+         * @returns {Promise} Promise resolving to filtered resources data
+         */
+        getFiltered: async function(filters, page = 0, size = 10) {
+            let url = `/academics/resources/filter?page=${page}&size=${size}`;
+            
+            if (filters.courseId) {
+                url += `&courseId=${filters.courseId}`;
+            }
+            
+            if (filters.departmentId) {
+                url += `&departmentId=${filters.departmentId}`;
+            }
+            
+            if (filters.facultyId) {
+                url += `&facultyId=${filters.facultyId}`;
+            }
+            
+            if (filters.collegeId) {
+                url += `&collegeId=${filters.collegeId}`;
+            }
+            
+            if (filters.keyword) {
+                url += `&keyword=${encodeURIComponent(filters.keyword)}`;
+            }
+            
+            const response = await API.request(url);
+            return response.data;
         }
     }
 };

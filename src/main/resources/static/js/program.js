@@ -326,11 +326,12 @@ const Program = {
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${program.id}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${program.programName}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${program.department ? program.department.departmentName : 'N/A'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${program.department && program.department.faculty ? program.department.faculty.facultyName : 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${program.departmentName || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${program.facultyName || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <button class="text-primary hover:text-primary-dark mr-2 edit-program" data-id="${program.id}">Edit</button>
                     <button class="text-red-600 hover:text-red-800 delete-program" data-id="${program.id}">Delete</button>
+                    <button class="text-blue-600 hover:text-blue-800 ml-2 view-courses" data-id="${program.id}">View Courses</button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -338,6 +339,7 @@ const Program = {
             // Add event listeners
             row.querySelector('.edit-program').addEventListener('click', () => this.handleEditProgram(program.id));
             row.querySelector('.delete-program').addEventListener('click', () => this.handleDeleteProgram(program.id));
+            row.querySelector('.view-courses').addEventListener('click', () => this.handleViewCourses(program.id));
         });
     },
 

@@ -23,6 +23,7 @@ import java.util.List;
 /**
  * REST controller for managing Quiz entities.
  */
+
 @RestController
 @RequestMapping("/api/v1/quizzes")
 @RequiredArgsConstructor

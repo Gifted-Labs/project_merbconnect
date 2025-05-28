@@ -287,7 +287,7 @@ const Faculty = {
             row.innerHTML = `
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${faculty.id}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${faculty.facultyName}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${faculty.college ? faculty.college.collegeName : 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">${faculty.collegeName || 'N/A'}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     <button class="text-primary hover:text-primary-dark mr-2 edit-faculty" data-id="${faculty.id}">Edit</button>
                     <button class="text-red-600 hover:text-red-800 delete-faculty" data-id="${faculty.id}">Delete</button>

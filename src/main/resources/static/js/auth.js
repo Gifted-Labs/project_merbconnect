@@ -219,18 +219,35 @@ const Auth = {
             Utils.showLoading();
 
             // Load counts
-            const [colleges, faculties, departments, programs] = await Promise.all([
+            const [colleges, faculties, departments, programs, courses] = await Promise.all([
                 API.college.getAll(),
                 API.faculty.getAll(),
                 API.department.getAll(),
-                API.program.getAll()
+                API.program.getAll(),
+                API.course.getAll()
             ]);
 
-            // Update dashboard counts
-            document.getElementById('college-count').textContent = colleges.length;
-            document.getElementById('faculty-count').textContent = faculties.length;
-            document.getElementById('department-count').textContent = departments.length;
-            document.getElementById('program-count').textContent = programs.length;
+            console.log("Dashboard data loaded:", { colleges, faculties, departments, programs, courses });
+
+            // Update dashboard counts - handle different response formats
+            document.getElementById('college-count').textContent = 
+                colleges.data ? (Array.isArray(colleges.data) ? colleges.data.length : 0) : 0;
+            
+            document.getElementById('faculty-count').textContent = 
+                faculties.data ? (Array.isArray(faculties.data) ? faculties.data.length : 0) : 0;
+            
+            document.getElementById('department-count').textContent = 
+                departments.data ? (Array.isArray(departments.data) ? departments.data.length : 0) : 0;
+            
+            document.getElementById('program-count').textContent = 
+                programs.data ? (Array.isArray(programs.data) ? programs.data.length : 0) : 0;
+            
+            // Add course count to dashboard
+            const courseCountElement = document.getElementById('course-count');
+            if (courseCountElement) {
+                courseCountElement.textContent = 
+                    courses.data ? (Array.isArray(courses.data) ? courses.data.length : 0) : 0;
+            }
 
             Utils.hideLoading();
         } catch (error) {

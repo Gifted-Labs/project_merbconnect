@@ -160,19 +160,49 @@ const App = {
         try {
             Utils.showLoading();
             
-            // Load counts
-            const [colleges, faculties, departments, programs] = await Promise.all([
-                API.college.getAll(),
-                API.faculty.getAll(),
-                API.department.getAll(),
-                API.program.getAll()
-            ]);
+            // Simple sequential loading of each entity type
+            const collegesResponse = await API.college.getAll();
+            const facultiesResponse = await API.faculty.getAll();
+            const departmentsResponse = await API.department.getAll();
+            const programsResponse = await API.program.getAll();
+            const coursesResponse = await API.course.getAll();
+            const resourcesResponse = await API.resource.getAll();
+            
+            console.log("Dashboard data loaded:", {
+                colleges: collegesResponse,
+                faculties: facultiesResponse,
+                departments: departmentsResponse,
+                programs: programsResponse,
+                courses: coursesResponse,
+                resources: resourcesResponse
+            });
             
             // Update dashboard counts
-            document.getElementById('college-count').textContent = colleges.length;
-            document.getElementById('faculty-count').textContent = faculties.length;
-            document.getElementById('department-count').textContent = departments.length;
-            document.getElementById('program-count').textContent = programs.length;
+            document.getElementById('college-count').textContent = 
+                collegesResponse && collegesResponse.data ? collegesResponse.data.length : 0;
+            
+            document.getElementById('faculty-count').textContent = 
+                facultiesResponse && facultiesResponse.data ? facultiesResponse.data.length : 0;
+            
+            document.getElementById('department-count').textContent = 
+                departmentsResponse && departmentsResponse.data ? departmentsResponse.data.length : 0;
+            
+            document.getElementById('program-count').textContent = 
+                programsResponse && programsResponse.data ? programsResponse.data.length : 0;
+            
+            // Update course count
+            const courseCountElement = document.getElementById('course-count');
+            if (courseCountElement) {
+                courseCountElement.textContent = 
+                    coursesResponse && coursesResponse.data ? coursesResponse.data.length : 0;
+            }
+            
+            // Update resource count
+            const resourceCountElement = document.getElementById('resource-count');
+            if (resourceCountElement) {
+                resourceCountElement.textContent = 
+                    resourcesResponse && resourcesResponse.data ? resourcesResponse.data.length : 0;
+            }
             
             Utils.hideLoading();
         } catch (error) {
