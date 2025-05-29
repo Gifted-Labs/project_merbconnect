@@ -5,16 +5,16 @@
 const Quiz = {
     // Current page for pagination
     currentPage: 0,
-    
+
     // Page size for pagination
     pageSize: 10,
-    
+
     // Total number of pages
     totalPages: 0,
-    
+
     // Current quiz being edited
     currentQuiz: null,
-    
+
     // Current filters
     filters: {},
 
@@ -45,7 +45,7 @@ const Quiz = {
     showQuizSection: function() {
         // Navigate to quiz page
         window.App.navigateTo('quiz');
-        
+
         // Render quiz section
         this.renderQuizSection();
     },
@@ -172,7 +172,7 @@ const Quiz = {
 
         // Load filter options
         this.loadFilterOptions();
-        
+
         // Load quizzes
         this.loadQuizzes();
     },
@@ -185,7 +185,7 @@ const Quiz = {
             // Load years
             const yearsResponse = await API.quiz.getDistinctYears();
             const yearFilter = document.getElementById('year-filter');
-            
+
             if (yearsResponse && yearsResponse.success && yearsResponse.data) {
                 yearsResponse.data.forEach(year => {
                     const option = document.createElement('option');
@@ -194,11 +194,11 @@ const Quiz = {
                     yearFilter.appendChild(option);
                 });
             }
-            
+
             // Load courses
             const coursesResponse = await API.course.getAll();
             const courseFilter = document.getElementById('course-filter');
-            
+
             if (coursesResponse && coursesResponse.success && coursesResponse.data) {
                 coursesResponse.data.forEach(course => {
                     const option = document.createElement('option');
@@ -218,28 +218,28 @@ const Quiz = {
     loadQuizzes: async function() {
         try {
             Utils.showLoading();
-            
+
             let response;
             if (Object.keys(this.filters).length > 0) {
                 response = await API.quiz.getFiltered(this.filters, this.currentPage, this.pageSize);
             } else {
                 response = await API.quiz.getPaginated(this.currentPage, this.pageSize);
             }
-            
+
             Utils.hideLoading();
-            
+
             if (!response || !response.success) {
                 console.error("Invalid response format:", response);
                 this.renderEmptyQuizzes("Error: Unexpected API response format");
                 return;
             }
-            
+
             // Update pagination info
             this.totalPages = response.data.totalPages || 0;
-            
+
             // Render quizzes
             this.renderQuizzes(response.data.content || []);
-            
+
             // Render pagination
             this.renderPagination();
         } catch (error) {
@@ -260,7 +260,7 @@ const Quiz = {
                 <td colspan="8" class="px-6 py-4 text-center text-gray-500">${message || 'No quizzes found'}</td>
             </tr>
         `;
-        
+
         // Hide pagination
         document.getElementById('quiz-pagination').innerHTML = '';
     },
@@ -272,12 +272,12 @@ const Quiz = {
     renderQuizzes: function(quizzes) {
         const tableBody = document.getElementById('quizzes-table-body');
         tableBody.innerHTML = '';
-        
+
         if (!quizzes || quizzes.length === 0) {
             this.renderEmptyQuizzes();
             return;
         }
-        
+
         quizzes.forEach(quiz => {
             const row = document.createElement('tr');
             row.className = 'hover:bg-gray-50';
@@ -294,15 +294,17 @@ const Quiz = {
                     <button class="text-red-600 hover:text-red-800 delete-quiz" data-id="${quiz.id}">Delete</button>
                     <button class="text-blue-600 hover:text-blue-800 ml-2 view-quiz" data-id="${quiz.id}">View</button>
                     <button class="text-green-600 hover:text-green-800 ml-2 add-questions" data-id="${quiz.id}">Add Questions</button>
+                    <button class="text-purple-600 hover:text-purple-800 ml-2 take-quiz" data-id="${quiz.id}">Take Quiz</button>
                 </td>
             `;
             tableBody.appendChild(row);
-            
+
             // Add event listeners
             row.querySelector('.edit-quiz').addEventListener('click', () => this.handleEditQuiz(quiz.id));
             row.querySelector('.delete-quiz').addEventListener('click', () => this.handleDeleteQuiz(quiz.id));
             row.querySelector('.view-quiz').addEventListener('click', () => this.handleViewQuiz(quiz.id));
             row.querySelector('.add-questions').addEventListener('click', () => this.handleAddQuestions(quiz.id));
+            row.querySelector('.take-quiz').addEventListener('click', () => this.handleTakeQuiz(quiz.id));
         });
     },
 
@@ -312,16 +314,16 @@ const Quiz = {
     renderPagination: function() {
         const paginationContainer = document.getElementById('quiz-pagination');
         paginationContainer.innerHTML = '';
-        
+
         if (this.totalPages <= 1) {
             return;
         }
-        
+
         const pagination = Utils.createPagination(this.currentPage, this.totalPages, (page) => {
             this.currentPage = page;
             this.loadQuizzes();
         });
-        
+
         paginationContainer.appendChild(pagination);
     },
 
@@ -331,22 +333,22 @@ const Quiz = {
     showCreateQuizForm: async function() {
         try {
             Utils.showLoading();
-            
+
             // Load courses for dropdown
             const courses = await API.course.getAll();
-            
+
             Utils.hideLoading();
-            
+
             let courseOptions = '';
             if (courses && courses.data) {
                 courses.data.forEach(course => {
                     courseOptions += `<option value="${course.id}">${course.courseCode} - ${course.title}</option>`;
                 });
             }
-            
+
             // Get current year for default value
             const currentYear = new Date().getFullYear();
-            
+
             Swal.fire({
                 title: 'Create Quiz',
                 html: `
@@ -406,32 +408,32 @@ const Quiz = {
                     const quizType = document.getElementById('quiz-type').value;
                     const difficultyLevel = document.getElementById('quiz-difficulty').value;
                     const yearGiven = document.getElementById('quiz-year').value;
-                    
+
                     if (!title) {
                         Swal.showValidationMessage('Title is required');
                         return false;
                     }
-                    
+
                     if (!courseId) {
                         Swal.showValidationMessage('Course is required');
                         return false;
                     }
-                    
+
                     if (!quizType) {
                         Swal.showValidationMessage('Quiz type is required');
                         return false;
                     }
-                    
+
                     if (!difficultyLevel) {
                         Swal.showValidationMessage('Difficulty level is required');
                         return false;
                     }
-                    
+
                     if (!yearGiven || yearGiven < 1900 || yearGiven > 2100) {
                         Swal.showValidationMessage('Valid year between 1900 and 2100 is required');
                         return false;
                     }
-                    
+
                     // Create quiz object
                     return {
                         title: title,
@@ -465,17 +467,17 @@ const Quiz = {
         try {
             console.log('Creating quiz with data:', quizData);
             Utils.showLoading();
-            
+
             const response = await API.quiz.create(quizData);
-            
+
             Utils.hideLoading();
-            
+
             console.log('Create quiz response:', response);
-            
+
             if (response && response.success) {
                 Utils.showSuccessToast('Quiz created successfully');
                 this.loadQuizzes();
-                
+
                 // Ask if user wants to add questions now
                 Swal.fire({
                     title: 'Add Questions?',
@@ -507,23 +509,23 @@ const Quiz = {
         try {
             console.log('Editing quiz with ID:', quizId);
             Utils.showLoading();
-            
+
             // Load quiz details
             const quizResponse = await API.quiz.getById(quizId);
-            
+
             // Load courses for dropdown
             const coursesResponse = await API.course.getAll();
-            
+
             Utils.hideLoading();
-            
+
             if (!quizResponse || !quizResponse.success) {
                 Utils.showErrorToast('Failed to load quiz details');
                 return;
             }
-            
+
             const quiz = quizResponse.data;
             console.log('Loaded quiz for editing:', quiz);
-            
+
             let courseOptions = '';
             if (coursesResponse && coursesResponse.success && coursesResponse.data) {
                 coursesResponse.data.forEach(course => {
@@ -531,7 +533,7 @@ const Quiz = {
                     courseOptions += `<option value="${course.id}" ${selected}>${course.courseCode} - ${course.title}</option>`;
                 });
             }
-            
+
             Swal.fire({
                 title: 'Edit Quiz',
                 html: `
@@ -591,32 +593,32 @@ const Quiz = {
                     const quizType = document.getElementById('quiz-type').value;
                     const difficultyLevel = document.getElementById('quiz-difficulty').value;
                     const yearGiven = document.getElementById('quiz-year').value;
-                    
+
                     if (!title) {
                         Swal.showValidationMessage('Title is required');
                         return false;
                     }
-                    
+
                     if (!courseId) {
                         Swal.showValidationMessage('Course is required');
                         return false;
                     }
-                    
+
                     if (!quizType) {
                         Swal.showValidationMessage('Quiz type is required');
                         return false;
                     }
-                    
+
                     if (!difficultyLevel) {
                         Swal.showValidationMessage('Difficulty level is required');
                         return false;
                     }
-                    
+
                     if (!yearGiven || yearGiven < 1900 || yearGiven > 2100) {
                         Swal.showValidationMessage('Valid year between 1900 and 2100 is required');
                         return false;
                     }
-                    
+
                     // Create quiz object
                     return {
                         title: title,
@@ -650,13 +652,13 @@ const Quiz = {
         try {
             console.log('Updating quiz with ID:', quizId, 'and data:', quizData);
             Utils.showLoading();
-            
+
             const response = await API.quiz.update(quizId, quizData);
-            
+
             Utils.hideLoading();
-            
+
             console.log('Update quiz response:', response);
-            
+
             if (response && response.success) {
                 Utils.showSuccessToast('Quiz updated successfully');
                 this.loadQuizzes();
@@ -700,13 +702,13 @@ const Quiz = {
         try {
             console.log('Deleting quiz with ID:', quizId);
             Utils.showLoading();
-            
+
             const response = await API.quiz.delete(quizId);
-            
+
             Utils.hideLoading();
-            
+
             console.log('Delete quiz response:', response);
-            
+
             if (response && response.success) {
                 Utils.showSuccessToast('Quiz deleted successfully');
                 this.loadQuizzes();
@@ -728,20 +730,20 @@ const Quiz = {
         try {
             console.log('Viewing quiz with ID:', quizId);
             Utils.showLoading();
-            
+
             const response = await API.quiz.getById(quizId);
-            
+
             Utils.hideLoading();
-            
+
             console.log('View quiz response:', response);
-            
+
             if (!response || !response.success) {
                 Utils.showErrorToast('Failed to load quiz details');
                 return;
             }
-            
+
             const quiz = response.data;
-            
+
             // Generate HTML for questions
             let questionsHtml = '';
             if (quiz.questions && quiz.questions.length > 0) {
@@ -750,7 +752,7 @@ const Quiz = {
                         <h3 class="text-lg font-semibold mb-2">Questions (${quiz.questions.length})</h3>
                         <div class="space-y-4">
                 `;
-                
+
                 quiz.questions.forEach((question, index) => {
                     let optionsHtml = '';
                     if (question.possibleAnswers && question.possibleAnswers.length > 0) {
@@ -765,7 +767,7 @@ const Quiz = {
                         });
                         optionsHtml += '</ul>';
                     }
-                    
+
                     questionsHtml += `
                         <div class="p-3 border rounded">
                             <p class="font-medium">Q${index + 1}: ${question.questionText}</p>
@@ -773,12 +775,12 @@ const Quiz = {
                         </div>
                     `;
                 });
-                
+
                 questionsHtml += '</div></div>';
             } else {
                 questionsHtml = '<p class="mt-4 text-gray-500">No questions added to this quiz yet.</p>';
             }
-            
+
             // Show quiz details
             const quizDetails = `
                 <div class="text-left">
@@ -791,7 +793,7 @@ const Quiz = {
                     ${questionsHtml}
                 </div>
             `;
-            
+
             Swal.fire({
                 title: 'Quiz Details',
                 html: quizDetails,
@@ -815,20 +817,20 @@ const Quiz = {
         try {
             console.log('Adding questions to quiz with ID:', quizId);
             Utils.showLoading();
-            
+
             // Load quiz details
             const response = await API.quiz.getById(quizId);
-            
+
             Utils.hideLoading();
-            
+
             if (!response || !response.success) {
                 Utils.showErrorToast('Failed to load quiz details');
                 return;
             }
-            
+
             const quiz = response.data;
             console.log('Loaded quiz for adding questions:', quiz);
-            
+
             // Create a form for adding questions
             Swal.fire({
                 title: 'Add Questions to Quiz',
@@ -1165,6 +1167,506 @@ const Quiz = {
 
         // Load quizzes without filters
         this.loadQuizzes();
+    },
+
+    /**
+     * Handle take quiz button click
+     * @param {number} quizId - Quiz ID
+     */
+    handleTakeQuiz: async function(quizId) {
+        try {
+            console.log('Taking quiz with ID:', quizId);
+            Utils.showLoading();
+
+            const response = await API.quiz.getById(quizId);
+
+            Utils.hideLoading();
+
+            if (!response || !response.success) {
+                Utils.showErrorToast('Failed to load quiz');
+                return;
+            }
+
+            const quiz = response.data;
+
+            if (!quiz.questions || quiz.questions.length === 0) {
+                Utils.showErrorToast('This quiz has no questions yet');
+                return;
+            }
+
+            // Initialize quiz taking session
+            this.initializeQuizTaking(quiz);
+        } catch (error) {
+            Utils.hideLoading();
+            console.error('Error loading quiz for taking:', error);
+            Utils.showErrorToast('Failed to load quiz');
+        }
+    },
+
+    /**
+     * Initialize quiz taking session
+     * @param {Object} quiz - Quiz object with questions
+     */
+    initializeQuizTaking: function(quiz) {
+        // Quiz taking state
+        this.quizSession = {
+            quiz: quiz,
+            currentQuestionIndex: 0,
+            answers: {},
+            startTime: new Date(),
+            timeLimit: 30 * 60 * 1000, // 30 minutes in milliseconds
+            timer: null
+        };
+
+        // Navigate to quiz taking interface
+        window.App.navigateTo('quiz-taking');
+
+        // Render quiz taking interface
+        this.renderQuizTakingInterface();
+
+        // Start timer
+        this.startQuizTimer();
+    },
+
+    /**
+     * Render quiz taking interface
+     */
+    renderQuizTakingInterface: function() {
+        const container = document.getElementById('quiz-taking-container');
+        const quiz = this.quizSession.quiz;
+        const totalQuestions = quiz.questions.length;
+
+        container.innerHTML = `
+            <div class="max-w-4xl mx-auto">
+                <!-- Quiz Header -->
+                <div class="bg-white rounded-2xl shadow-apple-md p-6 mb-6 border border-gray-100">
+                    <div class="flex justify-between items-center mb-4">
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">${quiz.title}</h1>
+                            <p class="text-gray-600">${quiz.course ? quiz.course.courseCode + ' - ' + quiz.course.title : 'General Quiz'}</p>
+                        </div>
+                        <div class="text-right">
+                            <div id="quiz-timer" class="quiz-timer">30:00</div>
+                            <p class="text-sm text-gray-600 mt-1">Time Remaining</p>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-4">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Question <span id="current-question-num">1</span> of ${totalQuestions}</span>
+                            <span id="progress-percentage">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progress-bar" class="quiz-progress-bar h-2 rounded-full" style="width: ${(1/totalQuestions)*100}%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Question Card -->
+                <div id="question-card" class="quiz-question-card p-8 mb-6">
+                    <!-- Question content will be rendered here -->
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between items-center">
+                    <button id="prev-question" class="btn btn-outline" disabled>
+                        <i class="fas fa-chevron-left mr-2"></i> Previous
+                    </button>
+
+                    <div class="flex space-x-2">
+                        <button id="flag-question" class="btn btn-ghost">
+                            <i class="fas fa-flag mr-2"></i> Flag
+                        </button>
+                        <button id="review-answers" class="btn btn-outline">
+                            <i class="fas fa-list mr-2"></i> Review
+                        </button>
+                    </div>
+
+                    <button id="next-question" class="btn btn-primary">
+                        Next <i class="fas fa-chevron-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Add event listeners
+        document.getElementById('prev-question').addEventListener('click', () => this.previousQuestion());
+        document.getElementById('next-question').addEventListener('click', () => this.nextQuestion());
+        document.getElementById('flag-question').addEventListener('click', () => this.toggleQuestionFlag());
+        document.getElementById('review-answers').addEventListener('click', () => this.showReviewModal());
+
+        // Render first question
+        this.renderCurrentQuestion();
+    },
+
+    /**
+     * Render current question
+     */
+    renderCurrentQuestion: function() {
+        const questionCard = document.getElementById('question-card');
+        const quiz = this.quizSession.quiz;
+        const currentIndex = this.quizSession.currentQuestionIndex;
+        const question = quiz.questions[currentIndex];
+        const totalQuestions = quiz.questions.length;
+
+        // Update progress
+        document.getElementById('current-question-num').textContent = currentIndex + 1;
+        document.getElementById('progress-percentage').textContent = Math.round(((currentIndex + 1) / totalQuestions) * 100) + '%';
+        document.getElementById('progress-bar').style.width = ((currentIndex + 1) / totalQuestions) * 100 + '%';
+
+        // Update navigation buttons
+        document.getElementById('prev-question').disabled = currentIndex === 0;
+        const nextBtn = document.getElementById('next-question');
+        if (currentIndex === totalQuestions - 1) {
+            nextBtn.innerHTML = 'Submit Quiz <i class="fas fa-check ml-2"></i>';
+            nextBtn.className = 'btn btn-secondary';
+        } else {
+            nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right ml-2"></i>';
+            nextBtn.className = 'btn btn-primary';
+        }
+
+        // Render question
+        let optionsHtml = '';
+        if (question.possibleAnswers && question.possibleAnswers.length > 0) {
+            question.possibleAnswers.forEach((option, index) => {
+                const isSelected = this.quizSession.answers[currentIndex] === option;
+                optionsHtml += `
+                    <div class="quiz-option ${isSelected ? 'selected' : ''}" data-option="${option}">
+                        <div class="flex items-center">
+                            <div class="w-6 h-6 rounded-full border-2 border-current flex items-center justify-center mr-4 flex-shrink-0">
+                                <div class="w-3 h-3 rounded-full bg-current ${isSelected ? 'opacity-100' : 'opacity-0'} transition-opacity duration-200"></div>
+                            </div>
+                            <span class="text-gray-900">${option}</span>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        questionCard.innerHTML = `
+            <div class="mb-6">
+                <h2 class="text-xl font-semibold text-gray-900 mb-4">
+                    Question ${currentIndex + 1}
+                </h2>
+                <p class="text-gray-800 text-lg leading-relaxed">${question.questionText}</p>
+            </div>
+
+            <div class="space-y-3">
+                ${optionsHtml}
+            </div>
+        `;
+
+        // Add click handlers for options
+        questionCard.querySelectorAll('.quiz-option').forEach(option => {
+            option.addEventListener('click', () => {
+                const selectedOption = option.dataset.option;
+                this.selectAnswer(currentIndex, selectedOption);
+
+                // Update UI
+                questionCard.querySelectorAll('.quiz-option').forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+            });
+        });
+    },
+
+    /**
+     * Select answer for current question
+     * @param {number} questionIndex - Question index
+     * @param {string} answer - Selected answer
+     */
+    selectAnswer: function(questionIndex, answer) {
+        this.quizSession.answers[questionIndex] = answer;
+    },
+
+    /**
+     * Go to previous question
+     */
+    previousQuestion: function() {
+        if (this.quizSession.currentQuestionIndex > 0) {
+            this.quizSession.currentQuestionIndex--;
+            this.renderCurrentQuestion();
+        }
+    },
+
+    /**
+     * Go to next question or submit quiz
+     */
+    nextQuestion: function() {
+        const totalQuestions = this.quizSession.quiz.questions.length;
+
+        if (this.quizSession.currentQuestionIndex < totalQuestions - 1) {
+            this.quizSession.currentQuestionIndex++;
+            this.renderCurrentQuestion();
+        } else {
+            this.submitQuiz();
+        }
+    },
+
+    /**
+     * Start quiz timer
+     */
+    startQuizTimer: function() {
+        const timerElement = document.getElementById('quiz-timer');
+
+        this.quizSession.timer = setInterval(() => {
+            const elapsed = new Date() - this.quizSession.startTime;
+            const remaining = Math.max(0, this.quizSession.timeLimit - elapsed);
+
+            if (remaining === 0) {
+                this.submitQuiz();
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+
+            timerElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+            // Add warning class when less than 5 minutes
+            if (remaining < 5 * 60 * 1000) {
+                timerElement.classList.add('warning');
+            }
+        }, 1000);
+    },
+
+    /**
+     * Submit quiz
+     */
+    submitQuiz: function() {
+        // Clear timer
+        if (this.quizSession.timer) {
+            clearInterval(this.quizSession.timer);
+        }
+
+        // Calculate results
+        const quiz = this.quizSession.quiz;
+        const answers = this.quizSession.answers;
+        let correctAnswers = 0;
+        const totalQuestions = quiz.questions.length;
+        const results = [];
+
+        quiz.questions.forEach((question, index) => {
+            const userAnswer = answers[index];
+            const correctAnswer = question.correctAnswer;
+            const isCorrect = userAnswer === correctAnswer;
+
+            if (isCorrect) {
+                correctAnswers++;
+            }
+
+            results.push({
+                question: question,
+                userAnswer: userAnswer,
+                correctAnswer: correctAnswer,
+                isCorrect: isCorrect
+            });
+        });
+
+        const score = Math.round((correctAnswers / totalQuestions) * 100);
+        const endTime = new Date();
+        const timeTaken = Math.round((endTime - this.quizSession.startTime) / 1000);
+
+        // Show results
+        this.showQuizResults({
+            quiz: quiz,
+            results: results,
+            score: score,
+            correctAnswers: correctAnswers,
+            totalQuestions: totalQuestions,
+            timeTaken: timeTaken
+        });
+    },
+
+    /**
+     * Show quiz results
+     * @param {Object} resultData - Quiz result data
+     */
+    showQuizResults: function(resultData) {
+        // Navigate to results container
+        window.App.navigateTo('quiz-results');
+
+        const container = document.getElementById('quiz-results-container');
+        const { quiz, results, score, correctAnswers, totalQuestions, timeTaken } = resultData;
+
+        // Determine grade and color
+        let grade, gradeColor;
+        if (score >= 90) {
+            grade = 'A';
+            gradeColor = 'text-green-600';
+        } else if (score >= 80) {
+            grade = 'B';
+            gradeColor = 'text-blue-600';
+        } else if (score >= 70) {
+            grade = 'C';
+            gradeColor = 'text-yellow-600';
+        } else if (score >= 60) {
+            grade = 'D';
+            gradeColor = 'text-orange-600';
+        } else {
+            grade = 'F';
+            gradeColor = 'text-red-600';
+        }
+
+        const minutes = Math.floor(timeTaken / 60);
+        const seconds = timeTaken % 60;
+
+        container.innerHTML = `
+            <div class="max-w-4xl mx-auto">
+                <!-- Results Header -->
+                <div class="bg-white rounded-2xl shadow-apple-md p-8 mb-6 border border-gray-100 text-center">
+                    <div class="w-20 h-20 mx-auto mb-4 bg-primary/10 rounded-full flex items-center justify-center">
+                        <i class="fas fa-trophy text-primary text-2xl"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Quiz Completed!</h1>
+                    <p class="text-gray-600 mb-6">${quiz.title}</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                        <div class="text-center">
+                            <div class="text-3xl font-bold ${gradeColor} mb-1">${grade}</div>
+                            <div class="text-sm text-gray-600">Grade</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-gray-900 mb-1">${score}%</div>
+                            <div class="text-sm text-gray-600">Score</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-gray-900 mb-1">${correctAnswers}/${totalQuestions}</div>
+                            <div class="text-sm text-gray-600">Correct</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-bold text-gray-900 mb-1">${minutes}:${seconds.toString().padStart(2, '0')}</div>
+                            <div class="text-sm text-gray-600">Time</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Results -->
+                <div class="bg-white rounded-2xl shadow-apple-md p-6 mb-6 border border-gray-100">
+                    <h2 class="text-xl font-semibold text-gray-900 mb-6">Review Answers</h2>
+                    <div class="space-y-6">
+                        ${results.map((result, index) => `
+                            <div class="border-l-4 ${result.isCorrect ? 'border-green-500' : 'border-red-500'} pl-4">
+                                <div class="flex items-start justify-between mb-2">
+                                    <h3 class="font-medium text-gray-900">Question ${index + 1}</h3>
+                                    <span class="text-sm ${result.isCorrect ? 'text-green-600' : 'text-red-600'} font-medium">
+                                        ${result.isCorrect ? 'Correct' : 'Incorrect'}
+                                    </span>
+                                </div>
+                                <p class="text-gray-700 mb-3">${result.question.questionText}</p>
+                                <div class="space-y-2">
+                                    <div class="text-sm">
+                                        <span class="font-medium text-gray-600">Your answer:</span>
+                                        <span class="${result.isCorrect ? 'text-green-600' : 'text-red-600'}">${result.userAnswer || 'Not answered'}</span>
+                                    </div>
+                                    ${!result.isCorrect ? `
+                                        <div class="text-sm">
+                                            <span class="font-medium text-gray-600">Correct answer:</span>
+                                            <span class="text-green-600">${result.correctAnswer}</span>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-center space-x-4">
+                    <button id="retake-quiz" class="btn btn-primary">
+                        <i class="fas fa-redo mr-2"></i> Retake Quiz
+                    </button>
+                    <button id="back-to-quizzes" class="btn btn-outline">
+                        <i class="fas fa-arrow-left mr-2"></i> Back to Quizzes
+                    </button>
+                </div>
+            </div>
+        `;
+
+        // Add event listeners
+        document.getElementById('retake-quiz').addEventListener('click', () => {
+            this.initializeQuizTaking(quiz);
+        });
+
+        document.getElementById('back-to-quizzes').addEventListener('click', () => {
+            window.App.navigateTo('quiz');
+        });
+    },
+
+    /**
+     * Toggle question flag
+     */
+    toggleQuestionFlag: function() {
+        // Implementation for flagging questions for review
+        const flagBtn = document.getElementById('flag-question');
+        const currentIndex = this.quizSession.currentQuestionIndex;
+
+        if (!this.quizSession.flaggedQuestions) {
+            this.quizSession.flaggedQuestions = new Set();
+        }
+
+        if (this.quizSession.flaggedQuestions.has(currentIndex)) {
+            this.quizSession.flaggedQuestions.delete(currentIndex);
+            flagBtn.innerHTML = '<i class="fas fa-flag mr-2"></i> Flag';
+            flagBtn.classList.remove('text-orange-600');
+        } else {
+            this.quizSession.flaggedQuestions.add(currentIndex);
+            flagBtn.innerHTML = '<i class="fas fa-flag mr-2"></i> Flagged';
+            flagBtn.classList.add('text-orange-600');
+        }
+    },
+
+    /**
+     * Show review modal
+     */
+    showReviewModal: function() {
+        const quiz = this.quizSession.quiz;
+        const answers = this.quizSession.answers;
+        const flagged = this.quizSession.flaggedQuestions || new Set();
+
+        let reviewHtml = '';
+        quiz.questions.forEach((question, index) => {
+            const answered = answers.hasOwnProperty(index);
+            const isFlagged = flagged.has(index);
+
+            reviewHtml += `
+                <div class="flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:bg-gray-50" data-question="${index}">
+                    <div class="flex items-center space-x-3">
+                        <span class="w-8 h-8 rounded-full ${answered ? 'bg-green-100 text-green-600' : 'bg-gray-100 text-gray-400'} flex items-center justify-center text-sm font-medium">
+                            ${index + 1}
+                        </span>
+                        <span class="text-gray-900">Question ${index + 1}</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        ${isFlagged ? '<i class="fas fa-flag text-orange-500"></i>' : ''}
+                        ${answered ? '<i class="fas fa-check text-green-500"></i>' : '<i class="fas fa-circle text-gray-300"></i>'}
+                    </div>
+                </div>
+            `;
+        });
+
+        Swal.fire({
+            title: 'Review Questions',
+            html: `
+                <div class="text-left space-y-2 max-h-96 overflow-y-auto">
+                    ${reviewHtml}
+                </div>
+            `,
+            showCloseButton: true,
+            showConfirmButton: false,
+            width: '600px',
+            didOpen: () => {
+                // Add click handlers for question navigation
+                document.querySelectorAll('[data-question]').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const questionIndex = parseInt(item.dataset.question);
+                        this.quizSession.currentQuestionIndex = questionIndex;
+                        this.renderCurrentQuestion();
+                        Swal.close();
+                    });
+                });
+            }
+        });
     }
 };
 

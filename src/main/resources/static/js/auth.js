@@ -71,27 +71,99 @@ const Auth = {
      * Show authenticated UI
      */
     showAuthenticatedUI: function() {
-        document.getElementById('auth-container').classList.add('hidden');
-        document.getElementById('main-nav').classList.remove('hidden');
-        document.getElementById('mobile-menu-btn').classList.remove('hidden');
-        document.getElementById('dashboard-container').classList.remove('hidden');
+        console.log('showAuthenticatedUI called');
 
-        // Load dashboard data
-        this.loadDashboardData();
+        // Hide auth container first
+        const authContainer = document.getElementById('auth-container');
+        if (authContainer) {
+            authContainer.classList.add('hidden');
+        }
+
+        // Use the App's setupNavigation method if available
+        if (window.App && window.App.setupNavigation) {
+            console.log('Using App.setupNavigation');
+            window.App.setupNavigation();
+        } else {
+            console.log('Using fallback UI handling');
+
+            // Show sidebar elements
+            const sidebar = document.getElementById('sidebar');
+            const mobileTopbar = document.getElementById('mobile-topbar');
+
+            if (sidebar) {
+                sidebar.classList.remove('hidden');
+                if (window.innerWidth >= 1024) {
+                    sidebar.classList.add('show');
+                }
+                console.log('Sidebar shown');
+            }
+            if (mobileTopbar) {
+                mobileTopbar.classList.remove('hidden');
+                console.log('Mobile topbar shown');
+            }
+
+            // Show dashboard
+            const dashboardContainer = document.getElementById('dashboard-container');
+            if (dashboardContainer) {
+                dashboardContainer.classList.remove('hidden');
+                console.log('Dashboard container shown');
+            }
+
+            // Update main content margin
+            if (window.App && window.App.updateMainContentMargin) {
+                window.App.updateMainContentMargin();
+            }
+
+            // Load dashboard data
+            if (window.App && window.App.loadDashboardData) {
+                window.App.loadDashboardData();
+            } else {
+                this.loadDashboardData();
+            }
+        }
     },
 
     /**
      * Show unauthenticated UI
      */
     showUnauthenticatedUI: function() {
+        // Show auth container
         document.getElementById('auth-container').classList.remove('hidden');
-        document.getElementById('main-nav').classList.add('hidden');
-        document.getElementById('mobile-menu-btn').classList.add('hidden');
-        document.getElementById('dashboard-container').classList.add('hidden');
-        document.getElementById('college-container').classList.add('hidden');
-        document.getElementById('faculty-container').classList.add('hidden');
-        document.getElementById('department-container').classList.add('hidden');
-        document.getElementById('program-container').classList.add('hidden');
+
+        // Hide sidebar elements
+        const sidebar = document.getElementById('sidebar');
+        const mobileTopbar = document.getElementById('mobile-topbar');
+
+        if (sidebar) {
+            sidebar.classList.add('hidden');
+            sidebar.classList.remove('show');
+        }
+        if (mobileTopbar) mobileTopbar.classList.add('hidden');
+
+        // Hide all content containers
+        const containers = [
+            'dashboard-container',
+            'college-container',
+            'faculty-container',
+            'department-container',
+            'program-container',
+            'course-container',
+            'resource-container',
+            'quiz-container',
+            'quiz-taking-container',
+            'quiz-results-container'
+        ];
+
+        containers.forEach(container => {
+            const element = document.getElementById(container);
+            if (element) element.classList.add('hidden');
+        });
+
+        // Reset main content margin
+        const mainWrapper = document.getElementById('main-wrapper');
+        if (mainWrapper) {
+            mainWrapper.classList.remove('sidebar-open', 'sidebar-collapsed');
+        }
     },
 
     /**
@@ -207,8 +279,9 @@ const Auth = {
     handleLogout: function() {
         API.auth.logout();
         localStorage.removeItem('user');
+        localStorage.removeItem('token');
         this.showUnauthenticatedUI();
-        Utils.showSuccess('Logout successful');
+        Utils.showSuccessToast('Logout successful');
     },
 
     /**
@@ -230,22 +303,22 @@ const Auth = {
             console.log("Dashboard data loaded:", { colleges, faculties, departments, programs, courses });
 
             // Update dashboard counts - handle different response formats
-            document.getElementById('college-count').textContent = 
+            document.getElementById('college-count').textContent =
                 colleges.data ? (Array.isArray(colleges.data) ? colleges.data.length : 0) : 0;
-            
-            document.getElementById('faculty-count').textContent = 
+
+            document.getElementById('faculty-count').textContent =
                 faculties.data ? (Array.isArray(faculties.data) ? faculties.data.length : 0) : 0;
-            
-            document.getElementById('department-count').textContent = 
+
+            document.getElementById('department-count').textContent =
                 departments.data ? (Array.isArray(departments.data) ? departments.data.length : 0) : 0;
-            
-            document.getElementById('program-count').textContent = 
+
+            document.getElementById('program-count').textContent =
                 programs.data ? (Array.isArray(programs.data) ? programs.data.length : 0) : 0;
-            
+
             // Add course count to dashboard
             const courseCountElement = document.getElementById('course-count');
             if (courseCountElement) {
-                courseCountElement.textContent = 
+                courseCountElement.textContent =
                     courses.data ? (Array.isArray(courses.data) ? courses.data.length : 0) : 0;
             }
 
@@ -259,7 +332,10 @@ const Auth = {
 
 // Initialize authentication module when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    Auth.init();
+    // Wait a bit to ensure App is loaded first
+    setTimeout(() => {
+        Auth.init();
+    }, 100);
 });
 
 // Export Auth object

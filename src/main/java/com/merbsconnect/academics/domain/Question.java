@@ -32,4 +32,15 @@ public class Question {
     @ManyToOne
     @JoinColumn(name="resource_id")
     private Resource referencedResource;
+    
+    // Add new fields for the question bank system
+    
+    private String difficultyLevel;
+    
+    @ElementCollection
+    private List<String> tags;
+    
+    // Metadata fields
+    private Integer usageCount;
+    private Double successRate;
 }
