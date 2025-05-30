@@ -13,6 +13,7 @@ import com.merbsconnect.authentication.security.CustomUserDetails;
 import com.merbsconnect.authentication.security.jwt.JwtService;
 import com.merbsconnect.authentication.service.AuthenticationService;
 import com.merbsconnect.authentication.service.RefreshTokenService;
+import com.merbsconnect.email.service.EmailService;
 import com.merbsconnect.enums.UserRole;
 import com.merbsconnect.exception.InvalidTokenException;
 import com.merbsconnect.exception.TokenExpiredException;
@@ -42,12 +43,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final PasswordEncoder passwordEncoder;
     private final RefreshTokenService refreshTokenService;
-
+    private final EmailService emailService;
 
     @Override
     @Transactional
     public MessageResponse registerUser(RegistrationRequest request) {
-
         // Check if the user already exists
         if (userRepository.existsByEmail(request.getEmail())) {
             return new MessageResponse("User already exists with this email");
@@ -69,12 +69,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .isEnabled(false)
                 .build();
 
-        String verificationToken = jwtService.generateVerificationToken(user.getEmail());
-
         // Save the user to the database
         userRepository.save(user);
+        
+        // Generate verification token
+        String verificationToken = jwtService.generateVerificationToken(user.getEmail());
+        
+        // Send verification email
+        emailService.sendVerificationEmail(user, verificationToken);
 
-        return new MessageResponse("User registered successfully! Verification token: " + verificationToken);
+        return new MessageResponse("User registered successfully! Please check your email to verify your account.");
     }
 
     @Override
@@ -139,9 +143,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         // Check if the user exists
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                
         // Generate a password reset token
         String passwordResetToken = jwtService.generateVerificationToken(user.getEmail());
-        return new MessageResponse("Password reset token: " + passwordResetToken);
+        
+        // Send password reset email
+        emailService.sendPasswordResetEmail(user, passwordResetToken);
+        
+        return new MessageResponse("Password reset instructions have been sent to your email.");
     }
 
 
