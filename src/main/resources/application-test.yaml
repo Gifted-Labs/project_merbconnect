@@ -1,0 +1,71 @@
+server:
+  port: 8080
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  mail:
+    host: localhost
+    port: 1025
+    username: test
+    password: test
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+          ssl:
+            enable: false
+
+app:
+  jwt:
+    secret: mySecretKey1234567890123456789012345678901234567890123456789012345678901234567890
+    expiration: 86400000
+    refresh-token-expiration: 604800000
+    issuer: merbsconnect-test
+  base-url: http://localhost:8080
+  email:
+    from: test@merbsconnect.com
+
+logging:
+  level:
+    com.merbsconnect: debug
+    org.springframework.security: debug
+    org.springframework.web: debug
+
+# Management endpoints for testing
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+    info:
+      enabled: true
+  health:
+    db:
+      enabled: true
+  info:
+    env:
+      enabled: true
