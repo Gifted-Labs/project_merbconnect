@@ -27,33 +27,53 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+        String requestPath = request.getServletPath();
+        log.debug("Processing request: {} {}", request.getMethod(), requestPath);
 
         // Skip filter for auth endpoints
-        if (request.getServletPath().startsWith("/api/v1/auth/")) {
+        if (requestPath.startsWith("/api/v1/auth/")) {
+            log.debug("Skipping JWT filter for auth endpoint: {}", requestPath);
             filterChain.doFilter(request, response);
             return;
         }
 
         try {
             String jwt = parseJwt(request);
-            if(jwt != null && jwtService.validateToken(jwt)){
-                String username = jwtService.getUsernameFromToken(jwt);
+            log.debug("Extracted JWT token: {}", jwt != null ? "Present" : "Missing");
 
-                UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authentication.setDetails(
-                        new WebAuthenticationDetailsSource().buildDetails(request)
-                );
+            if(jwt != null) {
+                log.debug("Validating JWT token...");
+                boolean isValid = jwtService.validateToken(jwt);
+                log.debug("JWT token validation result: {}", isValid);
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                if(isValid) {
+                    String username = jwtService.getUsernameFromToken(jwt);
+                    log.debug("Username from token: {}", username);
+
+                    UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
+                    log.debug("User details loaded for: {}, authorities: {}", username, userDetails.getAuthorities());
+
+                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request)
+                    );
+
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    log.debug("Authentication set in SecurityContext for user: {}", username);
+                } else {
+                    log.warn("JWT token validation failed for request: {}", requestPath);
+                }
+            } else {
+                log.debug("No JWT token found in request headers for: {}", requestPath);
             }
         }
         catch (Exception e){
-            log.error("Cannot set user authentication: {}", e.getMessage());
+            log.error("Cannot set user authentication for request {}: {}", requestPath, e.getMessage(), e);
+            SecurityContextHolder.clearContext();
         }
         filterChain.doFilter(request, response);
     }

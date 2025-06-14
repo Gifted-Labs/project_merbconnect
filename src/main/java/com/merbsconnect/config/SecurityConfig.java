@@ -73,14 +73,19 @@ public class SecurityConfig {
                         auth.requestMatchers("/api/v1/auth/**").permitAll()
                                 .requestMatchers("/api/v1/programs/**"
                                         , "/api/v1/faculties/**"
+                                        , "/api/v1/academics/colleges/**"
+                                        , "/api/v1/academics/faculties/**"
+                                        , "/api/v1/academics/departments/**"
+                                        , "/api/v1/academics/programs/**"
+                                        , "/api/v1/academics/courses/**"
                                         ,"/actuator/**"
                                         ,"/api/v1/colleges/**"
                                         ,"/api/v1/quizzes/**"
                                         ,"/api/v1/academics/resources/**"
                                         , "/api/v1/departments/**"
-                                        ,"/api/v1/courses"
+                                        ,"/api/v1/courses/**"
                                         ,"/api/v1/academics/reference-materials/**"
-                                        ,"/api/v1/resources/**").hasAnyRole("ADMIN", "USER")
+                                        ,"/api/v1/resources/**").permitAll()
                                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                                 .requestMatchers("/", "/index.html", "/admin.html", "/home.html", "/index.html/api/auth/**",
                                                 "/static/**", "/css/**", "/js/**", "/images/**",

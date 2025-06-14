@@ -76,14 +76,12 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             body.put("path", request.getServletPath());
             body.put("timestamp", System.currentTimeMillis());
 
-            // Write response
             objectMapper.writeValue(response.getOutputStream(), body);
 
         } catch (Exception e) {
-            // Handle any exceptions that might occur during error handling
             logger.error("Error during authentication failure handling", e.getMessage());
 
-            // Fallback to simpler response if JSON serialization fails
+
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.TEXT_PLAIN_VALUE);
             response.getWriter().write("Authentication failed");

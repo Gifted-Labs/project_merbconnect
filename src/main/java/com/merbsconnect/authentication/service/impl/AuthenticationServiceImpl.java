@@ -1,5 +1,6 @@
 package com.merbsconnect.authentication.service.impl;
 
+import com.merbsconnect.academics.util.ResourceMapper;
 import com.merbsconnect.authentication.domain.RefreshToken;
 import com.merbsconnect.authentication.domain.User;
 import com.merbsconnect.authentication.dto.request.LoginRequest;
@@ -97,18 +98,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
         String jwt = jwtService.generateToken(authentication);
-        String refreshToken = jwtService.generateVerificationToken(userDetails.getUsername());
+        String refreshToken = jwtService.generateTokenFromEmail(userDetails.getUsername());
 
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority).collect(Collectors.toList());
-
-        return JwtResponse.builder()
-                .token(jwt)
-                .refreshToken(refreshToken)
-                .id(userDetails.getId())
-                .username(userDetails.getUsername())
-                .roles(roles)
-                .build();
+        return ResourceMapper.toJwtResponse(userDetails, jwt, refreshToken);
     }
 
     @Override
@@ -153,8 +145,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new MessageResponse("Password reset instructions have been sent to your email.");
     }
 
-
-
     @Transactional
     public MessageResponse resetPassword(PasswordResetRequest passwordResetRequest) {
 
@@ -188,7 +178,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .map(refreshTokenService::verifyExpiration)
                 .map(RefreshToken::getUser)
                 .map(user -> {
-                    String accessToken = jwtService.generateTokenFromEmail(user.getEmail(), user.getRole().toString());
+                    String accessToken = jwtService.generateTokenFromEmail(user.getEmail());
                     return JwtResponse.builder()
                             .token(accessToken)
                             .refreshToken(refreshToken)

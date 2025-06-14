@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
  * Utility class for mapping between domain entities and DTOs.
  * This class provides static methods for converting objects across the application.
  */
-@NoArgsConstructor(access = AccessLevel.PRIVATE)
+    @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class ResourceMapper {
 
     // ==================== Common Mapping Methods ====================
