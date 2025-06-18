@@ -1,5 +1,6 @@
 package com.merbsconnect.events.model;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +33,12 @@ public class Event {
 
     private LocalTime time;
 
+    @OneToOne(mappedBy="event", cascade=CascadeType.ALL)
+    private Gallery gallery;
+
+    @OneToMany(mappedBy="event", cascade=CascadeType.ALL, fetch = FetchType.EAGER)
+    private Set<Sponsors> sponsors;
+
     private String imageUrl;
 
     private String createdBy;
@@ -42,4 +49,16 @@ public class Event {
 
     @OneToMany(mappedBy="event", cascade=CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Speaker> speakers;
+
+    @OneToMany(mappedBy="event", cascade=CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Testimonials> testimonials;
+
+    private String videoUrl;
+
+
+    @PostConstruct
+    public void init(){
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = (LocalDateTime.now());
+    }
 }

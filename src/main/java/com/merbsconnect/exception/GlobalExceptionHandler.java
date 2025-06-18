@@ -21,6 +21,17 @@ import java.util.Map;
 @Slf4j
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BusinessException.class)
+    public ResponseEntity<ErrorDetails> handleBusinessException(BusinessException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails(
+                LocalDateTime.now(),
+                ex.getMessage(),
+                request.getDescription(false),
+                "BUSINESS_EXCEPTION"
+        );
+        return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
+    }
+
     @ExceptionHandler(TokenRefreshException.class)
     public ResponseEntity<ErrorDetails> handleTokenRefreshException(TokenRefreshException ex, WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(
@@ -95,7 +106,7 @@ public class GlobalExceptionHandler {
                 request.getDescription(true),
                 "BAD_CREDENTIALS"
         );
-        log.error("Bad credentials: {}", ex);
+        log.error("Bad credentials: {}",ex.getMessage(), ex);
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
