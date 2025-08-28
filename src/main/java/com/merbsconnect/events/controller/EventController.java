@@ -1,0 +1,181 @@
+package com.merbsconnect.events.controller;
+
+import com.merbsconnect.academics.dto.response.PageResponse;
+import com.merbsconnect.authentication.dto.response.MessageResponse;
+import com.merbsconnect.events.dto.request.CreateEventRequest;
+import com.merbsconnect.events.dto.request.EventRegistrationDto;
+import com.merbsconnect.events.dto.request.UpdateEventRequest;
+import com.merbsconnect.events.dto.response.EventResponse;
+import com.merbsconnect.events.model.Registration;
+import com.merbsconnect.events.model.Speaker;
+import com.merbsconnect.events.service.EventService;
+import com.merbsconnect.exception.BusinessException;
+
+import com.merbsconnect.sms.service.SmsService;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
+import java.util.Optional;
+
+import static com.merbsconnect.util.mapper.EventMapper.convertToPageResponse;
+
+@RestController
+@RequestMapping("/api/v1/events")
+@RequiredArgsConstructor
+public class EventController {
+
+    private final EventService eventService;
+    private final SmsService smsService;
+
+    @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EventResponse> createEvent(@RequestBody CreateEventRequest eventRequest) {
+        try {
+            EventResponse eventResponse = eventService.createEvent(eventRequest);
+            return new ResponseEntity<>(eventResponse, HttpStatus.CREATED);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PutMapping("/{eventId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<EventResponse> updateEvent(@PathVariable Long eventId, @RequestBody UpdateEventRequest eventRequest) {
+        try {
+            EventResponse eventResponse = eventService.updateEvent(eventRequest, eventId);
+            return new ResponseEntity<>(eventResponse, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @DeleteMapping("/{eventId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> deleteEvent(@PathVariable Long eventId) {
+        try {
+            MessageResponse response = eventService.deleteEvent(eventId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(new MessageResponse(e.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<Page<EventResponse>> getAllEvents(Pageable pageable) {
+        Page<EventResponse> events = eventService.getAllEvents(pageable);
+        return new ResponseEntity<>(events, HttpStatus.OK);
+    }
+
+    @GetMapping("/{eventId}")
+    public ResponseEntity<EventResponse> getEventById(@PathVariable Long eventId) {
+        Optional<EventResponse> eventResponse = eventService.getEventById(eventId);
+        return eventResponse.map(response -> new ResponseEntity<>(response, HttpStatus.OK))
+                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+    }
+
+    @GetMapping("/year/{year}")
+    public ResponseEntity<EventResponse> getEventByYear(@PathVariable Long year) {
+        try {
+            Optional<EventResponse> eventResponse = eventService.getEventByYear(year);
+            return eventResponse.map(response -> new ResponseEntity<>(response, HttpStatus.OK))
+                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping("/{eventId}/speakers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> addSpeakerToEvent(@PathVariable Long eventId, @RequestBody Speaker speaker) {
+        try {
+            MessageResponse response = eventService.addSpeakerToEvent(speaker, eventId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(new MessageResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @DeleteMapping("/{eventId}/speakers")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> removeSpeakerFromEvent(@PathVariable Long eventId, @RequestParam(value = "speakerName", required = false) String speakerName) {
+        try {
+            MessageResponse response = eventService.removeSpeakerFromEvent(eventId, speakerName);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(new MessageResponse(e.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/upcoming")
+    public ResponseEntity<Page<EventResponse>> getUpcomingEvents(Pageable pageable) {
+        Page<EventResponse> events = eventService.getUpcomingEvents(pageable);
+        return new ResponseEntity<>(events, HttpStatus.OK);
+    }
+
+    @GetMapping("/past")
+    public ResponseEntity<Page<EventResponse>> getPastEvents(Pageable pageable) {
+        Page<EventResponse> events = eventService.getPastEvents(pageable);
+        return new ResponseEntity<>(events, HttpStatus.OK);
+    }
+    
+    @PutMapping("/{eventId}/speakers/update")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> updateEventSpeaker(@PathVariable Long eventId, @RequestBody Speaker speaker) {
+        try {
+            MessageResponse response = eventService.updateEventSpeaker(speaker, eventId);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(new MessageResponse("Update not successful"), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @GetMapping("/{eventId}/registrations")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PageResponse<Registration>> getEventRegistrations(
+            @PathVariable Long eventId, Pageable pageable) {
+            Page<Registration> registrations = eventService.getEventRegistrations(eventId, pageable);
+            PageResponse<Registration> response = convertToPageResponse(registrations);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+
+    }
+
+
+    @PostMapping("/{eventId}/register")
+    public ResponseEntity<MessageResponse> registerForEvent(@PathVariable Long eventId, @RequestBody EventRegistrationDto eventRegistrationDto) {
+        try {
+            MessageResponse response = eventService.registerForEvent(eventId, eventRegistrationDto);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            MessageResponse response = new MessageResponse(e.getMessage());
+            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+    }
+    
+    @GetMapping("{eventId}/registrations/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<MessageResponse> downloadRegistrations(@PathVariable Long eventId, HttpServletResponse response) {
+        try{
+            response.setContentType("text/csv;charset=UTF-8");
+            response.setHeader("Content-Disposition","attachment; filename=\"registrations_" +eventId +".csv\"");
+            
+            eventService.writeRegistrationsToCsv(eventId, response.getOutputStream());
+            response.flushBuffer();
+            MessageResponse message = new MessageResponse("Registrations exported successfully.");
+            return new ResponseEntity<>(message,HttpStatus.OK);
+        }catch (IOException e){
+            throw new BusinessException("Failed to export registrations.");
+        }
+    }
+
+
+
+
+
+}

@@ -1,5 +1,6 @@
 package com.merbsconnect.events.dto.response;
 
+import com.merbsconnect.events.model.Contact;
 import com.merbsconnect.events.model.Speaker;
 import com.merbsconnect.events.model.Sponsors;
 import com.merbsconnect.events.model.Testimonials;
@@ -28,6 +29,7 @@ public class EventResponse {
     private Set<Speaker> speakers;
     private Set<Testimonials> testimonials;
     private Set<Sponsors> sponsors;
+    private Set<Contact> contacts;
     private String videoUrl;
 
 }
