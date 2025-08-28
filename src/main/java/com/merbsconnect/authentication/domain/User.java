@@ -48,4 +48,8 @@ public class User {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
+
+    @PreUpdate
+    private void onUpdate() {
+        updatedAt = LocalDateTime.now();}
 }

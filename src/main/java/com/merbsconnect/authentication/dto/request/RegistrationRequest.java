@@ -45,7 +45,7 @@ public class RegistrationRequest {
      */
     @NotBlank(message = "Password is required")
     @Size(min = 8, message = "Password must be at least 8 characters long")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$",
+    @Pattern(regexp = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$",
             message = "Password must contain at least one digit, one lowercase, one uppercase letter, and one special character")
     private String password;
 
@@ -53,7 +53,7 @@ public class RegistrationRequest {
      * User's phone number, serves as a natural identifier
      */
     @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number should be valid")
+    @Pattern(regexp = "^\\+?\\d{10,15}$", message = "Phone number should be valid")
     private String phoneNumber;
 
     /**

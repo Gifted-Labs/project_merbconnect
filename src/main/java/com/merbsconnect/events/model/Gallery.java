@@ -21,5 +21,8 @@ public class Gallery {
     private List<String> imageUrl;
     private String coverImageUrl;
     private LocalDateTime createdAt;
+    @OneToOne
+    @JoinColumn(name = "event_id")
+    private Event event;
 
 }

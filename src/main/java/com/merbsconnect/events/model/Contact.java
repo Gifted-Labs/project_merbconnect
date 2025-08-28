@@ -1,20 +1,19 @@
 package com.merbsconnect.events.model;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-
+@Embeddable
+@Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Data
-@Embeddable
-public class Sponsors {
 
-    private String sponsorName;
+public class Contact {
 
-    private String sponsorImageUrl;
+    private String name;
+    private String phone;
 }
