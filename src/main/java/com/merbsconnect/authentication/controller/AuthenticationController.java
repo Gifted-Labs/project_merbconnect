@@ -8,7 +8,6 @@ import com.merbsconnect.authentication.dto.request.TokenRefreshRequest;
 import com.merbsconnect.authentication.dto.response.JwtResponse;
 import com.merbsconnect.authentication.dto.response.MessageResponse;
 import com.merbsconnect.authentication.service.AuthenticationService;
-import com.merbsconnect.authentication.service.impl.AuthenticationServiceImpl;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

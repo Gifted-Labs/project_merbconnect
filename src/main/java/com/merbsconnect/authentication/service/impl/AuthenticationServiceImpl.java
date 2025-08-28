@@ -59,7 +59,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             return new MessageResponse("User already exists with this phone number");
         }
 
-        // Create a new user
+
         User user = User.builder()
                 .firstName(request.getFirstName())
                 .lastName(request.getLastName())
