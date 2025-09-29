@@ -11,9 +11,15 @@ import com.merbsconnect.events.model.Speaker;
 import com.merbsconnect.events.service.EventService;
 import com.merbsconnect.exception.BusinessException;
 
+import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
+import com.merbsconnect.sms.dtos.request.CreateTemplateRequest;
+import com.merbsconnect.sms.dtos.response.BulkSmsResponse;
+import com.merbsconnect.sms.dtos.response.TemplateResponse;
 import com.merbsconnect.sms.service.SmsService;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -29,8 +35,10 @@ import static com.merbsconnect.util.mapper.EventMapper.convertToPageResponse;
 @RestController
 @RequestMapping("/api/v1/events")
 @RequiredArgsConstructor
+@CrossOrigin(origins = {"http://localhost:8080","http://localhost:5173"}, allowedHeaders = {"*"}, maxAge = 3600)
 public class EventController {
 
+    private static final Logger log = LoggerFactory.getLogger(EventController.class);
     private final EventService eventService;
     private final SmsService smsService;
 
@@ -57,7 +65,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<MessageResponse> deleteEvent(@PathVariable Long eventId) {
         try {
             MessageResponse response = eventService.deleteEvent(eventId);
@@ -150,6 +158,7 @@ public class EventController {
     @PostMapping("/{eventId}/register")
     public ResponseEntity<MessageResponse> registerForEvent(@PathVariable Long eventId, @RequestBody EventRegistrationDto eventRegistrationDto) {
         try {
+            log.info("Registering for event ID: {}, Registration Details: {}", eventId, eventRegistrationDto);
             MessageResponse response = eventService.registerForEvent(eventId, eventRegistrationDto);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (BusinessException e) {
@@ -174,6 +183,56 @@ public class EventController {
         }
     }
 
+
+
+    /**
+     * Endpoint to create an SMS template.
+     *
+     * @param request The request body containing the template title and content.
+     * @return A ResponseEntity containing the created template response.
+     */
+    @PostMapping("/sms/template")
+    public ResponseEntity<TemplateResponse> createTemplate(@RequestBody CreateTemplateRequest request) {
+        try {
+            TemplateResponse response = smsService.createTemplate(request);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Endpoint to fetch all templates.
+     *
+     * @return A ResponseEntity containing the list of templates.
+     */
+    @GetMapping("/sms/templates")
+
+    public ResponseEntity<TemplateResponse> getTemplates() throws IOException, InterruptedException {
+            TemplateResponse templateResponse = smsService.getAllTemplates();
+            return new ResponseEntity<>(templateResponse, HttpStatus.OK);
+
+    }
+
+    @GetMapping("/sms/templates/{templateId}")
+    public ResponseEntity<TemplateResponse> getTemplateById(@PathVariable String templateId) {
+        try {
+            TemplateResponse templateResponse = smsService.getTemplateById(templateId);
+            return new ResponseEntity<>(templateResponse, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @PostMapping("/sms/send-bulk-sms")
+    public ResponseEntity<BulkSmsResponse> sendBulkSms(@RequestBody BulkSmsRequest bulkSmsRequest) {
+        try {
+            BulkSmsResponse response = smsService.sendBulkSms(bulkSmsRequest);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 
 

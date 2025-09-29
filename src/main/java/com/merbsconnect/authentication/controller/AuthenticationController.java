@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/auth")
 @Slf4j
 @Component("authenticationController")
+@CrossOrigin(origins = {"http://localhost:5173","http://localhost:5174","http://localhost:8080"}, allowedHeaders = {"*"}, maxAge = 3600)
 public class AuthenticationController {
 
     private final AuthenticationService authenticationService;

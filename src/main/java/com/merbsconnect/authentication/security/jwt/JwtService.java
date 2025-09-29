@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
@@ -54,6 +55,12 @@ public class                                                                    
 
         Map<String, Object> claims = new HashMap<>();
 
+        claims.put("firstname", customUserDetails.getFirstName());
+        claims.put("lastname", customUserDetails.getLastName());
+        claims.put("role", customUserDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .findFirst()
+                .orElse("ROLE_USER"));
         claims.put("purpose" ,"authentication");
 
         String tokenId = UUID.randomUUID().toString();
@@ -62,11 +69,20 @@ public class                                                                    
                 .setId(tokenId)
                 .setClaims(claims)
                 .setSubject(customUserDetails.getUsername())
+
                 .setIssuer(jwtIssuer)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + Long.parseLong(jwtExpirationMs)))
                 .signWith(key, SignatureAlgorithm.HS512)
                 .compact();
+    }
+
+    public Claims getClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 
     public String generateTokenFromEmail(String email){

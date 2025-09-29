@@ -1,6 +1,8 @@
 package com.merbsconnect.authentication.security.jwt;
 
 import com.merbsconnect.authentication.security.CustomUserDetailsService;
+import com.merbsconnect.util.EndpointUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,6 +10,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
@@ -15,6 +19,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -47,8 +53,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 log.debug("JWT token validation result: {}", isValid);
 
                 if(isValid) {
-                    String username = jwtService.getUsernameFromToken(jwt);
+                    Claims claims = jwtService.getClaims(jwt);
+                    String username = claims.getSubject();
                     log.debug("Username from token: {}", username);
+                    String role = claims.get("role", String.class);
+
+                    List<GrantedAuthority> authorities = Collections.singletonList(
+                            new SimpleGrantedAuthority(role)
+                    );
 
                     UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
                     log.debug("User details loaded for: {}, authorities: {}", username, userDetails.getAuthorities());
@@ -56,7 +68,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails,
                             null,
-                            userDetails.getAuthorities()
+                            authorities
                     );
                     authentication.setDetails(
                             new WebAuthenticationDetailsSource().buildDetails(request)
@@ -86,17 +98,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return null;
     }
 
-    @Override
-    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
-        String path = request.getServletPath();
-        return path.startsWith("/swagger-ui/") ||
-                path.startsWith("/v3/api-docs/") ||
-                path.startsWith("/api/v1/auth/") ||
-                path.startsWith("/api/v1/events/") ||
-                path.startsWith("/api/password/") ||
-                path.startsWith("/error") ||
-                path.startsWith("/logout") ||
-                path.startsWith("/signout") ||
-                path.startsWith("/webjars/");
-    }
+//    @Override
+//    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+//        String path = request.getServletPath();
+//        return EndpointUtils.PUBLIC_ENDPOINTS.stream().anyMatch(path::startsWith);
+//    }
 }

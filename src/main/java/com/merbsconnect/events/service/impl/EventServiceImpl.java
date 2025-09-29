@@ -11,9 +11,15 @@ import com.merbsconnect.events.model.Speaker;
 import com.merbsconnect.events.repository.EventRepository;
 import com.merbsconnect.events.service.EventService;
 import com.merbsconnect.exception.BusinessException;
+import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
+import com.merbsconnect.sms.dtos.response.BulkSmsResponse;
+import com.merbsconnect.sms.service.SmsService;
 import com.merbsconnect.util.mapper.EventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -34,9 +41,11 @@ import java.util.Set;
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final SmsService smsService;
 
     @Transactional
     @Override
+    @CachePut(value = "events", key = "#eventRequest.title + '-' + #eventRequest.date")
     public EventResponse createEvent(CreateEventRequest eventRequest) {
         if(eventRequest.getDate().isBefore(java.time.LocalDate.now())){
             throw new BusinessException("Event date cannot be in the past");
@@ -50,6 +59,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @CachePut(value = "events", key = "#eventId")
     public EventResponse updateEvent(UpdateEventRequest eventRequest, Long eventId) {
         Event existingEvent = getEventByIdInternal(eventId);
 
@@ -68,8 +78,8 @@ public class EventServiceImpl implements EventService {
         return EventMapper.mapToEventResponse(updatedEvent);
     }
 
-
     @Override
+    @CacheEvict(value = "events", key = "#eventId")
     public MessageResponse deleteEvent(Long eventId) {
         Event event = getEventByIdInternal(eventId);
 
@@ -81,6 +91,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Cacheable(value = "events")
     public Page<EventResponse> getAllEvents(Pageable pageable) {
         Page<Event> events = eventRepository.findAll(pageable);
 
@@ -88,6 +99,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Cacheable(value = "events", key = "#eventId")
     public Optional<EventResponse> getEventById(Long eventId) {
         Event event = getEventByIdInternal(eventId);
 
@@ -95,6 +107,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Cacheable(value = "events", key = "#year")
     public Optional<EventResponse> getEventByYear(Long year) {
 
         if(!eventRepository.existsEventByYear(year)){
@@ -104,9 +117,9 @@ public class EventServiceImpl implements EventService {
                 .map(EventMapper::mapToEventResponse);
     }
 
-
     @Override
     @Transactional
+    @CachePut(value = "events", key = "#eventId")
     public MessageResponse addSpeakerToEvent(Speaker speaker, Long eventId) {
         Event event = getEventByIdInternal(eventId);
         if(event.getSpeakers().contains(speaker)){
@@ -120,6 +133,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @CacheEvict(value = "events", key = "#eventId")
     public MessageResponse removeSpeakerFromEvent(Long eventId, String speakerName) {
         Event event = getEventByIdInternal(eventId);
 
@@ -137,12 +151,14 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Cacheable(value = "events", key = "'upcoming'")
     public Page<EventResponse> getUpcomingEvents(Pageable pageable) {
         return eventRepository.findEventByDateAfter(LocalDate.now(),pageable )
                 .map(EventMapper::mapToEventResponse);
     }
 
     @Override
+    @Cacheable(value = "events", key = "'past'")
     public Page<EventResponse> getPastEvents(Pageable pageable) {
 
         return eventRepository.findEventByDateBefore(LocalDate.now(), pageable)
@@ -150,6 +166,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @CachePut(value = "events", key = "#eventId")
     public MessageResponse updateEventSpeaker(Speaker updatedSpeaker, Long eventId) {
         Event event = getEventByIdInternal(eventId);
         if(event.getSpeakers().contains(updatedSpeaker)){
@@ -174,7 +191,8 @@ public class EventServiceImpl implements EventService {
     }
 
     @Transactional
-    public MessageResponse registerForEvent(Long eventId, EventRegistrationDto registrationDto){
+    @CachePut(value = "registrations", key = "#eventId")
+    public MessageResponse registerForEvent(Long eventId, EventRegistrationDto registrationDto) {
         Event event = getEventByIdInternal(eventId);
 
         if (event.getDate().isBefore(LocalDate.now())) {
@@ -190,12 +208,17 @@ public class EventServiceImpl implements EventService {
         Registration registration = EventMapper.mapToRegistration(registrationDto);
         event.getRegistrations().add(registration);
         eventRepository.save(event);
+
+        // Send confirmation SMS
+        sendRegistrationConfirmationSms(registration, event);
+
         return MessageResponse.builder()
                 .message("Congratulations! You have successfully registered for the event")
                 .build();
     }
 
     @Transactional
+    @Cacheable(value = "registrations", key = "#eventId")
     public Page<Registration> getEventRegistrations(Long eventId, Pageable pageable) {
         Event event = getEventByIdInternal(eventId);
 
@@ -235,5 +258,46 @@ public class EventServiceImpl implements EventService {
     }
 
 
+    private void sendRegistrationConfirmationSms(Registration registration, Event event) {
+        try {
+            // Construct the message with placeholders replaced by actual values
+            String message = String.format(
+                    "Dear %s,\n" +
+                            "Thank you for registering for %s!\n" +
+                            "Event Details:\n" +
+                            "Date: %s\n" +
+                            "Time: %s\n" +
+                            "Venue: %s\n" +
+                            "Your confirmation number is: %s.\n" +
+                            "We look forward to seeing you there!",
+                    registration.getName(),
+                    event.getTitle(),
+                    event.getDate(),
+                    event.getTime(),
+                    event.getLocation(),
+                    registration.getEmail() // Using email as confirmation number
+            );
 
+            // Prepare the SMS request
+            BulkSmsRequest smsRequest = BulkSmsRequest.builder()
+                    .recipients(List.of(registration.getPhone()))
+                    .sender("MerbConnect") // Replace with your sender ID
+                    .message(message)
+                    .isScheduled(false)
+                    .scheduleDate("")
+                    .build();
+
+            // Send the SMS synchronously
+            BulkSmsResponse smsResponse = smsService.sendBulkSms(smsRequest);
+
+            // Log the result
+            if (smsResponse.isSuccessful()) {
+                log.info("Registration confirmation SMS sent to {}", registration.getPhone());
+            } else {
+                log.error("Failed to send registration confirmation SMS: {}", smsResponse.getMessage());
+            }
+        } catch (Exception e) {
+            log.error("Failed to send registration confirmation SMS: {}", e.getMessage());
+        }
+    }
 }
