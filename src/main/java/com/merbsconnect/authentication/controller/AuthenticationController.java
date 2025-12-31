@@ -46,6 +46,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(messageResponse);
     }
 
+    // Thhis endpoint requests for full authentication before access so has to be fixed
     @PostMapping("/forgot-password")
     public ResponseEntity<MessageResponse> forgotPassword(@RequestParam("email") String email) {
         MessageResponse messageResponse = authenticationService.requestPasswordReset(email);
@@ -69,7 +70,14 @@ public class AuthenticationController {
     }
 
 
+    /* TODO: Done creating the api endpionts in this class so upnext, i have
+        to fix the following errors.
 
+        1. I have to fix the error in the full authentication required and
+            structure the generated token well.
+         2. Create a function users can use to resend verification tokens and also password reset tokens
+        3. Proper error handling and finish off the authentication.
+    * */
 
 
 }

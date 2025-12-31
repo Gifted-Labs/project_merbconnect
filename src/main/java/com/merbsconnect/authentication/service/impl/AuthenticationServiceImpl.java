@@ -22,6 +22,7 @@ import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -66,7 +67,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .password(passwordEncoder.encode(request.getPassword()))
-                .role(UserRole.ROLE_ADMIN)
+                .role(UserRole.ROLE_USER)
                 .isEnabled(false)
                 .build();
 
@@ -75,9 +76,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         
         // Generate verification token
         String verificationToken = jwtService.generateVerificationToken(user.getEmail());
-        
+
         // Send verification email
-        emailService.sendVerificationEmail(user, verificationToken);
+        emailService.sendVerificationEmail(user, verificationToken);    
 
         return new MessageResponse("User registered successfully! Please check your email to verify your account.");
     }
@@ -87,13 +88,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         Authentication authentication = authenticationManager.authenticate(
                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
 
-
         log.info("I am done authenticating the user");
 
         if (authentication == null) {
             throw new UsernameNotFoundException("User not found with email/username: " + loginRequest.getEmail());
         }
-
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -113,6 +112,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             if(user.isEnabled()) {
                 return new MessageResponse("Error: User is already verified.");
             }
+
             user.setEnabled(true);
             userRepository.save(user);
 
@@ -190,5 +190,22 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     return new RuntimeException("Refresh token is not in the database!");
                 });
     }
+
+    @Override
+    public JwtResponse resendVerificationToken(TokenRefreshRequest request) {
+        return null;
+    }
+
+    private void validateRegistrationRequest(RegistrationRequest request) throws BadRequestException {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new BadRequestException("Email is already in use");
+        }
+
+        if (userRepository.existsByPhoneNumber(request.getPhoneNumber())) {
+            throw new BadRequestException("Phone number is already in use");
+        }
+    }
+
+
 
 }

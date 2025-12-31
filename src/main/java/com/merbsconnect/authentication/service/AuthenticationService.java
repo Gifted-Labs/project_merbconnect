@@ -20,8 +20,9 @@ public interface AuthenticationService {
 
     MessageResponse requestPasswordReset(String email);
 
-
     MessageResponse resetPassword(PasswordResetRequest request);
 
     JwtResponse refreshToken(TokenRefreshRequest request);
+
+    JwtResponse resendVerificationToken(TokenRefreshRequest request);
 }
