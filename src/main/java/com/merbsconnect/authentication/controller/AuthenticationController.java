@@ -1,6 +1,7 @@
 package com.merbsconnect.authentication.controller;
 
 
+import com.merbsconnect.authentication.domain.TokenType;
 import com.merbsconnect.authentication.dto.request.LoginRequest;
 import com.merbsconnect.authentication.dto.request.PasswordResetRequest;
 import com.merbsconnect.authentication.dto.request.RegistrationRequest;
@@ -11,6 +12,7 @@ import com.merbsconnect.authentication.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.BadRequestException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +29,7 @@ public class AuthenticationController {
 
     @PostMapping("/signup")
     public ResponseEntity<MessageResponse> registerUser(
-            @Valid @RequestBody RegistrationRequest registrationRequest) {
+            @Valid @RequestBody RegistrationRequest registrationRequest) throws BadRequestException {
         MessageResponse messageResponse = authenticationService.registerUser(registrationRequest);
         return ResponseEntity.ok(messageResponse);
     }
@@ -56,7 +58,7 @@ public class AuthenticationController {
     @PostMapping("/reset-password")
     public ResponseEntity<MessageResponse> resetPassword(
             @Valid @RequestBody PasswordResetRequest passwordResetRequest
-    ) {
+    ) throws BadRequestException {
         MessageResponse messageResponse = authenticationService.resetPassword(passwordResetRequest);
         return ResponseEntity.ok(messageResponse);
     }
@@ -69,15 +71,13 @@ public class AuthenticationController {
         return ResponseEntity.ok(jwtResponse);
     }
 
-
-    /* TODO: Done creating the api endpionts in this class so upnext, i have
-        to fix the following errors.
-
-        1. I have to fix the error in the full authentication required and
-            structure the generated token well.
-         2. Create a function users can use to resend verification tokens and also password reset tokens
-        3. Proper error handling and finish off the authentication.
-    * */
-
+    @PostMapping("/resend-token")
+    public ResponseEntity<MessageResponse> resendToken(
+            @RequestParam String email,
+            @RequestParam TokenType tokenType
+    ) throws BadRequestException {
+        MessageResponse response = authenticationService.resendToken(email, tokenType);
+        return ResponseEntity.ok(response);
+    }
 
 }

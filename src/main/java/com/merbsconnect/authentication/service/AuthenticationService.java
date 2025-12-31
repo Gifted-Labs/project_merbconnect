@@ -1,16 +1,18 @@
 package com.merbsconnect.authentication.service;
 
+import com.merbsconnect.authentication.domain.TokenType;
 import com.merbsconnect.authentication.dto.request.LoginRequest;
 import com.merbsconnect.authentication.dto.request.PasswordResetRequest;
 import com.merbsconnect.authentication.dto.request.RegistrationRequest;
 import com.merbsconnect.authentication.dto.request.TokenRefreshRequest;
 import com.merbsconnect.authentication.dto.response.JwtResponse;
 import com.merbsconnect.authentication.dto.response.MessageResponse;
+import org.apache.coyote.BadRequestException;
 
 
 public interface AuthenticationService {
 
-    MessageResponse registerUser(RegistrationRequest request);
+    MessageResponse registerUser(RegistrationRequest request) throws BadRequestException;
 
     JwtResponse authenticateUser(LoginRequest request);
 
@@ -20,9 +22,9 @@ public interface AuthenticationService {
 
     MessageResponse requestPasswordReset(String email);
 
-    MessageResponse resetPassword(PasswordResetRequest request);
+    MessageResponse resetPassword(PasswordResetRequest request) throws BadRequestException;
 
     JwtResponse refreshToken(TokenRefreshRequest request);
 
-    JwtResponse resendVerificationToken(TokenRefreshRequest request);
+    MessageResponse resendToken(String email, TokenType tokenType) throws BadRequestException;
 }

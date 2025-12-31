@@ -1,6 +1,7 @@
 package com.merbsconnect.email.service;
 
 import com.merbsconnect.authentication.domain.User;
+import com.merbsconnect.authentication.domain.VerificationToken;
 
 public interface EmailService {
     /**
@@ -15,5 +16,5 @@ public interface EmailService {
      * @param user the user to send password reset email to
      * @param token the password reset token
      */
-    void sendPasswordResetEmail(User user, String token);
+    void sendPasswordResetEmail(User user, VerificationToken token);
 }

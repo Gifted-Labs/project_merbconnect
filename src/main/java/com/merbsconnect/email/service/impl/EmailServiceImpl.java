@@ -1,6 +1,7 @@
 package com.merbsconnect.email.service.impl;
 
 import com.merbsconnect.authentication.domain.User;
+import com.merbsconnect.authentication.domain.VerificationToken;
 import com.merbsconnect.email.exception.EmailSendException;
 import com.merbsconnect.email.service.EmailService;
 import com.merbsconnect.email.service.EmailTemplateService;
@@ -46,8 +47,8 @@ public class EmailServiceImpl implements EmailService {
     
     @Override
     @Async
-    public void sendPasswordResetEmail(User user, String token) {
-        String resetLink = baseUrl + "/reset-password?token=" + token;
+    public void sendPasswordResetEmail(User user, VerificationToken token) {
+        String resetLink = baseUrl + "/api/v1/auth/reset-password?token=" + token.getToken();
         String subject = "Password Reset Request";
         
         String content = templateService.getPasswordResetEmailContent(
