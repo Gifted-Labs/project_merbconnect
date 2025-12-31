@@ -18,7 +18,6 @@ public class TokenExpiryConfig {
         return switch (tokenType) {
             case VERIFICATION -> Duration.ofHours(verificationHours);
             case PASSWORD_RESET -> Duration.ofHours(passwordResetHours);
-            default -> throw new IllegalArgumentException("Unknown token type: " + tokenType);
         };
     }
 }

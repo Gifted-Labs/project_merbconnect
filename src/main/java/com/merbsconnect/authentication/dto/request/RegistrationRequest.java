@@ -1,6 +1,7 @@
 package com.merbsconnect.authentication.dto.request;
 
 import com.merbsconnect.enums.UserRole;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -17,6 +18,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@Schema(description = "User registration request payload")
 public class RegistrationRequest {
 
     /**
@@ -24,6 +26,12 @@ public class RegistrationRequest {
      */
     @NotBlank(message = "First name is required")
     @Size(min = 2, max = 50, message = "First name must be between 2 and 50 characters")
+    @Schema(
+            description = "User's first name",
+            example = "John",
+            minLength = 2,
+            maxLength = 50
+    )
     private String firstName;
 
     /**
@@ -31,6 +39,12 @@ public class RegistrationRequest {
      */
     @NotBlank(message = "Last name is required")
     @Size(min = 2, max = 50, message = "Last name must be between 2 and 50 characters")
+    @Schema(
+            description = "User's last name",
+            example = "Doe",
+            minLength = 2,
+            maxLength = 50
+    )
     private String lastName;
 
     /**
@@ -38,6 +52,11 @@ public class RegistrationRequest {
      */
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
+    @Schema(
+            description = "User's email address (must be unique)",
+            example = "john.doe@example.com",
+            format = "email"
+    )
     private String email;
 
     /**
@@ -47,6 +66,11 @@ public class RegistrationRequest {
     @Size(min = 8, message = "Password must be at least 8 characters long")
     @Pattern(regexp = "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=]).*$",
             message = "Password must contain at least one digit, one lowercase, one uppercase letter, and one special character")
+    @Schema(
+            description = "User's password. Must contain at least 8 characters with uppercase, lowercase, digit, and special character",
+            example = "SecurePass123!",
+            minLength = 8
+    )
     private String password;
 
     /**

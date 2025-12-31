@@ -14,6 +14,4 @@ public interface TokenService {
 
     VerificationToken validateToken(String tokenValue, TokenType expectedType);
 
-    void resendVerificationToken(String email) throws BadRequestException;
-
 }

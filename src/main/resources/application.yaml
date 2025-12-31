@@ -62,5 +62,20 @@ app:
       api-key: C8OyXxwDXPUcYMdvta30I3Cwg
       url: https://api.mnotify.com/api
 
+# Swagger/OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+    try-it-out-enabled: true
+    doc-expansion: list
+    deep-linking: true
+    use-root-path: false
+
+
 
 

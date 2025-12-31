@@ -18,8 +18,6 @@ public interface AuthenticationService {
 
     MessageResponse verifyEmail(String token);
 
-    MessageResponse verifyPhoneNumber(String token);
-
     MessageResponse requestPasswordReset(String email);
 
     MessageResponse resetPassword(PasswordResetRequest request) throws BadRequestException;
