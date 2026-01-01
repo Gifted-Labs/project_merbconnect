@@ -52,18 +52,6 @@ public class TokenServiceImpl implements TokenService {
         return tokenValidator.validate(tokenValue, expectedType);
     }
 
-    @Override
-    public void resendVerificationToken(String email) throws BadRequestException {
-        User user = findUserByEmail(email);
-        validateUserNotVerified(user);
-        rateLimitService.checkRateLimit(user, TokenType.VERIFICATION);
-
-        VerificationToken token = generateVerificationToken(user);
-        emailService.sendVerificationEmail(user, token.getToken());
-
-        log.info("Verification token resent to user: {}", email);
-    }
-
     private void cleanupExistingTokens(User user, TokenType tokenType) {
         List<VerificationToken> existingTokens = tokenRepository
                 .findAllByUserAndTokenTypeAndVerifiedAtIsNull(user, tokenType);

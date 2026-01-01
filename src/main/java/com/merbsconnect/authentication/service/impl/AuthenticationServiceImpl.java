@@ -93,10 +93,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
 
 
-    @Override
-    public MessageResponse verifyPhoneNumber(String token) {
-        return null;
-    }
 
     @Override
     public MessageResponse requestPasswordReset(String email) {

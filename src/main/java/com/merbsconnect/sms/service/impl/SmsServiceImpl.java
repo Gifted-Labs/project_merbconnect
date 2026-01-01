@@ -1,6 +1,5 @@
 package com.merbsconnect.sms.service.impl;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
 import com.merbsconnect.sms.dtos.request.CreateTemplateRequest;
 import com.merbsconnect.sms.dtos.response.BulkSmsResponse;
@@ -11,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import tools.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.URI;

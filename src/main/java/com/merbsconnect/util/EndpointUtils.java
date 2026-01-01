@@ -11,7 +11,9 @@ public class EndpointUtils {
     public static final List<String> PUBLIC_ENDPOINTS = Arrays.asList(
             "/api/v1/auth/**",
             "/v3/api-docs/**",
+            "/v3/api-docs",
             "/swagger-ui/**",
+            "/swagger-ui.html",
             "/",
             "/api/v1/events/**",
             "/index.html",

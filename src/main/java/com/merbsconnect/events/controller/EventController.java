@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -49,7 +50,7 @@ public class EventController {
             EventResponse eventResponse = eventService.createEvent(eventRequest);
             return new ResponseEntity<>(eventResponse, HttpStatus.CREATED);
         } catch (BusinessException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -60,7 +61,7 @@ public class EventController {
             EventResponse eventResponse = eventService.updateEvent(eventRequest, eventId);
             return new ResponseEntity<>(eventResponse, HttpStatus.OK);
         } catch (BusinessException e) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.NOT_FOUND);
         }
     }
 
@@ -85,7 +86,7 @@ public class EventController {
     public ResponseEntity<EventResponse> getEventById(@PathVariable Long eventId) {
         Optional<EventResponse> eventResponse = eventService.getEventById(eventId);
         return eventResponse.map(response -> new ResponseEntity<>(response, HttpStatus.OK))
-                .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/year/{year}")
@@ -93,9 +94,9 @@ public class EventController {
         try {
             Optional<EventResponse> eventResponse = eventService.getEventByYear(year);
             return eventResponse.map(response -> new ResponseEntity<>(response, HttpStatus.OK))
-                    .orElseGet(() -> new ResponseEntity<>(null, HttpStatus.NOT_FOUND));
+                    .orElseGet(() -> ResponseEntity.notFound().build());
         } catch (BusinessException e) {
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            return ResponseEntity.notFound().build();
         }
     }
 
