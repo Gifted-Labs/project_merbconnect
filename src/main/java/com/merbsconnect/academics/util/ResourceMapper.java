@@ -413,7 +413,6 @@ public class ResourceMapper {
                 .email(request.getEmail())
                 .phoneNumber(request.getPhoneNumber())
                 .password(encodedPassword)
-                .role(request.getRole())
                 .isEnabled(false)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
@@ -437,7 +436,6 @@ public class ResourceMapper {
                 .build();
     }
 
-    // ==================== Reference Material Mappings ====================
 
     /**
      * Converts a ReferenceMaterial entity to a detailed response DTO

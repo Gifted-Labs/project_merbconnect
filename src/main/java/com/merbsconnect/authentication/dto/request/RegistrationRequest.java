@@ -80,8 +80,4 @@ public class RegistrationRequest {
     @Pattern(regexp = "^\\+?\\d{10,15}$", message = "Phone number should be valid")
     private String phoneNumber;
 
-    /**
-     * User's role in the system
-     */
-    private UserRole role;
 }

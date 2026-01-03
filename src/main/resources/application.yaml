@@ -39,6 +39,11 @@ app:
     refresh-token-expiration: 8460000
     issuer: "merbsconnect-dev"
 
+  admin:
+    email: "admin@merbsconnect.com"
+    password: "AdjeteySowah@1"
+    phone: "233543132386"
+
   token:
     expiry:
       verification-hours: 24

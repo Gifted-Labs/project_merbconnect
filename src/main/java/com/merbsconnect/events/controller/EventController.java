@@ -4,6 +4,7 @@ import com.merbsconnect.academics.dto.response.PageResponse;
 import com.merbsconnect.authentication.dto.response.MessageResponse;
 import com.merbsconnect.events.dto.request.CreateEventRequest;
 import com.merbsconnect.events.dto.request.EventRegistrationDto;
+import com.merbsconnect.events.dto.request.SendBulkSmsToRegistrationsRequest;
 import com.merbsconnect.events.dto.request.UpdateEventRequest;
 import com.merbsconnect.events.dto.response.EventResponse;
 import com.merbsconnect.events.model.Registration;
@@ -170,7 +171,7 @@ public class EventController {
     
     @GetMapping("{eventId}/registrations/export")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<MessageResponse> downloadRegistrations(@PathVariable Long eventId, HttpServletResponse response) {
+    public void downloadRegistrations(@PathVariable Long eventId, HttpServletResponse response) {
         try{
             response.setContentType("text/csv;charset=UTF-8");
             response.setHeader("Content-Disposition","attachment; filename=\"registrations_" +eventId +".csv\"");
@@ -178,9 +179,27 @@ public class EventController {
             eventService.writeRegistrationsToCsv(eventId, response.getOutputStream());
             response.flushBuffer();
             MessageResponse message = new MessageResponse("Registrations exported successfully.");
-            return new ResponseEntity<>(message,HttpStatus.OK);
+//            return new ResponseEntity<>(message,HttpStatus.OK);
         }catch (IOException e){
             throw new BusinessException("Failed to export registrations.");
+        }
+    }
+
+    @PostMapping("/{eventId}/registrations/send-sms")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<BulkSmsResponse> sendBulkSmsToSelectedRegistrations(
+            @PathVariable Long eventId,
+            @RequestBody SendBulkSmsToRegistrationsRequest request) {
+        try {
+            // Ensure the event ID in the path matches the request
+            request.setEventId(eventId);
+
+            log.info("Sending bulk SMS to selected registrations for event ID: {}", eventId);
+            BulkSmsResponse response = eventService.sendBulkSmsToSelectedRegistrations(request);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            log.error("Failed to send bulk SMS: {}", e.getMessage());
+            throw e;
         }
     }
 

@@ -410,7 +410,7 @@ public class ResourceMapper {
                 .build();
     }
 
-    // ==================== College Mappings ====================
+
 
     /**
      * Converts a College entity to a CollegeResponse DTO
@@ -431,39 +431,4 @@ public class ResourceMapper {
                 .build();
     }
 
-    // ==================== Authentication Mappings ====================
-
-    /**
-     * Converts a RegistrationRequest DTO to a User entity
-     */
-    public static User toUser(RegistrationRequest request, String encodedPassword) {
-        return User.builder()
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .password(encodedPassword)
-                .role(request.getRole())
-                .isEnabled(false)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
-                .build();
-    }
-
-    /**
-     * Creates a JwtResponse from user details and tokens
-     */
-    public static JwtResponse toJwtResponse(CustomUserDetails userDetails, String jwt, String refreshToken) {
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList());
-        
-        return JwtResponse.builder()
-                .token(jwt)
-                .refreshToken(refreshToken)
-                .id(userDetails.getId())
-                .username(userDetails.getUsername())
-                .roles(roles)
-                .build();
-    }
 }

@@ -3,10 +3,12 @@ package com.merbsconnect.events.service;
 import com.merbsconnect.authentication.dto.response.MessageResponse;
 import com.merbsconnect.events.dto.request.CreateEventRequest;
 import com.merbsconnect.events.dto.request.EventRegistrationDto;
+import com.merbsconnect.events.dto.request.SendBulkSmsToRegistrationsRequest;
 import com.merbsconnect.events.dto.request.UpdateEventRequest;
 import com.merbsconnect.events.dto.response.EventResponse;
 import com.merbsconnect.events.model.Registration;
 import com.merbsconnect.events.model.Speaker;
+import com.merbsconnect.sms.dtos.response.BulkSmsResponse;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -44,4 +46,5 @@ public interface EventService {
 
     void writeRegistrationsToCsv(Long eventId, OutputStream outputStream) throws IOException;
 
+    BulkSmsResponse sendBulkSmsToSelectedRegistrations(SendBulkSmsToRegistrationsRequest request);
 }

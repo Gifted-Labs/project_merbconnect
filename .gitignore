@@ -21,6 +21,7 @@ target/
 
 /src/main/resources/application-dev.yaml
 /src/main/resources/*.properties
+/src/main/resources/*.yaml
 
 ### NetBeans ###
 /nbproject/private/

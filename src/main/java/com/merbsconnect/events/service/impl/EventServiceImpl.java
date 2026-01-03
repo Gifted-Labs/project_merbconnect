@@ -3,6 +3,7 @@ package com.merbsconnect.events.service.impl;
 import com.merbsconnect.authentication.dto.response.MessageResponse;
 import com.merbsconnect.events.dto.request.CreateEventRequest;
 import com.merbsconnect.events.dto.request.EventRegistrationDto;
+import com.merbsconnect.events.dto.request.SendBulkSmsToRegistrationsRequest;
 import com.merbsconnect.events.dto.request.UpdateEventRequest;
 import com.merbsconnect.events.dto.response.EventResponse;
 import com.merbsconnect.events.model.Event;
@@ -23,6 +24,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -34,6 +36,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+
+import static com.merbsconnect.util.mapper.EventMapper.convertToPageResponse;
 
 @Slf4j
 @Service
@@ -79,7 +83,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @CacheEvict(value = "events", key = "#eventId")
+    @CacheEvict(value = {"events", "registrations"}, key = "#eventId")
     public MessageResponse deleteEvent(Long eventId) {
         Event event = getEventByIdInternal(eventId);
 
@@ -228,8 +232,13 @@ public class EventServiceImpl implements EventService {
         int end = Math.min((start + pageable.getPageSize()), registrationsList.size());
 
 
-        return new PageImpl<>(registrationsList.subList(start, end), pageable, registrationsList.size());
+        return new PageImpl<>(
+                registrationsList.subList(start, end),
+                pageable,
+                registrationsList.size()
+        );
     }
+
 
     @Transactional(readOnly = true)
     public void writeRegistrationsToCsv(Long eventId, OutputStream outputStream) throws IOException {
@@ -248,7 +257,35 @@ public class EventServiceImpl implements EventService {
                     registration.getNote());
             outputStream.write(line.getBytes());
         }
+    }
 
+
+    @Override
+    @Transactional(readOnly = true)
+    public BulkSmsResponse sendBulkSmsToSelectedRegistrations(SendBulkSmsToRegistrationsRequest request) {
+        // Validate event exists
+        Event event = getEventByIdInternal(request.getEventId());
+
+        // Filter registrations by selected emails
+        List<String> phoneNumbers = event.getRegistrations().stream()
+                .filter(registration -> request.getSelectedEmails().contains(registration.getEmail()))
+                .map(Registration::getPhone)
+                .toList();
+
+        if (phoneNumbers.isEmpty()) {
+            throw new BusinessException("No valid registrations found for the selected emails");
+        }
+
+        // Create and send bulk SMS request
+        BulkSmsRequest smsRequest = BulkSmsRequest.builder()
+                .recipients(phoneNumbers)
+                .message(request.getMessage())
+                .isScheduled(false)
+                .scheduleDate("")
+                .build();
+
+        log.info("Sending bulk SMS to {} registrations for event ID: {}", phoneNumbers.size(), request.getEventId());
+        return smsService.sendBulkSms(smsRequest);
     }
 
 
@@ -258,6 +295,7 @@ public class EventServiceImpl implements EventService {
     }
 
 
+    @Async
     private void sendRegistrationConfirmationSms(Registration registration, Event event) {
         try {
             // Construct the message with placeholders replaced by actual values
@@ -275,13 +313,13 @@ public class EventServiceImpl implements EventService {
                     event.getDate(),
                     event.getTime(),
                     event.getLocation(),
-                    registration.getEmail() // Using email as confirmation number
+                    registration.getEmail()
             );
 
             // Prepare the SMS request
             BulkSmsRequest smsRequest = BulkSmsRequest.builder()
                     .recipients(List.of(registration.getPhone()))
-                    .sender("MerbConnect") // Replace with your sender ID
+                    .sender("MerbConnect")
                     .message(message)
                     .isScheduled(false)
                     .scheduleDate("")
