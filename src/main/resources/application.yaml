@@ -44,6 +44,8 @@ app:
     password: "AdjeteySowah@1"
     phone: "233543132386"
 
+
+
   token:
     expiry:
       verification-hours: 24
@@ -58,9 +60,12 @@ app:
       cron: 0 0 0 * * ?
 
   email:
-    from: "juliusadjeteysowah@gmail.com"
+    from: "noreply@merbsconnect.com"
 
   base-url: http://localhost:8080
+
+  resend:
+    api-key: re_K16cfsMg_H7WgH3gYi6bTHsHs39uBXEZB
 
   sms:
     mnotify:

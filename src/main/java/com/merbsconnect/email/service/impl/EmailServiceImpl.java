@@ -5,22 +5,22 @@ import com.merbsconnect.authentication.domain.VerificationToken;
 import com.merbsconnect.email.exception.EmailSendException;
 import com.merbsconnect.email.service.EmailService;
 import com.merbsconnect.email.service.EmailTemplateService;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import com.resend.Resend;
+import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.SendEmailRequest;
+import com.resend.services.emails.model.SendEmailResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class EmailServiceImpl implements EmailService {
 
-    private final JavaMailSender mailSender;
     private final EmailTemplateService templateService;
     
     @Value("${app.email.from}")
@@ -29,6 +29,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${app.base-url}")
     private String baseUrl;
     
+    @Value("${app.resend.api-key}")
+    private String resendApiKey;
+
     @Override
     @Async
     public void sendVerificationEmail(User user, String token) {
@@ -44,7 +47,7 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(user.getEmail(), subject, content);
         log.info("Verification email sent to: {}", user.getEmail());
     }
-    
+
     @Override
     @Async
     public void sendPasswordResetEmail(User user, VerificationToken token) {
@@ -60,20 +63,32 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(user.getEmail(), subject, content);
         log.info("Password reset email sent to: {}", user.getEmail());
     }
-    
-    private void sendEmail(String to, String subject, String content) {
+
+    private void sendEmail(String to, String subject, String htmlContent) {
         try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            Resend resend = new Resend(resendApiKey);
             
-            helper.setFrom(fromEmail);
-            helper.setTo(to);
-            helper.setSubject(subject);
-            helper.setText(content, true); // true indicates HTML content
+            SendEmailRequest request = SendEmailRequest.builder()
+                    .from(fromEmail)
+                    .to(to)
+                    .subject(subject)
+                    .html(htmlContent)
+                    .build();
             
-            mailSender.send(message);
-        } catch (MessagingException e) {
-            log.error("Failed to send email to {}: {}", to, e.getMessage());
+            SendEmailResponse response = resend.emails().send(request);
+            
+            if (response.getId() != null) {
+                log.info("Email sent successfully via Resend. ID: {}, To: {}", response.getId(), to);
+            } else {
+                log.error("Failed to send email via Resend to: {}", to);
+                throw new EmailSendException("Failed to send email via Resend");
+            }
+            
+        } catch (ResendException e) {
+            log.error("Resend API error when sending email to {}: {}", to, e.getMessage());
+            throw new EmailSendException("Failed to send email via Resend", e);
+        } catch (Exception e) {
+            log.error("Unexpected error when sending email to {}: {}", to, e.getMessage());
             throw new EmailSendException("Failed to send email", e);
         }
     }
