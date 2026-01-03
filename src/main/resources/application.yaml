@@ -1,8 +1,8 @@
 # Main application configuration - profile-independent settings only
 spring:
   profiles:
-    active: dev
-    include: dev, prod  # Include both dev and prod profiles
+    active: prod
+    include: prod  # Include both dev and prod profiles
 
 # Include profile-specific configurations
 ---
