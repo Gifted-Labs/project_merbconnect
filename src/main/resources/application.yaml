@@ -1,91 +1,20 @@
+# Main application configuration - profile-independent settings only
 spring:
-  application:
-    name: Merbs Connect
+  profiles:
+    active: dev
+    include: dev, prod  # Include both dev and prod profiles
 
+# Include profile-specific configurations
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  # Profile-specific settings for dev
 
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: admin
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-    database-platform: org.hibernate.dialect.PostgreSQLDialect
-
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: juliusadjeteysowah@gmail.com
-    password: cqxrzbxdkgiixymb
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls.enable: true
-
-server:
-  port: 8080
-
-app:
-  jwt:
-    secret: a3f9d7c2b4e68f1d09ac5e2b7f6d8c41e5a9b0d3f2c6e8a7d4b1f0956c2e78d3f4a9b5c6e1d7f2a0b8e4c95d6f1a2b7c3e8d9f4056a1e7b2c4d9f5a
-
-    expiration: 3600000
-    refresh-token-expiration: 8460000
-    issuer: "merbsconnect-dev"
-
-  admin:
-    email: "admin@merbsconnect.com"
-    password: "AdjeteySowah@1"
-    phone: "233543132386"
-
-
-
-  token:
-    expiry:
-      verification-hours: 24
-      password-reset-hours: 1
-
-    rate-limit:
-      max-attempts : 3
-      cooldown-minutes : 1
-      attempt-window-hours: 1
-
-    cleanup:
-      cron: 0 0 0 * * ?
-
-  email:
-    from: "noreply@merbsconnect.com"
-
-  base-url: http://localhost:8080
-
-  resend:
-    api-key: re_K16cfsMg_H7WgH3gYi6bTHsHs39uBXEZB
-
-  sms:
-    mnotify:
-      api-key: C8OyXxwDXPUcYMdvta30I3Cwg
-      url: https://api.mnotify.com/api
-
-# Swagger/OpenAPI Configuration
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    path: /swagger-ui.html
-    enabled: true
-    operations-sorter: method
-    tags-sorter: alpha
-    try-it-out-enabled: true
-    doc-expansion: list
-    deep-linking: true
-    use-root-path: false
-
-
-
-
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  # Profile-specific settings for prod

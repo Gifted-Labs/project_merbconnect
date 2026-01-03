@@ -1,0 +1,72 @@
+spring:
+  application:
+    name: Merbs Connect
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  jpa:
+    hibernate:
+      ddl-auto: ${JPA_DDL_AUTO}
+    show-sql: ${JPA_SHOW_SQL}
+    properties:
+      hibernate:
+        format_sql: ${JPA_FORMAT_SQL}
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: ${SERVER_PORT}
+
+app:
+  jwt:
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION}
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION}
+    issuer: ${JWT_ISSUER}
+
+  admin:
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+    phone: ${ADMIN_PHONE}
+
+  token:
+    expiry:
+      verification-hours: ${TOKEN_VERIFICATION_HOURS}
+      password-reset-hours: ${TOKEN_PASSWORD_RESET_HOURS}
+
+    rate-limit:
+      max-attempts: ${TOKEN_RATE_LIMIT_MAX_ATTEMPTS}
+      cooldown-minutes: ${TOKEN_RATE_LIMIT_COOLDOWN_MINUTES}
+      attempt-window-hours: ${TOKEN_RATE_LIMIT_ATTEMPT_WINDOW_HOURS}
+
+    cleanup:
+      cron: ${TOKEN_CLEANUP_CRON}
+
+  email:
+    from: ${EMAIL_FROM}
+
+  base-url: ${BASE_URL}
+
+  resend:
+    api-key: ${RESEND_API_KEY}
+
+  sms:
+    mnotify:
+      api-key: ${SMS_MNOTIFY_API_KEY}
+      url: ${SMS_MNOTIFY_URL}
+
+# Swagger/OpenAPI Configuration - Typically disabled in production
+springdoc:
+  api-docs:
+    path: ${SWAGGER_API_DOCS_PATH}
+  swagger-ui:
+    path: ${SWAGGER_UI_PATH}
+    enabled: ${SWAGGER_UI_ENABLED}
+    operations-sorter: ${SWAGGER_OPERATIONS_SORTER}
+    tags-sorter: ${SWAGGER_TAGS_SORTER}
+    try-it-out-enabled: ${SWAGGER_TRY_IT_OUT_ENABLED}
+    doc-expansion: ${SWAGGER_DOC_EXPANSION}
+    deep-linking: ${SWAGGER_DEEP_LINKING}
+    use-root-path: ${SWAGGER_USE_ROOT_PATH}
