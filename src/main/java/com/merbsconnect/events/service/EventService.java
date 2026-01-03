@@ -1,0 +1,50 @@
+package com.merbsconnect.events.service;
+
+import com.merbsconnect.authentication.dto.response.MessageResponse;
+import com.merbsconnect.events.dto.request.CreateEventRequest;
+import com.merbsconnect.events.dto.request.EventRegistrationDto;
+import com.merbsconnect.events.dto.request.SendBulkSmsToRegistrationsRequest;
+import com.merbsconnect.events.dto.request.UpdateEventRequest;
+import com.merbsconnect.events.dto.response.EventResponse;
+import com.merbsconnect.events.model.Registration;
+import com.merbsconnect.events.model.Speaker;
+import com.merbsconnect.sms.dtos.response.BulkSmsResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Optional;
+
+public interface EventService {
+
+    EventResponse createEvent(CreateEventRequest eventRequest);
+
+    EventResponse updateEvent(UpdateEventRequest eventRequest, Long eventId);
+
+    MessageResponse deleteEvent(Long eventId);
+
+    Page<EventResponse> getAllEvents(Pageable pageable);
+
+    Optional<EventResponse> getEventById(Long eventId);
+
+    Optional<EventResponse> getEventByYear(Long year);
+
+    MessageResponse addSpeakerToEvent(Speaker speaker, Long eventId);
+
+    MessageResponse removeSpeakerFromEvent(Long eventId,String speakerName);
+
+    Page<EventResponse> getUpcomingEvents(Pageable pageable);
+
+    Page<EventResponse> getPastEvents(Pageable pageable);
+    
+    MessageResponse updateEventSpeaker(Speaker speaker, Long eventId);
+    
+    MessageResponse registerForEvent(Long eventId, EventRegistrationDto registrationDto);
+    
+    Page<Registration> getEventRegistrations(Long eventId, Pageable pageable);
+
+    void writeRegistrationsToCsv(Long eventId, OutputStream outputStream) throws IOException;
+
+    BulkSmsResponse sendBulkSmsToSelectedRegistrations(SendBulkSmsToRegistrationsRequest request);
+}

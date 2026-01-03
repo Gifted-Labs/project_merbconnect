@@ -1,0 +1,33 @@
+package com.merbsconnect.academics.domain;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.HashSet;
+import java.util.Set;
+
+@Entity
+@Builder
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class Department {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String departmentName;
+
+    @ManyToOne
+    @JoinColumn(name = "faculty_id", nullable = false)
+    private Faculty faculty;
+
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Program> programs = new HashSet<>();
+}

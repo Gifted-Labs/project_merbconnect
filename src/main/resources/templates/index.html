@@ -1,0 +1,2654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Management System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#10B981',
+                        accent: '#8B5CF6',
+                        error: '#EF4444',
+                        success: '#10B981',
+                    },
+                },
+            },
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="antialiased bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+<!-- Main App Container -->
+<div id="app" class="min-h-screen flex flex-col">
+    <!-- Auth Container (Login, Register, etc.) -->
+    <div id="auth-container" class="flex items-center justify-center min-h-screen p-4">
+        <!-- Login Form -->
+        <div id="login-form" class="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Academic Management System</h1>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Sign in to your account</p>
+            </div>
+
+            <!-- Alert Message -->
+            <div id="auth-alert" class="hidden p-4 rounded-md"></div>
+
+            <form id="login-form-element" class="space-y-4">
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                    <input type="email" id="email" name="email" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                </div>
+
+                <div>
+                    <label for="password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <input type="password" id="password" name="password" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                </div>
+
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                        <label for="remember-me" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">Remember me</label>
+                    </div>
+
+                    <a href="#" id="forgot-password-link" class="text-sm font-medium text-primary hover:text-primary-dark">Forgot password?</a>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Sign in
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Don't have an account?
+                    <a href="#" id="register-link" class="font-medium text-primary hover:text-primary-dark">Sign up</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Register Form -->
+        <div id="register-form" class="hidden w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Create an Account</h1>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Fill in your details to get started</p>
+            </div>
+
+            <!-- Alert Message -->
+            <div id="register-alert" class="hidden p-4 rounded-md"></div>
+
+            <form id="register-form-element" class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="firstName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">First Name</label>
+                        <input type="text" id="firstName" name="firstName" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                    </div>
+                    <div>
+                        <label for="lastName" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Last Name</label>
+                        <input type="text" id="lastName" name="lastName" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                    </div>
+                </div>
+
+                <div>
+                    <label for="register-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                    <input type="email" id="register-email" name="email" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                </div>
+
+                <div>
+                    <label for="register-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                    <input type="password" id="register-password" name="password" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                    <div id="password-strength" class="mt-1 h-1 w-full bg-gray-300 rounded-full overflow-hidden">
+                        <div class="h-full bg-gray-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                    <p id="password-feedback" class="mt-1 text-xs text-gray-500 dark:text-gray-400"></p>
+                </div>
+
+                <div class="flex items-center">
+                    <input id="terms" name="terms" type="checkbox" required class="h-4 w-4 text-primary focus:ring-primary border-gray-300 rounded">
+                    <label for="terms" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
+                        I agree to the <a href="#" class="text-primary">Terms and Conditions</a>
+                    </label>
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Register
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Already have an account?
+                    <a href="#" id="login-link" class="font-medium text-primary hover:text-primary-dark">Sign in</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Forgot Password Form -->
+        <div id="forgot-password-form" class="hidden w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Reset Password</h1>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Enter your email to receive reset instructions</p>
+            </div>
+
+            <!-- Alert Message -->
+            <div id="forgot-password-alert" class="hidden p-4 rounded-md"></div>
+
+            <form id="forgot-password-form-element" class="space-y-4">
+                <div>
+                    <label for="forgot-email" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                    <input type="email" id="forgot-email" name="email" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Send Reset Link
+                    </button>
+                </div>
+            </form>
+
+            <div class="text-center">
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                    Remember your password?
+                    <a href="#" id="back-to-login-link" class="font-medium text-primary hover:text-primary-dark">Back to login</a>
+                </p>
+            </div>
+        </div>
+
+        <!-- Reset Password Form -->
+        <div id="reset-password-form" class="hidden w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 space-y-6">
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Set New Password</h1>
+                <p class="mt-2 text-gray-600 dark:text-gray-400">Enter your new password</p>
+            </div>
+
+            <!-- Alert Message -->
+            <div id="reset-password-alert" class="hidden p-4 rounded-md"></div>
+
+            <form id="reset-password-form-element" class="space-y-4">
+                <input type="hidden" id="reset-token" name="token">
+
+                <div>
+                    <label for="new-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">New Password</label>
+                    <input type="password" id="new-password" name="newPassword" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                </div>
+
+                <div>
+                    <label for="confirm-password" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Confirm Password</label>
+                    <input type="password" id="confirm-password" name="confirmPassword" required class="mt-1 block w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary dark:text-white" />
+                </div>
+
+                <div>
+                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Reset Password
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- App Layout (Header, Sidebar, Content) -->
+    <div id="app-layout" class="hidden flex flex-col min-h-screen">
+        <!-- Header -->
+        <header class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center px-4 py-3 sm:px-6 lg:px-8">
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="lg:hidden text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                    <span class="sr-only">Open sidebar</span>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+
+                <!-- Logo -->
+                <div class="lg:hidden flex items-center">
+                    <span class="text-lg font-bold text-gray-900 dark:text-white">AMS</span>
+                </div>
+
+                <!-- Breadcrumbs - Desktop Only -->
+                <nav class="hidden lg:flex" aria-label="Breadcrumb">
+                    <ol class="flex items-center space-x-4">
+                        <li>
+                            <div class="flex items-center">
+                                <a href="#" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200" data-page="dashboard">Home</a>
+                            </div>
+                        </li>
+                        <li id="breadcrumb-item" class="hidden">
+                            <div class="flex items-center">
+                                <svg class="flex-shrink-0 h-5 w-5 text-gray-400" viewBox="0 0 20 20" fill="currentColor">
+                                    <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd" />
+                                </svg>
+                                <a href="#" id="breadcrumb-link" class="ml-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"></a>
+                            </div>
+                        </li>
+                    </ol>
+                </nav>
+
+                <!-- Right side actions -->
+                <div class="flex items-center space-x-4">
+                    <!-- Theme Toggle -->
+                    <button id="theme-toggle" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                        <svg id="theme-toggle-dark-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path>
+                        </svg>
+                        <svg id="theme-toggle-light-icon" class="hidden w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path>
+                        </svg>
+                    </button>
+
+                    <!-- User Menu -->
+                    <div class="relative">
+                        <button id="user-menu-button" class="flex items-center text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+                            <span class="sr-only">Open user menu</span>
+                            <span id="user-menu-name" class="mr-2 text-sm hidden sm:block">User Name</span>
+                            <div class="h-8 w-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                                <span id="user-initials">UN</span>
+                            </div>
+                        </button>
+
+                        <!-- User Dropdown Menu -->
+                        <div id="user-dropdown" class="hidden origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-700 ring-1 ring-black ring-opacity-5 divide-y divide-gray-100 dark:divide-gray-600">
+                            <div class="py-1">
+                                <a href="#" data-page="profile" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Profile</a>
+                                <a href="#" data-page="settings" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Settings</a>
+                            </div>
+                            <div class="py-1">
+                                <a href="#" id="logout-button" class="block px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600">Sign out</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Container -->
+        <div class="flex flex-1 overflow-hidden">
+            <!-- Sidebar - Desktop -->
+            <aside id="sidebar" class="hidden lg:flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 w-64 overflow-y-auto">
+                <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                    <div class="flex items-center">
+                        <span class="text-lg font-bold text-gray-900 dark:text-white">Academic Management</span>
+                    </div>
+                </div>
+
+                <nav class="mt-4 px-2 space-y-1">
+                    <a href="#" data-page="dashboard" class="nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md bg-primary bg-opacity-10 text-primary">
+                        <i class="fas fa-chart-line mr-3 text-primary"></i>
+                        Dashboard
+                    </a>
+                    <a href="#" data-page="colleges" class="nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-university mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Colleges
+                    </a>
+                    <a href="#" data-page="faculties" class="nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-building mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Faculties
+                    </a>
+                    <a href="#" data-page="departments" class="nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-sitemap mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Departments
+                    </a>
+                    <a href="#" data-page="programs" class="nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-graduation-cap mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Programs
+                    </a>
+                </nav>
+
+                <div class="mt-auto p-4 border-t border-gray-200 dark:border-gray-700">
+                    <a href="#" data-page="settings" class="flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                        <i class="fas fa-cog mr-3 text-gray-500 dark:text-gray-400"></i>
+                        Settings
+                    </a>
+                </div>
+            </aside>
+
+            <!-- Mobile Sidebar (Off-canvas) -->
+            <div id="mobile-sidebar" class="fixed inset-0 flex z-40 lg:hidden hidden" role="dialog" aria-modal="true">
+                <!-- Overlay -->
+                <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-gray-600 bg-opacity-75"></div>
+
+                <!-- Sidebar -->
+                <div class="relative flex-1 flex flex-col max-w-xs w-full bg-white dark:bg-gray-800 transform transition ease-in-out duration-300">
+                    <!-- Close button -->
+                    <div class="absolute top-0 right-0 -mr-12 pt-2">
+                        <button id="close-mobile-sidebar" class="ml-1 flex items-center justify-center h-10 w-10 rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-white">
+                            <span class="sr-only">Close sidebar</span>
+                            <svg class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Mobile Navigation -->
+                    <div class="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
+                        <div class="px-4 flex items-center">
+                            <span class="text-lg font-bold text-gray-900 dark:text-white">Academic Management</span>
+                        </div>
+                        <nav class="mt-5 px-2 space-y-1">
+                            <a href="#" data-page="dashboard" class="mobile-nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md bg-primary bg-opacity-10 text-primary">
+                                <i class="fas fa-chart-line mr-3 text-primary"></i>
+                                Dashboard
+                            </a>
+                            <a href="#" data-page="colleges" class="mobile-nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-university mr-3 text-gray-500 dark:text-gray-400"></i>
+                                Colleges
+                            </a>
+                            <a href="#" data-page="faculties" class="mobile-nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-building mr-3 text-gray-500 dark:text-gray-400"></i>
+                                Faculties
+                            </a>
+                            <a href="#" data-page="departments" class="mobile-nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-sitemap mr-3 text-gray-500 dark:text-gray-400"></i>
+                                Departments
+                            </a>
+                            <a href="#" data-page="programs" class="mobile-nav-link flex items-center px-3 py-2 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                                <i class="fas fa-graduation-cap mr-3 text-gray-500 dark:text-gray-400"></i>
+                                Programs
+                            </a>
+                        </nav>
+                    </div>
+                    <div class="flex-shrink-0 flex border-t border-gray-200 dark:border-gray-700 p-4">
+                        <a href="#" class="flex-shrink-0 group block">
+                            <div class="flex items-center">
+                                <div class="h-10 w-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center text-sm font-medium text-gray-700 dark:text-gray-300">
+                                    <span id="mobile-user-initials">UN</span>
+                                </div>
+                                <div class="ml-3">
+                                    <p id="mobile-user-name" class="text-base font-medium text-gray-700 dark:text-gray-300">User Name</p>
+                                    <a href="#" id="mobile-logout-button" class="text-sm font-medium text-primary hover:text-primary-dark">Sign out</a>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mobile Bottom Navigation -->
+            <div id="mobile-bottom-nav" class="fixed bottom-0 inset-x-0 z-10 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 lg:hidden">
+                <div class="grid grid-cols-5 h-16">
+                    <button data-page="dashboard" class="mobile-nav-btn flex flex-col items-center justify-center text-primary">
+                        <i class="fas fa-chart-line text-lg"></i>
+                        <span class="text-xs mt-1">Dashboard</span>
+                    </button>
+                    <button data-page="colleges" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-university text-lg"></i>
+                        <span class="text-xs mt-1">Colleges</span>
+                    </button>
+                    <button data-page="faculties" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-building text-lg"></i>
+                        <span class="text-xs mt-1">Faculties</span>
+                    </button>
+                    <button data-page="departments" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-sitemap text-lg"></i>
+                        <span class="text-xs mt-1">Departments</span>
+                    </button>
+                    <button data-page="programs" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+                        <i class="fas fa-graduation-cap text-lg"></i>
+                        <span class="text-xs mt-1">Programs</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <main class="flex-1 overflow-auto bg-gray-50 dark:bg-gray-900 pb-16 lg:pb-0">
+                <!-- Page Content -->
+                <div id="page-content" class="p-4 sm:p-6 lg:p-8">
+                    <!-- Dashboard Page -->
+                    <div id="dashboard-page" class="page-content space-y-6">
+                        <div class="flex justify-between items-center">
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Dashboard</h1>
+                            <div>
+                                <button id="refresh-dashboard" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <i class="fas fa-sync-alt mr-2"></i>
+                                    Refresh
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 bg-primary bg-opacity-10 rounded-md p-3">
+                                            <i class="fas fa-university text-primary text-xl"></i>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Colleges</dt>
+                                                <dd>
+                                                    <div class="text-lg font-medium text-gray-900 dark:text-white" id="total-colleges">--</div>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 bg-secondary bg-opacity-10 rounded-md p-3">
+                                            <i class="fas fa-building text-secondary text-xl"></i>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Faculties</dt>
+                                                <dd>
+                                                    <div class="text-lg font-medium text-gray-900 dark:text-white" id="total-faculties">--</div>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 bg-accent bg-opacity-10 rounded-md p-3">
+                                            <i class="fas fa-sitemap text-accent text-xl"></i>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Departments</dt>
+                                                <dd>
+                                                    <div class="text-lg font-medium text-gray-900 dark:text-white" id="total-departments">--</div>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                                <div class="p-5">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 bg-error bg-opacity-10 rounded-md p-3">
+                                            <i class="fas fa-graduation-cap text-error text-xl"></i>
+                                        </div>
+                                        <div class="ml-5 w-0 flex-1">
+                                            <dl>
+                                                <dt class="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">Total Programs</dt>
+                                                <dd>
+                                                    <div class="text-lg font-medium text-gray-900 dark:text-white" id="total-programs">--</div>
+                                                </dd>
+                                            </dl>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Charts -->
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Departments per Faculty</h2>
+                                <div class="h-64">
+                                    <canvas id="departments-chart"></canvas>
+                                </div>
+                            </div>
+
+                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+                                <h2 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Programs per Department</h2>
+                                <div class="h-64">
+                                    <canvas id="programs-chart"></canvas>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="bg-white dark:bg-gray-800 shadow rounded-lg">
+                            <div class="px-6 py-5 border-b border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-medium text-gray-900 dark:text-white">Recent Activity</h3>
+                            </div>
+                            <div class="p-6">
+                                <ul id="recent-activity" class="divide-y divide-gray-200 dark:divide-gray-700">
+                                    <li class="py-4 flex items-center">
+                                        <div class="bg-blue-100 dark:bg-blue-900 p-2 rounded-full">
+                                            <i class="fas fa-plus text-blue-500 dark:text-blue-300"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">New College Added</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">College of Engineering was added</p>
+                                        </div>
+                                        <div class="ml-auto">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">30 min ago</span>
+                                        </div>
+                                    </li>
+                                    <li class="py-4 flex items-center">
+                                        <div class="bg-green-100 dark:bg-green-900 p-2 rounded-full">
+                                            <i class="fas fa-edit text-green-500 dark:text-green-300"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Faculty Updated</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Faculty of Science information was updated</p>
+                                        </div>
+                                        <div class="ml-auto">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">2 hours ago</span>
+                                        </div>
+                                    </li>
+                                    <li class="py-4 flex items-center">
+                                        <div class="bg-purple-100 dark:bg-purple-900 p-2 rounded-full">
+                                            <i class="fas fa-trash text-purple-500 dark:text-purple-300"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <p class="text-sm font-medium text-gray-900 dark:text-white">Department Removed</p>
+                                            <p class="text-sm text-gray-500 dark:text-gray-400">Department of Physics was removed</p>
+                                        </div>
+                                        <div class="ml-auto">
+                                            <span class="text-xs text-gray-500 dark:text-gray-400">Yesterday</span>
+                                        </div>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colleges Page -->
+                    <div id="colleges-page" class="page-content hidden space-y-6">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Colleges</h1>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <div class="relative">
+                                    <input type="text" id="college-search" placeholder="Search colleges..." class="block w-full pl-10 pr-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-base bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="fas fa-search text-gray-400"></i>
+                                    </div>
+                                </div>
+                                <button id="add-college-button" class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add College
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Colleges Table -->
+                        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-300 dark:divide-gray-700">
+                                    <thead class="bg-gray-50 dark:bg-gray-800">
+                                    <tr>
+                                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 dark:text-white sm:pl-6">College Name</th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Location</th>
+                                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 dark:text-white">Faculties</th>
+                                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                                            <span class="sr-only">Actions</span>
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody id="colleges-table-body" class="divide-y divide-gray-200 dark:divide-gray-700 bg-white dark:bg-gray-800">
+                                    <tr>
+                                        <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                            <div class="flex justify-center items-center space-x-2">
+                                                <svg class="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                                </svg>
+                                                <span>Loading...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Pagination -->
+                            <div class="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
+                                <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-700 dark:text-gray-300">
+                                            Showing <span id="pagination-start">1</span> to <span id="pagination-end">10</span> of <span id="pagination-total">--</span> results
+                                        </p>
+                                    </div>
+                                    <div>
+                                        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                                            <button id="pagination-prev" class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                <span class="sr-only">Previous</span>
+                                                <i class="fas fa-chevron-left h-5 w-5"></i>
+                                            </button>
+                                            <div id="pagination-numbers" class="flex">
+                                                <!-- Pagination numbers will be inserted here -->
+                                            </div>
+                                            <button id="pagination-next" class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                                <span class="sr-only">Next</span>
+                                                <i class="fas fa-chevron-right h-5 w-5"></i>
+                                            </button>
+                                        </nav>
+                                    </div>
+                                </div>
+                                <div class="flex items-center sm:hidden">
+                                    <button id="pagination-prev-mobile" class="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        Previous
+                                    </button>
+                                    <button id="pagination-next-mobile" class="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- College Detail Page -->
+                    <div id="college-detail-page" class="page-content hidden space-y-6">
+                        <div class="flex justify-between items-center">
+                            <div class="flex items-center space-x-2">
+                                <button id="back-to-colleges" class="inline-flex items-center px-3 py-1.5 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <i class="fas fa-arrow-left mr-2"></i>
+                                    Back
+                                </button>
+                                <h1 id="college-detail-name" class="text-2xl font-bold text-gray-900 dark:text-white">College Name</h1>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button id="edit-college-button" class="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700">
+                                    <i class="fas fa-edit mr-2"></i>
+                                    Edit
+                                </button>
+                                <button id="delete-college-button" class="inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-error hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-error">
+                                    <i class="fas fa-trash mr-2"></i>
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- College Info Card -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">College Information</h3>
+                            </div>
+                            <div class="px-4 py-5 sm:p-6">
+                                <dl class="grid grid-cols-1 gap-x-4 gap-y-6 sm:grid-cols-2">
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">College Name</dt>
+                                        <dd id="college-info-name" class="mt-1 text-sm text-gray-900 dark:text-white">--</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Location</dt>
+                                        <dd id="college-info-location" class="mt-1 text-sm text-gray-900 dark:text-white">--</dd>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">Description</dt>
+                                        <dd id="college-info-description" class="mt-1 text-sm text-gray-900 dark:text-white">--</dd>
+                                    </div>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <!-- Faculties List -->
+                        <div class="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
+                            <div class="px-4 py-5 sm:px-6 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center">
+                                <h3 class="text-lg font-medium leading-6 text-gray-900 dark:text-white">Faculties</h3>
+                                <button id="add-faculty-button" class="inline-flex items-center px-3 py-1.5 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add Faculty
+                                </button>
+                            </div>
+                            <div class="px-4 py-5 sm:p-6">
+                                <div id="college-faculties-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    <div class="flex justify-center items-center py-8">
+                                        <div class="flex flex-col items-center">
+                                            <svg class="animate-spin h-8 w-8 text-primary mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                            </svg>
+                                            <p class="text-gray-500 dark:text-gray-400">Loading faculties...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Placeholder for other pages -->
+                    <div id="faculties-page" class="page-content hidden">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Faculties Management</h1>
+                        <p class="mt-4 text-gray-500 dark:text-gray-400">This page is under development.</p>
+                    </div>
+
+                    <div id="departments-page" class="page-content hidden">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Departments Management</h1>
+                        <p class="mt-4 text-gray-500 dark:text-gray-400">This page is under development.</p>
+                    </div>
+
+                    <div id="programs-page" class="page-content hidden">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Programs Management</h1>
+                        <p class="mt-4 text-gray-500 dark:text-gray-400">This page is under development.</p>
+                    </div>
+
+                    <div id="profile-page" class="page-content hidden">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">User Profile</h1>
+                        <p class="mt-4 text-gray-500 dark:text-gray-400">This page is under development.</p>
+                    </div>
+
+                    <div id="settings-page" class="page-content hidden">
+                        <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
+                        <p class="mt-4 text-gray-500 dark:text-gray-400">This page is under development.</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Add/Edit College Modal -->
+<div id="college-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <form id="college-form">
+                <input type="hidden" id="college-id">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 id="college-modal-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                                Add College
+                            </h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label for="college-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        College Name*
+                                    </label>
+                                    <input type="text" name="collegeName" id="college-name" required class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm text-base focus:outline-none focus:ring-primary focus:border-primary dark:text-white">
+                                    <p id="college-name-error" class="mt-1 text-sm text-error hidden">Please enter a valid college name.</p>
+                                </div>
+                                <div>
+                                    <label for="college-location" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Location*
+                                    </label>
+                                    <input type="text" name="location" id="college-location" required class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm text-base focus:outline-none focus:ring-primary focus:border-primary dark:text-white">
+                                    <p id="college-location-error" class="mt-1 text-sm text-error hidden">Please enter a valid location.</p>
+                                </div>
+                                <div>
+                                    <label for="college-description" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Description
+                                    </label>
+                                    <textarea name="description" id="college-description" rows="3" class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm text-base focus:outline-none focus:ring-primary focus:border-primary dark:text-white"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="submit" id="college-form-submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
+                        Save
+                    </button>
+                    <button type="button" id="college-modal-cancel" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Add Faculty Modal -->
+<div id="faculty-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <form id="faculty-form">
+                <input type="hidden" id="faculty-id">
+                <input type="hidden" id="faculty-college-id">
+                <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                    <div class="sm:flex sm:items-start">
+                        <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
+                            <h3 id="faculty-modal-title" class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                                Add Faculty
+                            </h3>
+                            <div class="mt-4 space-y-4">
+                                <div>
+                                    <label for="faculty-name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        Faculty Name*
+                                    </label>
+                                    <input type="text" name="facultyName" id="faculty-name" required class="mt-1 block w-full py-2 px-3 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 rounded-md shadow-sm text-base focus:outline-none focus:ring-primary focus:border-primary dark:text-white">
+                                    <p id="faculty-name-error" class="mt-1 text-sm text-error hidden">Please enter a valid faculty name.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                    <button type="submit" id="faculty-form-submit" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary text-base font-medium text-white hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:ml-3 sm:w-auto sm:text-sm">
+                        Save
+                    </button>
+                    <button type="button" id="faculty-modal-cancel" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="delete-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+    <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div class="fixed inset-0 transition-opacity" aria-hidden="true">
+            <div class="absolute inset-0 bg-gray-500 dark:bg-gray-900 opacity-75"></div>
+        </div>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+            <div class="bg-white dark:bg-gray-800 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 sm:mx-0 sm:h-10 sm:w-10">
+                        <i class="fas fa-exclamation-triangle text-error"></i>
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                        <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                            Delete <span id="delete-entity-type">Item</span>
+                        </h3>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                Are you sure you want to delete <span id="delete-entity-name">this item</span>? This action cannot be undone.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button type="button" id="delete-confirm" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-error text-base font-medium text-white hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-error sm:ml-3 sm:w-auto sm:text-sm">
+                    Delete
+                </button>
+                <button type="button" id="delete-cancel" class="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-800 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed right-4 bottom-4 flex items-center p-4 mb-4 w-full max-w-xs text-gray-500 bg-white dark:bg-gray-800 rounded-lg shadow dark:text-gray-400 transition-opacity duration-300 opacity-0 translate-y-2 hidden" role="alert">
+    <div id="toast-icon-success" class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-success bg-success bg-opacity-10 rounded-lg">
+        <i class="fas fa-check"></i>
+    </div>
+    <div id="toast-icon-error" class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-error bg-error bg-opacity-10 rounded-lg">
+        <i class="fas fa-exclamation-circle"></i>
+    </div>
+    <div id="toast-icon-info" class="inline-flex items-center justify-center flex-shrink-0 w-8 h-8 text-primary bg-primary bg-opacity-10 rounded-lg">
+        <i class="fas fa-info"></i>
+    </div>
+    <div class="ml-3 text-sm font-normal" id="toast-message">Toast message here</div>
+    <button type="button" id="toast-close" class="ml-auto -mx-1.5 -my-1.5 text-gray-400 hover:text-gray-900 dark:hover:text-white rounded-lg p-1.5 inline-flex h-8 w-8">
+        <i class="fas fa-times"></i>
+    </button>
+</div>
+
+<script>
+    // API Client
+    const API_BASE_URL = 'http://example.com/api/v1'; // Replace with your actual API base URL
+
+    class ApiClient {
+        constructor() {
+            this.token = localStorage.getItem('token');
+            this.refreshToken = localStorage.getItem('refreshToken');
+        }
+
+        setAuthTokens(token, refreshToken) {
+            this.token = token;
+            this.refreshToken = refreshToken;
+            localStorage.setItem('token', token);
+            localStorage.setItem('refreshToken', refreshToken);
+        }
+
+        clearAuthTokens() {
+            this.token = null;
+            this.refreshToken = null;
+            localStorage.removeItem('token');
+            localStorage.removeItem('refreshToken');
+        }
+
+        getHeaders() {
+            const headers = {
+                'Content-Type': 'application/json'
+            };
+
+            if (this.token) {
+                headers['Authorization'] = `Bearer ${this.token}`;
+            }
+
+            return headers;
+        }
+
+        async handleResponse(response) {
+            if (response.status === 401) {
+                // Try to refresh token
+                const refreshed = await this.refreshAuthToken();
+                if (!refreshed) {
+                    // If refresh failed, redirect to login
+                    App.logout();
+                    return null;
+                }
+                // Retry the original request
+                // This is simplified - in a real app you would need to recreate the original request
+                return response;
+            }
+
+            const contentType = response.headers.get('content-type');
+
+            if (contentType && contentType.includes('application/json')) {
+                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data.message || 'Something went wrong');
+                }
+                return data;
+            } else {
+                if (!response.ok) {
+                    throw new Error('Something went wrong');
+                }
+                return response;
+            }
+        }
+
+        async refreshAuthToken() {
+            if (!this.refreshToken) {
+                return false;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refreshToken: this.refreshToken })
+                });
+
+                if (!response.ok) {
+                    throw new Error('Token refresh failed');
+                }
+
+                const data = await response.json();
+                this.setAuthTokens(data.token, data.refreshToken);
+                return true;
+            } catch (error) {
+                console.error('Error refreshing token:', error);
+                return false;
+            }
+        }
+
+        // Auth Endpoints
+        async login(email, password) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await this.handleResponse(response);
+                if (data && data.token) {
+                    this.setAuthTokens(data.token, data.refreshToken);
+                }
+                return data;
+            } catch (error) {
+                console.error('Login error:', error);
+                throw error;
+            }
+        }
+
+        async register(firstName, lastName, email, password) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ firstName, lastName, email, password })
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Registration error:', error);
+                throw error;
+            }
+        }
+
+        async forgotPassword(email) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/forgot-password?email=${encodeURIComponent(email)}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                throw error;
+            }
+        }
+
+        async resetPassword(token, newPassword, confirmPassword) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ token, newPassword, confirmPassword })
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Reset password error:', error);
+                throw error;
+            }
+        }
+
+        // College Endpoints
+        async getColleges() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges`, {
+                    method: 'GET',
+                    headers: this.getHeaders()
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Get colleges error:', error);
+                throw error;
+            }
+        }
+
+        async getCollegesPaged(page = 0, size = 10) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges/paged?page=${page}&size=${size}`, {
+                    method: 'GET',
+                    headers: this.getHeaders()
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Get paged colleges error:', error);
+                throw error;
+            }
+        }
+
+        async getCollege(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges/${id}`, {
+                    method: 'GET',
+                    headers: this.getHeaders()
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error(`Get college ${id} error:`, error);
+                throw error;
+            }
+        }
+
+        async getCollegeWithFaculties(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges/${id}/with-faculties`, {
+                    method: 'GET',
+                    headers: this.getHeaders()
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error(`Get college ${id} with faculties error:`, error);
+                throw error;
+            }
+        }
+
+        async createCollege(collegeData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges`, {
+                    method: 'POST',
+                    headers: this.getHeaders(),
+                    body: JSON.stringify(collegeData)
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Create college error:', error);
+                throw error;
+            }
+        }
+
+        async updateCollege(id, collegeData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges/${id}`, {
+                    method: 'PUT',
+                    headers: this.getHeaders(),
+                    body: JSON.stringify(collegeData)
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error(`Update college ${id} error:`, error);
+                throw error;
+            }
+        }
+
+        async deleteCollege(id) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges/${id}`, {
+                    method: 'DELETE',
+                    headers: this.getHeaders()
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error(`Delete college ${id} error:`, error);
+                throw error;
+            }
+        }
+
+        async searchColleges(name) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/colleges/search?name=${encodeURIComponent(name)}`, {
+                    method: 'GET',
+                    headers: this.getHeaders()
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Search colleges error:', error);
+                throw error;
+            }
+        }
+
+        // Faculty Endpoints
+        async createFaculty(facultyData) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/faculties`, {
+                    method: 'POST',
+                    headers: this.getHeaders(),
+                    body: JSON.stringify(facultyData)
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error('Create faculty error:', error);
+                throw error;
+            }
+        }
+
+        async getFacultiesByCollege(collegeId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/faculties/college/${collegeId}`, {
+                    method: 'GET',
+                    headers: this.getHeaders()
+                });
+
+                return await this.handleResponse(response);
+            } catch (error) {
+                console.error(`Get faculties by college ${collegeId} error:`, error);
+                throw error;
+            }
+        }
+
+        // Add other endpoints as needed
+    }
+
+    // App
+    class App {
+        constructor() {
+            this.api = new ApiClient();
+            this.currentPage = 'dashboard';
+            this.collegesCurrentPage = 0;
+            this.collegesPageSize = 10;
+            this.currentCollege = null;
+            this.currentEntityForDelete = null;
+            this.isAuthenticated = !!this.api.token;
+
+            this.initializeDarkMode();
+            this.setupEventListeners();
+            this.checkAuthentication();
+        }
+
+        initializeDarkMode() {
+            // Check for preferred color scheme
+            if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-toggle-light-icon').classList.remove('hidden');
+            } else {
+                document.getElementById('theme-toggle-dark-icon').classList.remove('hidden');
+            }
+
+            // Listen for color scheme changes
+            window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', event => {
+                if (event.matches) {
+                    document.documentElement.classList.add('dark');
+                    document.getElementById('theme-toggle-light-icon').classList.remove('hidden');
+                    document.getElementById('theme-toggle-dark-icon').classList.add('hidden');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                    document.getElementById('theme-toggle-dark-icon').classList.remove('hidden');
+                    document.getElementById('theme-toggle-light-icon').classList.add('hidden');
+                }
+            });
+        }
+
+        setupEventListeners() {
+            // Auth Forms
+            document.getElementById('login-form-element').addEventListener('submit', this.handleLogin.bind(this));
+            document.getElementById('register-form-element').addEventListener('submit', this.handleRegister.bind(this));
+            document.getElementById('forgot-password-form-element').addEventListener('submit', this.handleForgotPassword.bind(this));
+            document.getElementById('reset-password-form-element').addEventListener('submit', this.handleResetPassword.bind(this));
+
+            // Auth Navigation
+            document.getElementById('register-link').addEventListener('click', this.showRegisterForm.bind(this));
+            document.getElementById('login-link').addEventListener('click', this.showLoginForm.bind(this));
+            document.getElementById('forgot-password-link').addEventListener('click', this.showForgotPasswordForm.bind(this));
+            document.getElementById('back-to-login-link').addEventListener('click', this.showLoginForm.bind(this));
+
+            // Password Strength
+            document.getElementById('register-password').addEventListener('input', this.checkPasswordStrength.bind(this));
+
+            // Theme Toggle
+            document.getElementById('theme-toggle').addEventListener('click', this.toggleDarkMode.bind(this));
+
+            // Navigation
+            document.querySelectorAll('.nav-link, .mobile-nav-link, .mobile-nav-btn').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const page = e.currentTarget.getAttribute('data-page');
+                    this.navigateTo(page);
+                });
+            });
+
+            // Mobile Sidebar
+            document.getElementById('mobile-menu-button').addEventListener('click', this.openMobileSidebar.bind(this));
+            document.getElementById('close-mobile-sidebar').addEventListener('click', this.closeMobileSidebar.bind(this));
+            document.getElementById('mobile-sidebar-overlay').addEventListener('click', this.closeMobileSidebar.bind(this));
+
+            // User Menu
+            document.getElementById('user-menu-button').addEventListener('click', this.toggleUserDropdown.bind(this));
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('#user-menu-button') && !e.target.closest('#user-dropdown')) {
+                    document.getElementById('user-dropdown').classList.add('hidden');
+                }
+            });
+
+            // Logout
+            document.getElementById('logout-button').addEventListener('click', this.handleLogout.bind(this));
+            document.getElementById('mobile-logout-button').addEventListener('click', this.handleLogout.bind(this));
+
+            // College Page
+            document.getElementById('add-college-button').addEventListener('click', this.showAddCollegeModal.bind(this));
+            document.getElementById('college-form').addEventListener('submit', this.handleCollegeSubmit.bind(this));
+            document.getElementById('college-modal-cancel').addEventListener('click', this.closeCollegeModal.bind(this));
+            document.getElementById('college-search').addEventListener('input', this.handleCollegeSearch.bind(this));
+
+            // College Pagination
+            document.getElementById('pagination-prev').addEventListener('click', () => this.changePage(this.collegesCurrentPage - 1));
+            document.getElementById('pagination-next').addEventListener('click', () => this.changePage(this.collegesCurrentPage + 1));
+            document.getElementById('pagination-prev-mobile').addEventListener('click', () => this.changePage(this.collegesCurrentPage - 1));
+            document.getElementById('pagination-next-mobile').addEventListener('click', () => this.changePage(this.collegesCurrentPage + 1));
+
+            // College Detail
+            document.getElementById('back-to-colleges').addEventListener('click', () => this.navigateTo('colleges'));
+            document.getElementById('edit-college-button').addEventListener('click', this.showEditCollegeModal.bind(this));
+            document.getElementById('delete-college-button').addEventListener('click', () => this.showDeleteConfirmation('college', this.currentCollege));
+            document.getElementById('add-faculty-button').addEventListener('click', this.showAddFacultyModal.bind(this));
+
+            // Faculty Modal
+            document.getElementById('faculty-form').addEventListener('submit', this.handleFacultySubmit.bind(this));
+            document.getElementById('faculty-modal-cancel').addEventListener('click', this.closeFacultyModal.bind(this));
+
+            // Delete Confirmation
+            document.getElementById('delete-confirm').addEventListener('click', this.handleDeleteConfirm.bind(this));
+            document.getElementById('delete-cancel').addEventListener('click', this.closeDeleteModal.bind(this));
+
+            // Toast
+            document.getElementById('toast-close').addEventListener('click', this.closeToast.bind(this));
+
+            // Dashboard
+            document.getElementById('refresh-dashboard').addEventListener('click', this.loadDashboardData.bind(this));
+        }
+
+        checkAuthentication() {
+            const authContainer = document.getElementById('auth-container');
+            const appLayout = document.getElementById('app-layout');
+
+            if (this.isAuthenticated) {
+                authContainer.classList.add('hidden');
+                appLayout.classList.remove('hidden');
+                this.loadInitialData();
+                this.loadUserProfile();
+            } else {
+                authContainer.classList.remove('hidden');
+                appLayout.classList.add('hidden');
+                this.showLoginForm();
+            }
+        }
+
+        loadInitialData() {
+            this.navigateTo('dashboard');
+            this.loadDashboardData();
+        }
+
+        loadUserProfile() {
+            // In a real app, you would fetch the user profile
+            // For now, we'll use mock data
+            const userName = 'John Doe';
+            const initials = 'JD';
+
+            document.getElementById('user-menu-name').textContent = userName;
+            document.getElementById('user-initials').textContent = initials;
+            document.getElementById('mobile-user-name').textContent = userName;
+            document.getElementById('mobile-user-initials').textContent = initials;
+
+            document.getElementById('user-menu-name').classList.remove('hidden');
+        }
+
+        async loadDashboardData() {
+            try {
+                // For now, we'll use mock data
+                // In a real app, you would fetch this data from your API
+                const mockData = {
+                    stats: {
+                        colleges: 5,
+                        faculties: 12,
+                        departments: 38,
+                        programs: 145
+                    },
+                    facultyData: {
+                        labels: ['Science', 'Engineering', 'Arts', 'Business', 'Medicine'],
+                        data: [8, 10, 6, 9, 5]
+                    },
+                    programData: {
+                        labels: ['Computer Science', 'Electrical Engineering', 'Biology', 'Chemistry', 'Mathematics'],
+                        data: [12, 9, 7, 5, 8]
+                    }
+                };
+
+                // Update stats
+                document.getElementById('total-colleges').textContent = mockData.stats.colleges;
+                document.getElementById('total-faculties').textContent = mockData.stats.faculties;
+                document.getElementById('total-departments').textContent = mockData.stats.departments;
+                document.getElementById('total-programs').textContent = mockData.stats.programs;
+
+                // Update charts
+                this.createDepartmentChart(mockData.facultyData);
+                this.createProgramChart(mockData.programData);
+
+                // Show success toast
+                this.showToast('Dashboard data refreshed successfully', 'success');
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                this.showToast('Failed to load dashboard data', 'error');
+            }
+        }
+
+        createDepartmentChart(data) {
+            const ctx = document.getElementById('departments-chart').getContext('2d');
+
+            // Destroy existing chart if it exists
+            if (this.departmentsChart) {
+                this.departmentsChart.destroy();
+            }
+
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#e5e7eb' : '#374151';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+            this.departmentsChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Departments',
+                        data: data.data,
+                        backgroundColor: '#3B82F6',
+                        borderColor: '#2563EB',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: textColor
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: textColor
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        createProgramChart(data) {
+            const ctx = document.getElementById('programs-chart').getContext('2d');
+
+            // Destroy existing chart if it exists
+            if (this.programsChart) {
+                this.programsChart.destroy();
+            }
+
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            const textColor = isDarkMode ? '#e5e7eb' : '#374151';
+            const gridColor = isDarkMode ? 'rgba(255, 255, 255, 0.1)' : 'rgba(0, 0, 0, 0.1)';
+
+            this.programsChart = new Chart(ctx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: data.labels,
+                    datasets: [{
+                        label: 'Programs',
+                        data: data.data,
+                        backgroundColor: '#10B981',
+                        borderColor: '#059669',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: textColor
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        },
+                        y: {
+                            ticks: {
+                                color: textColor
+                            },
+                            grid: {
+                                color: gridColor
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Auth Functions
+        async handleLogin(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const rememberMe = document.getElementById('remember-me').checked;
+
+            try {
+                // In a real app, you would use the API
+                // const response = await this.api.login(email, password);
+
+                // For demo purposes, we'll simulate a successful login
+                const mockResponse = {
+                    token: 'mock-jwt-token',
+                    refreshToken: 'mock-refresh-token',
+                    id: 1,
+                    username: 'john.doe',
+                    email: email,
+                    roles: ['ROLE_USER']
+                };
+
+                this.api.setAuthTokens(mockResponse.token, mockResponse.refreshToken);
+                this.isAuthenticated = true;
+                this.checkAuthentication();
+
+                this.showToast('Login successful', 'success');
+            } catch (error) {
+                const alertElement = document.getElementById('auth-alert');
+                alertElement.textContent = error.message || 'Login failed. Please check your credentials.';
+                alertElement.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+                alertElement.classList.add('bg-red-100', 'text-red-800');
+            }
+        }
+
+        async handleRegister(e) {
+            e.preventDefault();
+
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const email = document.getElementById('register-email').value;
+            const password = document.getElementById('register-password').value;
+            const termsAccepted = document.getElementById('terms').checked;
+
+            if (!termsAccepted) {
+                const alertElement = document.getElementById('register-alert');
+                alertElement.textContent = 'You must accept the terms and conditions to register.';
+                alertElement.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+                alertElement.classList.add('bg-red-100', 'text-red-800');
+                return;
+            }
+
+            try {
+                // In a real app, you would use the API
+                // const response = await this.api.register(firstName, lastName, email, password);
+
+                // For demo purposes, we'll simulate a successful registration
+                const mockResponse = {
+                    success: true,
+                    message: 'Registration successful. Please check your email for verification.',
+                    timestamp: new Date().toISOString()
+                };
+
+                const alertElement = document.getElementById('register-alert');
+                alertElement.textContent = mockResponse.message;
+                alertElement.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+                alertElement.classList.add('bg-green-100', 'text-green-800');
+
+                // Reset form
+                document.getElementById('register-form-element').reset();
+
+                // Redirect to login after 3 seconds
+                setTimeout(() => {
+                    this.showLoginForm();
+                }, 3000);
+            } catch (error) {
+                const alertElement = document.getElementById('register-alert');
+                alertElement.textContent = error.message || 'Registration failed. Please try again.';
+                alertElement.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+                alertElement.classList.add('bg-red-100', 'text-red-800');
+            }
+        }
+
+        async handleForgotPassword(e) {
+            e.preventDefault();
+
+            const email = document.getElementById('forgot-email').value;
+
+            try {
+                // In a real app, you would use the API
+                // const response = await this.api.forgotPassword(email);
+
+                // For demo purposes, we'll simulate a successful request
+                const mockResponse = {
+                    success: true,
+                    message: 'Password reset link has been sent to your email.',
+                    timestamp: new Date().toISOString()
+                };
+
+                const alertElement = document.getElementById('forgot-password-alert');
+                alertElement.textContent = mockResponse.message;
+                alertElement.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+                alertElement.classList.add('bg-green-100', 'text-green-800');
+
+                // Reset form
+                document.getElementById('forgot-password-form-element').reset();
+            } catch (error) {
+                const alertElement = document.getElementById('forgot-password-alert');
+                alertElement.textContent = error.message || 'Failed to send password reset link. Please try again.';
+                alertElement.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+                alertElement.classList.add('bg-red-100', 'text-red-800');
+            }
+        }
+
+        async handleResetPassword(e) {
+            e.preventDefault();
+
+            const token = document.getElementById('reset-token').value;
+            const newPassword = document.getElementById('new-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            if (newPassword !== confirmPassword) {
+                const alertElement = document.getElementById('reset-password-alert');
+                alertElement.textContent = 'Passwords do not match.';
+                alertElement.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+                alertElement.classList.add('bg-red-100', 'text-red-800');
+                return;
+            }
+
+            try {
+                // In a real app, you would use the API
+                // const response = await this.api.resetPassword(token, newPassword, confirmPassword);
+
+                // For demo purposes, we'll simulate a successful reset
+                const mockResponse = {
+                    success: true,
+                    message: 'Password has been reset successfully.',
+                    timestamp: new Date().toISOString()
+                };
+
+                const alertElement = document.getElementById('reset-password-alert');
+                alertElement.textContent = mockResponse.message;
+                alertElement.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+                alertElement.classList.add('bg-green-100', 'text-green-800');
+
+                // Reset form
+                document.getElementById('reset-password-form-element').reset();
+
+                // Redirect to login after 3 seconds
+                setTimeout(() => {
+                    this.showLoginForm();
+                }, 3000);
+            } catch (error) {
+                const alertElement = document.getElementById('reset-password-alert');
+                alertElement.textContent = error.message || 'Failed to reset password. Please try again.';
+                alertElement.classList.remove('hidden', 'bg-green-100', 'text-green-800');
+                alertElement.classList.add('bg-red-100', 'text-red-800');
+            }
+        }
+
+        checkPasswordStrength(e) {
+            const password = e.target.value;
+            const strengthBar = document.getElementById('password-strength').querySelector('div');
+            const feedback = document.getElementById('password-feedback');
+
+            // Simple password strength check
+            let strength = 0;
+            if (password.length >= 8) strength += 20;
+            if (password.match(/[a-z]+/)) strength += 20;
+            if (password.match(/[A-Z]+/)) strength += 20;
+            if (password.match(/[0-9]+/)) strength += 20;
+            if (password.match(/[$@#&!]+/)) strength += 20;
+
+            // Update UI
+            strengthBar.style.width = `${strength}%`;
+
+            // Set color based on strength
+            if (strength < 40) {
+                strengthBar.classList.remove('bg-yellow-500', 'bg-green-500');
+                strengthBar.classList.add('bg-red-500');
+                feedback.textContent = 'Weak password';
+                feedback.classList.remove('text-yellow-500', 'text-green-500');
+                feedback.classList.add('text-red-500');
+            } else if (strength < 80) {
+                strengthBar.classList.remove('bg-red-500', 'bg-green-500');
+                strengthBar.classList.add('bg-yellow-500');
+                feedback.textContent = 'Medium password';
+                feedback.classList.remove('text-red-500', 'text-green-500');
+                feedback.classList.add('text-yellow-500');
+            } else {
+                strengthBar.classList.remove('bg-red-500', 'bg-yellow-500');
+                strengthBar.classList.add('bg-green-500');
+                feedback.textContent = 'Strong password';
+                feedback.classList.remove('text-red-500', 'text-yellow-500');
+                feedback.classList.add('text-green-500');
+            }
+        }
+
+        handleLogout() {
+            this.api.clearAuthTokens();
+            this.isAuthenticated = false;
+            this.checkAuthentication();
+        }
+
+        // Page Navigation
+        navigateTo(page) {
+            // Hide all pages
+            document.querySelectorAll('.page-content').forEach(p => p.classList.add('hidden'));
+
+            // Show the selected page
+            document.getElementById(`${page}-page`).classList.remove('hidden');
+
+            // Update active nav links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                if (link.getAttribute('data-page') === page) {
+                    link.classList.add('bg-primary', 'bg-opacity-10', 'text-primary');
+                    link.classList.remove('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                } else {
+                    link.classList.remove('bg-primary', 'bg-opacity-10', 'text-primary');
+                    link.classList.add('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                }
+            });
+
+            // Update active mobile nav links
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                if (link.getAttribute('data-page') === page) {
+                    link.classList.add('bg-primary', 'bg-opacity-10', 'text-primary');
+                    link.classList.remove('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                } else {
+                    link.classList.remove('bg-primary', 'bg-opacity-10', 'text-primary');
+                    link.classList.add('text-gray-700', 'dark:text-gray-300', 'hover:bg-gray-100', 'dark:hover:bg-gray-700');
+                }
+            });
+
+            // Update active bottom nav buttons
+            document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+                if (btn.getAttribute('data-page') === page) {
+                    btn.classList.add('text-primary');
+                    btn.classList.remove('text-gray-500', 'dark:text-gray-400');
+                } else {
+                    btn.classList.remove('text-primary');
+                    btn.classList.add('text-gray-500', 'dark:text-gray-400');
+                }
+            });
+
+            // Update current page
+            this.currentPage = page;
+
+            // Close mobile sidebar if open
+            this.closeMobileSidebar();
+
+            // Load page data
+            this.loadPageData(page);
+        }
+
+        loadPageData(page) {
+            switch (page) {
+                case 'dashboard':
+                    // Dashboard data is loaded in loadInitialData()
+                    break;
+                case 'colleges':
+                    this.loadColleges();
+                    break;
+                case 'college-detail':
+                    if (this.currentCollege) {
+                        this.loadCollegeDetails(this.currentCollege.id);
+                    }
+                    break;
+                case 'faculties':
+                    // Load faculties data here
+                    break;
+                case 'departments':
+                    // Load departments data here
+                    break;
+                case 'programs':
+                    // Load programs data here
+                    break;
+                case 'profile':
+                    // Load profile data here
+                    break;
+                case 'settings':
+                    // Load settings data here
+                    break;
+            }
+        }
+
+        // Colleges Management
+        async loadColleges() {
+            try {
+                const tableBody = document.getElementById('colleges-table-body');
+                tableBody.innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                <div class="flex justify-center items-center space-x-2">
+                                    <svg class="animate-spin h-5 w-5 text-primary" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    <span>Loading...</span>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+
+                // In a real app, you would use the API
+                // const response = await this.api.getCollegesPaged(this.collegesCurrentPage, this.collegesPageSize);
+
+                // For demo purposes, we'll use mock data
+                const mockResponse = {
+                    success: true,
+                    message: 'Colleges retrieved successfully',
+                    data: {
+                        content: [
+                            { id: 1, collegeName: 'College of Engineering', location: 'North Campus', description: 'Engineering and technology programs', faculties: 5 },
+                            { id: 2, collegeName: 'College of Sciences', location: 'South Campus', description: 'Natural and physical sciences programs', faculties: 4 },
+                            { id: 3, collegeName: 'College of Business', location: 'Downtown', description: 'Business and economics programs', faculties: 3 },
+                            { id: 4, collegeName: 'College of Arts', location: 'West Campus', description: 'Arts and humanities programs', faculties: 6 },
+                            { id: 5, collegeName: 'College of Medicine', location: 'Medical Campus', description: 'Medical and health sciences programs', faculties: 2 }
+                        ],
+                        pageable: {
+                            pageNumber: this.collegesCurrentPage,
+                            pageSize: this.collegesPageSize
+                        },
+                        totalElements: 15,
+                        totalPages: 3
+                    },
+                    timestamp: new Date().toISOString()
+                };
+
+                const { content, totalElements, totalPages } = mockResponse.data;
+
+                // Update table
+                if (content.length === 0) {
+                    tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    No colleges found
+                                </td>
+                            </tr>
+                        `;
+                } else {
+                    tableBody.innerHTML = content.map(college => `
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="py-4 pl-4 pr-3 text-sm sm:pl-6">
+                                    <a href="#" data-college-id="${college.id}" class="college-name-link font-medium text-primary hover:text-primary-dark">
+                                        ${college.collegeName}
+                                    </a>
+                                    <div class="text-gray-500 dark:text-gray-400">${college.description || 'No description'}</div>
+                                </td>
+                                <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    ${college.location}
+                                </td>
+                                <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    ${college.faculties} ${college.faculties === 1 ? 'faculty' : 'faculties'}
+                                </td>
+                                <td class="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                    <div class="flex justify-end space-x-2">
+                                        <button data-college-id="${college.id}" class="college-view-btn text-primary hover:text-primary-dark">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button data-college-id="${college.id}" class="college-edit-btn text-secondary hover:text-secondary-dark">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button data-college-id="${college.id}" class="college-delete-btn text-error hover:text-red-600">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('');
+
+                    // Add event listeners for college actions
+                    document.querySelectorAll('.college-name-link, .college-view-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const collegeId = e.currentTarget.getAttribute('data-college-id');
+                            this.viewCollegeDetails(collegeId);
+                        });
+                    });
+
+                    document.querySelectorAll('.college-edit-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const collegeId = e.currentTarget.getAttribute('data-college-id');
+                            const college = content.find(c => c.id == collegeId);
+                            this.showEditCollegeModal(college);
+                        });
+                    });
+
+                    document.querySelectorAll('.college-delete-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const collegeId = e.currentTarget.getAttribute('data-college-id');
+                            const college = content.find(c => c.id == collegeId);
+                            this.showDeleteConfirmation('college', college);
+                        });
+                    });
+                }
+
+                // Update pagination
+                this.updatePagination(this.collegesCurrentPage, totalPages, totalElements);
+            } catch (error) {
+                console.error('Error loading colleges:', error);
+                document.getElementById('colleges-table-body').innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-error">
+                                Error loading colleges: ${error.message || 'Unknown error'}
+                            </td>
+                        </tr>
+                    `;
+            }
+        }
+
+        updatePagination(currentPage, totalPages, totalItems) {
+            const start = currentPage * this.collegesPageSize + 1;
+            const end = Math.min((currentPage + 1) * this.collegesPageSize, totalItems);
+
+            document.getElementById('pagination-start').textContent = start;
+            document.getElementById('pagination-end').textContent = end;
+            document.getElementById('pagination-total').textContent = totalItems;
+
+            // Update pagination buttons state
+            document.getElementById('pagination-prev').disabled = currentPage === 0;
+            document.getElementById('pagination-prev').classList.toggle('opacity-50', currentPage === 0);
+            document.getElementById('pagination-next').disabled = currentPage === totalPages - 1;
+            document.getElementById('pagination-next').classList.toggle('opacity-50', currentPage === totalPages - 1);
+
+            document.getElementById('pagination-prev-mobile').disabled = currentPage === 0;
+            document.getElementById('pagination-prev-mobile').classList.toggle('opacity-50', currentPage === 0);
+            document.getElementById('pagination-next-mobile').disabled = currentPage === totalPages - 1;
+            document.getElementById('pagination-next-mobile').classList.toggle('opacity-50', currentPage === totalPages - 1);
+
+            // Generate page numbers
+            const paginationNumbers = document.getElementById('pagination-numbers');
+            paginationNumbers.innerHTML = '';
+
+            // Determine which page numbers to show
+            let pagesToShow = [];
+            if (totalPages <= 7) {
+                // If we have 7 or fewer pages, show all
+                pagesToShow = Array.from({length: totalPages}, (_, i) => i);
+            } else {
+                // Always include first and last page
+                pagesToShow.push(0);
+
+                if (currentPage <= 3) {
+                    // We're near the start
+                    pagesToShow.push(1, 2, 3, 4, '...', totalPages - 1);
+                } else if (currentPage >= totalPages - 4) {
+                    // We're near the end
+                    pagesToShow.push('...', totalPages - 5, totalPages - 4, totalPages - 3, totalPages - 2, totalPages - 1);
+                } else {
+                    // We're in the middle
+                    pagesToShow.push('...', currentPage - 1, currentPage, currentPage + 1, '...', totalPages - 1);
+                }
+            }
+
+            // Create the page number buttons
+            pagesToShow.forEach(page => {
+                if (page === '...') {
+                    const ellipsis = document.createElement('span');
+                    ellipsis.className = 'relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300';
+                    ellipsis.textContent = '...';
+                    paginationNumbers.appendChild(ellipsis);
+                } else {
+                    const button = document.createElement('button');
+                    button.className = `relative inline-flex items-center px-4 py-2 border ${page === currentPage ? 'border-primary bg-primary bg-opacity-10 text-primary' : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'} text-sm font-medium`;
+                    button.textContent = page + 1;
+                    button.addEventListener('click', () => this.changePage(page));
+                    paginationNumbers.appendChild(button);
+                }
+            });
+        }
+
+        changePage(newPage) {
+            this.collegesCurrentPage = newPage;
+            this.loadColleges();
+        }
+
+        async handleCollegeSearch(e) {
+            const searchTerm = e.target.value.trim();
+
+            if (searchTerm.length === 0) {
+                this.collegesCurrentPage = 0;
+                this.loadColleges();
+                return;
+            }
+
+            if (searchTerm.length < 2) {
+                return;
+            }
+
+            try {
+                // In a real app, you would use the API
+                // const response = await this.api.searchColleges(searchTerm);
+
+                // For demo purposes, we'll use mock data
+                const mockResponse = {
+                    success: true,
+                    message: 'Colleges retrieved successfully',
+                    data: [
+                        { id: 1, collegeName: 'College of Engineering', location: 'North Campus', description: 'Engineering and technology programs', faculties: 5 },
+                        { id: 4, collegeName: 'College of Arts', location: 'West Campus', description: 'Arts and humanities programs', faculties: 6 }
+                    ],
+                    timestamp: new Date().toISOString()
+                };
+
+                const colleges = mockResponse.data;
+                const tableBody = document.getElementById('colleges-table-body');
+
+                // Update table
+                if (colleges.length === 0) {
+                    tableBody.innerHTML = `
+                            <tr>
+                                <td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500 dark:text-gray-400">
+                                    No colleges found matching "${searchTerm}"
+                                </td>
+                            </tr>
+                        `;
+                } else {
+                    tableBody.innerHTML = colleges.map(college => `
+                            <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
+                                <td class="py-4 pl-4 pr-3 text-sm sm:pl-6">
+                                    <a href="#" data-college-id="${college.id}" class="college-name-link font-medium text-primary hover:text-primary-dark">
+                                        ${college.collegeName}
+                                    </a>
+                                    <div class="text-gray-500 dark:text-gray-400">${college.description || 'No description'}</div>
+                                </td>
+                                <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    ${college.location}
+                                </td>
+                                <td class="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
+                                    ${college.faculties} ${college.faculties === 1 ? 'faculty' : 'faculties'}
+                                </td>
+                                <td class="py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                                    <div class="flex justify-end space-x-2">
+                                        <button data-college-id="${college.id}" class="college-view-btn text-primary hover:text-primary-dark">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button data-college-id="${college.id}" class="college-edit-btn text-secondary hover:text-secondary-dark">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button data-college-id="${college.id}" class="college-delete-btn text-error hover:text-red-600">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        `).join('');
+
+                    // Add event listeners for college actions
+                    document.querySelectorAll('.college-name-link, .college-view-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const collegeId = e.currentTarget.getAttribute('data-college-id');
+                            this.viewCollegeDetails(collegeId);
+                        });
+                    });
+
+                    document.querySelectorAll('.college-edit-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const collegeId = e.currentTarget.getAttribute('data-college-id');
+                            const college = colleges.find(c => c.id == collegeId);
+                            this.showEditCollegeModal(college);
+                        });
+                    });
+
+                    document.querySelectorAll('.college-delete-btn').forEach(btn => {
+                        btn.addEventListener('click', (e) => {
+                            const collegeId = e.currentTarget.getAttribute('data-college-id');
+                            const college = colleges.find(c => c.id == collegeId);
+                            this.showDeleteConfirmation('college', college);
+                        });
+                    });
+                }
+
+                // Update pagination for search results
+                this.updatePagination(0, 1, colleges.length);
+            } catch (error) {
+                console.error('Error searching colleges:', error);
+                document.getElementById('colleges-table-body').innerHTML = `
+                        <tr>
+                            <td colspan="4" class="px-6 py-4 text-center text-sm text-error">
+                                Error searching colleges: ${error.message || 'Unknown error'}
+                            </td>
+                        </tr>
+                    `;
+            }
+        }
+
+        async viewCollegeDetails(collegeId) {
+            try {
+                // In a real app, you would use the API
+                // const response = await this.api.getCollegeWithFaculties(collegeId);
+
+                // For demo purposes, we'll use mock data
+                const mockResponse = {
+                    success: true,
+                    message: 'College retrieved successfully',
+                    data: {
+                        id: collegeId,
+                        collegeName: 'College of Engineering',
+                        location: 'North Campus',
+                        description: 'The College of Engineering is dedicated to providing cutting-edge education and research opportunities in various engineering disciplines. Our programs are designed to prepare students for successful careers in the rapidly evolving technological landscape.',
+                        faculties: [
+                            { id: 1, facultyName: 'Faculty of Electrical Engineering', departments: 4 },
+                            { id: 2, facultyName: 'Faculty of Mechanical Engineering', departments: 3 },
+                            { id: 3, facultyName: 'Faculty of Civil Engineering', departments: 2 },
+                            { id: 4, facultyName: 'Faculty of Computer Science', departments: 5 },
+                            { id: 5, facultyName: 'Faculty of Chemical Engineering', departments: 3 }
+                        ]
+                    },
+                    timestamp: new Date().toISOString()
+                };
+
+                const college = mockResponse.data;
+                this.currentCollege = college;
+
+                // Update page title
+                document.getElementById('college-detail-name').textContent = college.collegeName;
+
+                // Update college info
+                document.getElementById('college-info-name').textContent = college.collegeName;
+                document.getElementById('college-info-location').textContent = college.location;
+                document.getElementById('college-info-description').textContent = college.description || 'No description';
+
+                // Update faculties list
+                const facultiesList = document.getElementById('college-faculties-list');
+
+                if (college.faculties.length === 0) {
+                    facultiesList.innerHTML = `
+                            <div class="col-span-full text-center py-8">
+                                <p class="text-gray-500 dark:text-gray-400">No faculties found for this college</p>
+                                <button id="add-first-faculty-button" class="mt-4 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                    <i class="fas fa-plus mr-2"></i>
+                                    Add First Faculty
+                                </button>
+                            </div>
+                        `;
+
+                    document.getElementById('add-first-faculty-button').addEventListener('click', this.showAddFacultyModal.bind(this));
+                } else {
+                    facultiesList.innerHTML = college.faculties.map(faculty => `
+                            <div class="bg-white dark:bg-gray-700 shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                                <h4 class="text-lg font-medium text-gray-900 dark:text-white">${faculty.facultyName}</h4>
+                                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">${faculty.departments} ${faculty.departments === 1 ? 'department' : 'departments'}</p>
+                                <div class="mt-4 flex justify-end space-x-2">
+                                    <button data-faculty-id="${faculty.id}" class="faculty-view-btn text-sm text-primary hover:text-primary-dark">
+                                        <i class="fas fa-eye mr-1"></i> View
+                                    </button>
+                                    <button data-faculty-id="${faculty.id}" class="faculty-edit-btn text-sm text-secondary hover:text-secondary-dark">
+                                        <i class="fas fa-edit mr-1"></i> Edit
+                                    </button>
+                                    <button data-faculty-id="${faculty.id}" class="faculty-delete-btn text-sm text-error hover:text-red-600">
+                                        <i class="fas fa-trash mr-1"></i> Delete
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+
+                    // Add event listeners for faculty actions
+                    // ...
+                }
+
+                // Update breadcrumbs
+                document.getElementById('breadcrumb-item').classList.remove('hidden');
+                document.getElementById('breadcrumb-link').textContent = college.collegeName;
+                document.getElementById('breadcrumb-link').setAttribute('data-page', 'college-detail');
+
+                // Navigate to college detail page
+                this.navigateTo('college-detail');
+            } catch (error) {
+                console.error('Error loading college details:', error);
+                this.showToast(`Error loading college details: ${error.message || 'Unknown error'}`, 'error');
+            }
+        }
+
+        // College Modal
+        showAddCollegeModal() {
+            document.getElementById('college-modal-title').textContent = 'Add College';
+            document.getElementById('college-id').value = '';
+            document.getElementById('college-form').reset();
+            document.getElementById('college-modal').classList.remove('hidden');
+        }
+
+        showEditCollegeModal() {
+            document.getElementById('college-modal-title').textContent = 'Edit College';
+            document.getElementById('college-id').value = this.currentCollege.id;
+            document.getElementById('college-name').value = this.currentCollege.collegeName;
+            document.getElementById('college-location').value = this.currentCollege.location;
+            document.getElementById('college-description').value = this.currentCollege.description || '';
+            document.getElementById('college-modal').classList.remove('hidden');
+        }
+
+        closeCollegeModal() {
+            document.getElementById('college-modal').classList.add('hidden');
+        }
+
+        async handleCollegeSubmit(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('college-id').value;
+            const collegeName = document.getElementById('college-name').value;
+            const location = document.getElementById('college-location').value;
+            const description = document.getElementById('college-description').value;
+
+            // Validate form
+            let isValid = true;
+
+            if (!collegeName) {
+                document.getElementById('college-name-error').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('college-name-error').classList.add('hidden');
+            }
+
+            if (!location) {
+                document.getElementById('college-location-error').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('college-location-error').classList.add('hidden');
+            }
+
+            if (!isValid) {
+                return;
+            }
+
+            try {
+                // Prepare college data
+                const collegeData = {
+                    collegeName,
+                    location,
+                    description
+                };
+
+                let response;
+
+                if (id) {
+                    // Update existing college
+                    // In a real app, you would use the API
+                    // response = await this.api.updateCollege(id, collegeData);
+
+                    // For demo purposes, we'll simulate a successful update
+                    response = {
+                        success: true,
+                        message: 'College updated successfully',
+                        data: {
+                            id,
+                            ...collegeData,
+                            faculties: this.currentCollege.faculties
+                        },
+                        timestamp: new Date().toISOString()
+                    };
+
+                    this.currentCollege = response.data;
+                    this.showToast('College updated successfully', 'success');
+
+                    // Update college detail page
+                    document.getElementById('college-detail-name').textContent = collegeData.collegeName;
+                    document.getElementById('college-info-name').textContent = collegeData.collegeName;
+                    document.getElementById('college-info-location').textContent = collegeData.location;
+                    document.getElementById('college-info-description').textContent = collegeData.description || 'No description';
+                } else {
+                    // Create new college
+                    // In a real app, you would use the API
+                    // response = await this.api.createCollege(collegeData);
+
+                    // For demo purposes, we'll simulate a successful creation
+                    response = {
+                        success: true,
+                        message: 'College created successfully',
+                        data: {
+                            id: Date.now(), // Mock ID
+                            ...collegeData,
+                            faculties: []
+                        },
+                        timestamp: new Date().toISOString()
+                    };
+
+                    this.showToast('College created successfully', 'success');
+
+                    // Refresh colleges list
+                    this.loadColleges();
+                }
+
+                this.closeCollegeModal();
+            } catch (error) {
+                console.error('Error saving college:', error);
+                this.showToast(`Error saving college: ${error.message || 'Unknown error'}`, 'error');
+            }
+        }
+
+        // Faculty Modal
+        showAddFacultyModal() {
+            document.getElementById('faculty-modal-title').textContent = 'Add Faculty';
+            document.getElementById('faculty-id').value = '';
+            document.getElementById('faculty-college-id').value = this.currentCollege.id;
+            document.getElementById('faculty-form').reset();
+            document.getElementById('faculty-modal').classList.remove('hidden');
+        }
+
+        closeFacultyModal() {
+            document.getElementById('faculty-modal').classList.add('hidden');
+        }
+
+        async handleFacultySubmit(e) {
+            e.preventDefault();
+
+            const id = document.getElementById('faculty-id').value;
+            const collegeId = document.getElementById('faculty-college-id').value;
+            const facultyName = document.getElementById('faculty-name').value;
+
+            // Validate form
+            let isValid = true;
+
+            if (!facultyName) {
+                document.getElementById('faculty-name-error').classList.remove('hidden');
+                isValid = false;
+            } else {
+                document.getElementById('faculty-name-error').classList.add('hidden');
+            }
+
+            if (!isValid) {
+                return;
+            }
+
+            try {
+                // Prepare faculty data
+                const facultyData = {
+                    facultyName,
+                    collegeId
+                };
+
+                let response;
+
+                if (id) {
+                    // Update existing faculty
+                    // In a real app, you would use the API
+                    // response = await this.api.updateFaculty(id, { facultyName });
+
+                    // For demo purposes, we'll simulate a successful update
+                    response = {
+                        success: true,
+                        message: 'Faculty updated successfully',
+                        data: {
+                            id,
+                            facultyName,
+                            departments: 0
+                        },
+                        timestamp: new Date().toISOString()
+                    };
+
+                    this.showToast('Faculty updated successfully', 'success');
+                } else {
+                    // Create new faculty
+                    // In a real app, you would use the API
+                    // response = await this.api.createFaculty(facultyData);
+
+                    // For demo purposes, we'll simulate a successful creation
+                    response = {
+                        success: true,
+                        message: 'Faculty created successfully',
+                        data: {
+                            id: Date.now(), // Mock ID
+                            facultyName,
+                            departments: 0
+                        },
+                        timestamp: new Date().toISOString()
+                    };
+
+                    this.showToast('Faculty created successfully', 'success');
+
+                    // Add the new faculty to the current college
+                    if (this.currentCollege) {
+                        this.currentCollege.faculties.push(response.data);
+
+                        // Update faculties list
+                        const facultiesList = document.getElementById('college-faculties-list');
+                        facultiesList.innerHTML = this.currentCollege.faculties.map(faculty => `
+                                <div class="bg-white dark:bg-gray-700 shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                                    <h4 class="text-lg font-medium text-gray-900 dark:text-white">${faculty.facultyName}</h4>
+                                    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">${faculty.departments} ${faculty.departments === 1 ? 'department' : 'departments'}</p>
+                                    <div class="mt-4 flex justify-end space-x-2">
+                                        <button data-faculty-id="${faculty.id}" class="faculty-view-btn text-sm text-primary hover:text-primary-dark">
+                                            <i class="fas fa-eye mr-1"></i> View
+                                        </button>
+                                        <button data-faculty-id="${faculty.id}" class="faculty-edit-btn text-sm text-secondary hover:text-secondary-dark">
+                                            <i class="fas fa-edit mr-1"></i> Edit
+                                        </button>
+                                        <button data-faculty-id="${faculty.id}" class="faculty-delete-btn text-sm text-error hover:text-red-600">
+                                            <i class="fas fa-trash mr-1"></i> Delete
+                                        </button>
+                                    </div>
+                                </div>
+                            `).join('');
+                    }
+                }
+
+                this.closeFacultyModal();
+            } catch (error) {
+                console.error('Error saving faculty:', error);
+                this.showToast(`Error saving faculty: ${error.message || 'Unknown error'}`, 'error');
+            }
+        }
+
+        // Delete Confirmation
+        showDeleteConfirmation(entityType, entity) {
+            this.currentEntityForDelete = { type: entityType, entity };
+
+            document.getElementById('delete-entity-type').textContent = entityType.charAt(0).toUpperCase() + entityType.slice(1);
+
+            let entityName = '';
+            if (entityType === 'college') {
+                entityName = entity.collegeName;
+            } else if (entityType === 'faculty') {
+                entityName = entity.facultyName;
+            }
+
+            document.getElementById('delete-entity-name').textContent = entityName;
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            this.currentEntityForDelete = null;
+        }
+
+        async handleDeleteConfirm() {
+            if (!this.currentEntityForDelete) {
+                this.closeDeleteModal();
+                return;
+            }
+
+            const { type, entity } = this.currentEntityForDelete;
+
+            try {
+                if (type === 'college') {
+                    // In a real app, you would use the API
+                    // await this.api.deleteCollege(entity.id);
+
+                    // For demo purposes, we'll simulate a successful deletion
+                    this.showToast('College deleted successfully', 'success');
+
+                    if (this.currentPage === 'college-detail' && this.currentCollege && this.currentCollege.id === entity.id) {
+                        // If we're on the detail page of the deleted college, go back to the list
+                        this.navigateTo('colleges');
+                    } else {
+                        // Just refresh the list
+                        this.loadColleges();
+                    }
+                } else if (type === 'faculty') {
+                    // In a real app, you would use the API
+                    // await this.api.deleteFaculty(entity.id);
+
+                    // For demo purposes, we'll simulate a successful deletion
+                    this.showToast('Faculty deleted successfully', 'success');
+
+                    // Remove the faculty from the current college
+                    if (this.currentCollege) {
+                        this.currentCollege.faculties = this.currentCollege.faculties.filter(f => f.id !== entity.id);
+
+                        // Update faculties list
+                        const facultiesList = document.getElementById('college-faculties-list');
+
+                        if (this.currentCollege.faculties.length === 0) {
+                            facultiesList.innerHTML = `
+                                    <div class="col-span-full text-center py-8">
+                                        <p class="text-gray-500 dark:text-gray-400">No faculties found for this college</p>
+                                        <button id="add-first-faculty-button" class="mt-4 inline-flex items-center px-3 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                                            <i class="fas fa-plus mr-2"></i>
+                                            Add First Faculty
+                                        </button>
+                                    </div>
+                                `;
+
+                            document.getElementById('add-first-faculty-button').addEventListener('click', this.showAddFacultyModal.bind(this));
+                        } else {
+                            facultiesList.innerHTML = this.currentCollege.faculties.map(faculty => `
+                                    <div class="bg-white dark:bg-gray-700 shadow rounded-lg p-4 hover:shadow-md transition-shadow duration-200">
+                                        <h4 class="text-lg font-medium text-gray-900 dark:text-white">${faculty.facultyName}</h4>
+                                        <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">${faculty.departments} ${faculty.departments === 1 ? 'department' : 'departments'}</p>
+                                        <div class="mt-4 flex justify-end space-x-2">
+                                            <button data-faculty-id="${faculty.id}" class="faculty-view-btn text-sm text-primary hover:text-primary-dark">
+                                                <i class="fas fa-eye mr-1"></i> View
+                                            </button>
+                                            <button data-faculty-id="${faculty.id}" class="faculty-edit-btn text-sm text-secondary hover:text-secondary-dark">
+                                                <i class="fas fa-edit mr-1"></i> Edit
+                                            </button>
+                                            <button data-faculty-id="${faculty.id}" class="faculty-delete-btn text-sm text-error hover:text-red-600">
+                                                <i class="fas fa-trash mr-1"></i> Delete
+                                            </button>
+                                        </div>
+                                    </div>
+                                `).join('');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error(`Error deleting ${type}:`, error);
+                this.showToast(`Error deleting ${type}: ${error.message || 'Unknown error'}`, 'error');
+            }
+
+            this.closeDeleteModal();
+        }
+
+        // UI Utilities
+        showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toast-message');
+
+            // Set message
+            toastMessage.textContent = message;
+
+            // Show the right icon
+            document.getElementById('toast-icon-success').classList.toggle('hidden', type !== 'success');
+            document.getElementById('toast-icon-error').classList.toggle('hidden', type !== 'error');
+            document.getElementById('toast-icon-info').classList.toggle('hidden', type !== 'info');
+
+            // Remove hidden class
+            toast.classList.remove('hidden');
+
+            // Animate in
+            setTimeout(() => {
+                toast.classList.remove('opacity-0', 'translate-y-2');
+            }, 10);
+
+            // Set auto-hide timer
+            this.toastTimeout = setTimeout(() => {
+                this.closeToast();
+            }, 5000);
+        }
+
+        closeToast() {
+            const toast = document.getElementById('toast');
+
+            // Animate out
+            toast.classList.add('opacity-0', 'translate-y-2');
+
+            // Hide after animation
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 300);
+
+            // Clear timeout if exists
+            if (this.toastTimeout) {
+                clearTimeout(this.toastTimeout);
+            }
+        }
+
+        toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('theme-toggle-dark-icon').classList.remove('hidden');
+                document.getElementById('theme-toggle-light-icon').classList.add('hidden');
+            } else {
+                document.documentElement.classList.add('dark');
+                document.getElementById('theme-toggle-light-icon').classList.remove('hidden');
+                document.getElementById('theme-toggle-dark-icon').classList.add('hidden');
+            }
+
+            // Update charts with new theme colors
+            if (this.currentPage === 'dashboard') {
+                // Recreate charts with new theme colors
+                if (this.departmentsChart) {
+                    const departmentData = this.departmentsChart.data;
+                    this.createDepartmentChart({
+                        labels: departmentData.labels,
+                        data: departmentData.datasets[0].data
+                    });
+                }
+
+                if (this.programsChart) {
+                    const programData = this.programsChart.data;
+                    this.createProgramChart({
+                        labels: programData.labels,
+                        data: programData.datasets[0].data
+                    });
+                }
+            }
+        }
+
+        openMobileSidebar() {
+            document.getElementById('mobile-sidebar').classList.remove('hidden');
+        }
+
+        closeMobileSidebar() {
+            document.getElementById('mobile-sidebar').classList.add('hidden');
+        }
+
+        toggleUserDropdown() {
+            document.getElementById('user-dropdown').classList.toggle('hidden');
+        }
+
+        // Auth Form Navigation
+        showLoginForm() {
+            document.getElementById('login-form').classList.remove('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('forgot-password-form').classList.add('hidden');
+            document.getElementById('reset-password-form').classList.add('hidden');
+            document.getElementById('auth-alert').classList.add('hidden');
+        }
+
+        showRegisterForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.remove('hidden');
+            document.getElementById('forgot-password-form').classList.add('hidden');
+            document.getElementById('reset-password-form').classList.add('hidden');
+            document.getElementById('register-alert').classList.add('hidden');
+        }
+
+        showForgotPasswordForm() {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('forgot-password-form').classList.remove('hidden');
+            document.getElementById('reset-password-form').classList.add('hidden');
+            document.getElementById('forgot-password-alert').classList.add('hidden');
+        }
+
+        showResetPasswordForm(token) {
+            document.getElementById('login-form').classList.add('hidden');
+            document.getElementById('register-form').classList.add('hidden');
+            document.getElementById('forgot-password-form').classList.add('hidden');
+            document.getElementById('reset-password-form').classList.remove('hidden');
+            document.getElementById('reset-password-alert').classList.add('hidden');
+
+            if (token) {
+                document.getElementById('reset-token').value = token;
+            }
+        }
+
+        // Helper method for logout in multiple places
+        static logout() {
+            const app = new App();
+            app.handleLogout();
+        }
+    }
+
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', () => {
+        window.app = new App();
+    });
+</script>
+</body>
+</html>

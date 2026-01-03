@@ -1,0 +1,20 @@
+# Main application configuration - profile-independent settings only
+spring:
+  profiles:
+    active: prod
+    include: prod  # Include both dev and prod profiles
+
+# Include profile-specific configurations
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  # Profile-specific settings for dev
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  # Profile-specific settings for prod
