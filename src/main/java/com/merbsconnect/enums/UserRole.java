@@ -1,6 +1,8 @@
 package com.merbsconnect.enums;
 
 public enum UserRole {
-    ROLE_ADMIN,
-    ROLE_USER
+    ROLE_SUPER_ADMIN, // Full system access
+    ROLE_SUPPORT_ADMIN, // Limited admin access
+    ROLE_ADMIN, // Standard admin access
+    ROLE_USER // Regular user access
 }

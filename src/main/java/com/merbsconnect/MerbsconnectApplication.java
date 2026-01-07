@@ -6,7 +6,7 @@ import org.springframework.context.annotation.ComponentScan;
 
 @SpringBootApplication
 
-public class MerbsconnectApplication {
+public class  MerbsconnectApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(MerbsconnectApplication.class, args);

@@ -32,19 +32,35 @@ public interface EventService {
 
     MessageResponse addSpeakerToEvent(Speaker speaker, Long eventId);
 
-    MessageResponse removeSpeakerFromEvent(Long eventId,String speakerName);
+    MessageResponse removeSpeakerFromEvent(Long eventId, String speakerName);
 
     Page<EventResponse> getUpcomingEvents(Pageable pageable);
 
     Page<EventResponse> getPastEvents(Pageable pageable);
-    
+
     MessageResponse updateEventSpeaker(Speaker speaker, Long eventId);
-    
+
     MessageResponse registerForEvent(Long eventId, EventRegistrationDto registrationDto);
-    
+
     Page<Registration> getEventRegistrations(Long eventId, Pageable pageable);
 
     void writeRegistrationsToCsv(Long eventId, OutputStream outputStream) throws IOException;
 
     BulkSmsResponse sendBulkSmsToSelectedRegistrations(SendBulkSmsToRegistrationsRequest request);
+
+    // Admin Dashboard Endpoints
+    com.merbsconnect.events.dto.response.EventStatsResponse getEventStats();
+
+    com.merbsconnect.events.dto.response.EventAnalyticsResponse getEventAnalytics(Long eventId);
+
+    MessageResponse deleteRegistration(Long eventId, String email);
+
+    com.merbsconnect.events.dto.response.RegistrationStatsResponse getRegistrationStats(
+            java.time.LocalDate startDate, java.time.LocalDate endDate);
+
+    java.util.List<Speaker> getEventSpeakers(Long eventId);
+
+    com.merbsconnect.events.dto.response.DashboardResponse getDashboardData();
+
+    MessageResponse deleteMultipleRegistrations(Long eventId, java.util.List<String> emails);
 }

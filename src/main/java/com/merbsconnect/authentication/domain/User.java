@@ -37,11 +37,18 @@ public class User {
     @Enumerated(EnumType.ORDINAL)
     private UserRole role;
 
+    @Enumerated(EnumType.STRING)
+    @lombok.Builder.Default
+    private com.merbsconnect.enums.UserStatus status = com.merbsconnect.enums.UserStatus.ACTIVE;
+
+    @lombok.Builder.Default
     private boolean isEnabled = false;
 
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;
+
+    private LocalDateTime lastLogin;
 
     @PrePersist
     private void onCreate() {
@@ -51,5 +58,6 @@ public class User {
 
     @PreUpdate
     private void onUpdate() {
-        updatedAt = LocalDateTime.now();}
+        updatedAt = LocalDateTime.now();
+    }
 }

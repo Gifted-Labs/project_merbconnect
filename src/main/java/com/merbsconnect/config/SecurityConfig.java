@@ -36,20 +36,17 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint unauthorizedHandler;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
 
-
     @Bean
-    public PasswordEncoder passwordEncoder(){
+    public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-
     @Bean
-    public AuthenticationManager authenticationManager(){
+    public AuthenticationManager authenticationManager() {
         return new ProviderManager(authenticationProvider());
     }
 
@@ -61,26 +58,38 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception{
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-                .exceptionHandling(exception ->
-                        exception.authenticationEntryPoint(unauthorizedHandler))
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 
-                    EndpointUtils.PUBLIC_ENDPOINTS.forEach(endpoint ->
-                            auth.requestMatchers(endpoint).permitAll()
-                    );
+                    // Public auth endpoints
+                    auth.requestMatchers("/api/v1/auth/**").permitAll();
 
-                    EndpointUtils.PROTECTED_ENDPOINTS.forEach(endpoint ->
-                            auth.requestMatchers(endpoint.getMethod(), endpoint.getPath()).hasRole("ADMIN")
-                    );
+                    // Public event viewing endpoints (GET requests) - anyone can view events
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events/**").permitAll();
 
+                    // Public event registration - anyone can register
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/register").permitAll();
+
+                    // Admin-only event management operations
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.PUT, "/api/v1/events/**").hasRole("ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasRole("ADMIN");
+
+                    // Other public endpoints (swagger, static files, etc.)
+                    EndpointUtils.PUBLIC_ENDPOINTS.forEach(endpoint -> auth.requestMatchers(endpoint).permitAll());
+
+                    // Protected endpoints with specific role requirements
+                    EndpointUtils.PROTECTED_ENDPOINTS.forEach(endpoint -> auth
+                            .requestMatchers(endpoint.getMethod(), endpoint.getPath()).hasRole("ADMIN"));
+
+                    // All other requests require authentication
                     auth.anyRequest().authenticated();
                 })
                 .authenticationProvider(authenticationProvider())
@@ -89,11 +98,12 @@ public class SecurityConfig {
                 .build();
     }
 
-
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:5173","http://localhost:8080","http://localhost:5174","http://localhost:5175","https://merbsconnect.com","https://www.merbsconnect.com"));
+        configuration
+                .setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:8080", "http://localhost:5174",
+                        "http://localhost:5175", "https://merbsconnect.com", "https://www.merbsconnect.com"));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
