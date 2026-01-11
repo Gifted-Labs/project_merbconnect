@@ -3,7 +3,7 @@ spring:
     name: Merbs Connect
 
   datasource:
-    url: ${DB_URL}
+    url: ${DB_URL2}
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
 
@@ -63,10 +63,10 @@ springdoc:
     path: ${SWAGGER_API_DOCS_PATH}
   swagger-ui:
     path: ${SWAGGER_UI_PATH}
-    enabled: ${SWAGGER_UI_ENABLED:true}
+    enabled: ${SWAGGER_UI_ENABLED}
     operations-sorter: ${SWAGGER_OPERATIONS_SORTER}
     tags-sorter: ${SWAGGER_TAGS_SORTER}
     try-it-out-enabled: ${SWAGGER_TRY_IT_OUT_ENABLED}
     doc-expansion: ${SWAGGER_DOC_EXPANSION}
     deep-linking: ${SWAGGER_DEEP_LINKING}
-    use-root-path: ${SWAGGER_USE_ROOT_PATH:false}
+    use-root-path: ${SWAGGER_USE_ROOT_PATH}

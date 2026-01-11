@@ -77,10 +77,13 @@ public class SecurityConfig {
                     // Public event registration - anyone can register
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/register").permitAll();
 
-                    // Admin-only event management operations
-                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.PUT, "/api/v1/events/**").hasRole("ADMIN");
-                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasRole("ADMIN");
+                    // Admin-only event management operations (includes SUPER_ADMIN and
+                    // SUPPORT_ADMIN)
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events").hasAnyRole("ADMIN", "SUPER_ADMIN",
+                            "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.PUT, "/api/v1/events/**").hasAnyRole("ADMIN", "SUPER_ADMIN",
+                            "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasAnyRole("ADMIN", "SUPER_ADMIN");
 
                     // Other public endpoints (swagger, static files, etc.)
                     EndpointUtils.PUBLIC_ENDPOINTS.forEach(endpoint -> auth.requestMatchers(endpoint).permitAll());

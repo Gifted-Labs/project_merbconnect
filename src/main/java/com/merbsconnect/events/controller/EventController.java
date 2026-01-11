@@ -45,7 +45,7 @@ public class EventController {
     private final SmsService smsService;
 
     @PostMapping
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<EventResponse> createEvent(@RequestBody CreateEventRequest eventRequest) {
         try {
             EventResponse eventResponse = eventService.createEvent(eventRequest);
@@ -56,7 +56,7 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable Long eventId,
             @RequestBody UpdateEventRequest eventRequest) {
         try {
@@ -68,7 +68,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MessageResponse> deleteEvent(@PathVariable Long eventId) {
         try {
             MessageResponse response = eventService.deleteEvent(eventId);
@@ -103,7 +103,7 @@ public class EventController {
     }
 
     @PostMapping("/{eventId}/speakers")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<MessageResponse> addSpeakerToEvent(@PathVariable Long eventId, @RequestBody Speaker speaker) {
         try {
             MessageResponse response = eventService.addSpeakerToEvent(speaker, eventId);
@@ -114,7 +114,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}/speakers")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MessageResponse> removeSpeakerFromEvent(@PathVariable Long eventId,
             @RequestParam(value = "speakerName", required = false) String speakerName) {
         try {
@@ -138,7 +138,7 @@ public class EventController {
     }
 
     @PutMapping("/{eventId}/speakers/update")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<MessageResponse> updateEventSpeaker(@PathVariable Long eventId,
             @RequestBody Speaker speaker) {
         try {
@@ -150,7 +150,7 @@ public class EventController {
     }
 
     @GetMapping("/{eventId}/registrations")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<PageResponse<Registration>> getEventRegistrations(
             @PathVariable Long eventId, Pageable pageable) {
         Page<Registration> registrations = eventService.getEventRegistrations(eventId, pageable);
@@ -173,7 +173,7 @@ public class EventController {
     }
 
     @GetMapping("{eventId}/registrations/export")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public void downloadRegistrations(@PathVariable Long eventId, HttpServletResponse response) {
         try {
             response.setContentType("text/csv;charset=UTF-8");
@@ -189,7 +189,7 @@ public class EventController {
     }
 
     @PostMapping("/{eventId}/registrations/send-sms")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<BulkSmsResponse> sendBulkSmsToSelectedRegistrations(
             @PathVariable Long eventId,
             @RequestBody SendBulkSmsToRegistrationsRequest request) {
