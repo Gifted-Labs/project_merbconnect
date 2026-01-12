@@ -35,9 +35,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 
-import static com.merbsconnect.util.mapper.EventMapper.convertToPageResponse;
+
 
 @Slf4j
 @Service
@@ -195,7 +194,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Transactional
-    @CachePut(value = "registrations", key = "#eventId")
+    @CacheEvict(value = "registrations", key = "#eventId")
     public MessageResponse registerForEvent(Long eventId, EventRegistrationDto registrationDto) {
         Event event = getEventByIdInternal(eventId);
 
@@ -290,18 +289,19 @@ public class EventServiceImpl implements EventService {
     }
 
     @Async
-    private void sendRegistrationConfirmationSms(Registration registration, Event event) {
+    protected void sendRegistrationConfirmationSms(Registration registration, Event event) {
         try {
             // Construct the message with placeholders replaced by actual values
             String message = String.format(
-                    "Dear %s,\n" +
-                            "Thank you for registering for %s!\n" +
-                            "Event Details:\n" +
-                            "Date: %s\n" +
-                            "Time: %s\n" +
-                            "Venue: %s\n" +
-                            "Your confirmation number is: %s.\n" +
-                            "We look forward to seeing you there!",
+                    """
+                            Dear %s,
+                            Thank you for registering for %s!
+                            Event Details:
+                            Date: %s
+                            Time: %s
+                            Venue: %s
+                            Your confirmation number is: %s.
+                            We look forward to seeing you there!""",
                     registration.getName(),
                     event.getTitle(),
                     event.getDate(),

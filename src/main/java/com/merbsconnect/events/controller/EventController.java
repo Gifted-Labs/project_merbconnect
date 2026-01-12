@@ -18,6 +18,7 @@ import com.merbsconnect.sms.dtos.response.BulkSmsResponse;
 import com.merbsconnect.sms.dtos.response.TemplateResponse;
 import com.merbsconnect.sms.service.SmsService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class EventController {
     @PutMapping("/{eventId}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable Long eventId,
-            @RequestBody UpdateEventRequest eventRequest) {
+            @Valid @RequestBody UpdateEventRequest eventRequest) {
         try {
             EventResponse eventResponse = eventService.updateEvent(eventRequest, eventId);
             return new ResponseEntity<>(eventResponse, HttpStatus.OK);
