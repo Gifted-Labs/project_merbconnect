@@ -74,8 +74,16 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/events").permitAll();
                     auth.requestMatchers(HttpMethod.GET, "/api/v1/events/**").permitAll();
 
-                    // Public event registration - anyone can register
+                    // Public event registration - anyone can register (includes v2 with QR code)
                     auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/register").permitAll();
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/register-v2").permitAll();
+
+                    // Public: View reviews, articles, gallery
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/reviews").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/articles").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/articles/**").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/gallery").permitAll();
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/registration").permitAll();
 
                     // Admin-only event management operations (includes SUPER_ADMIN and
                     // SUPPORT_ADMIN)
@@ -84,6 +92,24 @@ public class SecurityConfig {
                     auth.requestMatchers(HttpMethod.PUT, "/api/v1/events/**").hasAnyRole("ADMIN", "SUPER_ADMIN",
                             "SUPPORT_ADMIN");
                     auth.requestMatchers(HttpMethod.DELETE, "/api/v1/events/**").hasAnyRole("ADMIN", "SUPER_ADMIN");
+
+                    // Admin-only: Articles, Gallery upload, Check-in
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/articles").hasAnyRole("ADMIN",
+                            "SUPER_ADMIN", "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.PUT, "/api/v1/events/*/articles/*").hasAnyRole("ADMIN",
+                            "SUPER_ADMIN", "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/events/*/articles/*").hasAnyRole("ADMIN",
+                            "SUPER_ADMIN", "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/gallery").hasAnyRole("ADMIN", "SUPER_ADMIN",
+                            "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.DELETE, "/api/v1/events/*/gallery/*").hasAnyRole("ADMIN",
+                            "SUPER_ADMIN", "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.PUT, "/api/v1/events/*/gallery/drive-link").hasAnyRole("ADMIN",
+                            "SUPER_ADMIN", "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/check-in").hasAnyRole("ADMIN",
+                            "SUPER_ADMIN", "SUPPORT_ADMIN");
+                    auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/check-in/stats").hasAnyRole("ADMIN",
+                            "SUPER_ADMIN", "SUPPORT_ADMIN");
 
                     // Other public endpoints (swagger, static files, etc.)
                     EndpointUtils.PUBLIC_ENDPOINTS.forEach(endpoint -> auth.requestMatchers(endpoint).permitAll());

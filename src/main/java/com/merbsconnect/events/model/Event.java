@@ -9,7 +9,9 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -20,7 +22,7 @@ import java.util.Set;
 public class Event {
 
     @Id
-    @GeneratedValue(strategy= GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String title;
@@ -33,7 +35,7 @@ public class Event {
 
     private LocalTime time;
 
-    @OneToOne(mappedBy="event", cascade=CascadeType.ALL)
+    @OneToOne(mappedBy = "event", cascade = CascadeType.ALL)
     private Gallery gallery;
 
     @ElementCollection(fetch = FetchType.EAGER)
@@ -52,7 +54,7 @@ public class Event {
     @CollectionTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"))
     private Set<Speaker> speakers = new HashSet<>();
 
-    @OneToMany(mappedBy="event", cascade=CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Testimonials> testimonials;
 
     private String videoUrl;
@@ -65,8 +67,43 @@ public class Event {
     @CollectionTable(name = "event_registrations", joinColumns = @JoinColumn(name = "event_id"))
     private Set<Registration> registrations = new HashSet<>();
 
+    // ===== New Fields for Backend Enhancements =====
+
+    /**
+     * Optional Google Drive folder link for external gallery hosting.
+     */
+    private String googleDriveFolderLink;
+
+    /**
+     * Event reviews from authenticated users.
+     */
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Review> reviews = new ArrayList<>();
+
+    /**
+     * Speaker articles/transcripts for this event.
+     */
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Article> articles = new ArrayList<>();
+
+    /**
+     * Gallery items (images/videos) stored in Railway bucket.
+     */
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<GalleryItem> galleryItems = new ArrayList<>();
+
+    /**
+     * Enhanced registrations with QR codes and check-in support.
+     */
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<EventRegistration> registrationsV2 = new ArrayList<>();
+
     @PrePersist
-    public void init(){
+    public void init() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = (LocalDateTime.now());
 
