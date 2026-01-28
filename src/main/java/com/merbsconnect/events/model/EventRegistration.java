@@ -1,5 +1,7 @@
 package com.merbsconnect.events.model;
 
+import com.merbsconnect.enums.AcademicLevel;
+import com.merbsconnect.enums.ReferralSource;
 import com.merbsconnect.enums.ShirtSize;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,8 +13,7 @@ import java.time.LocalDateTime;
 
 /**
  * Entity representing an event registration with QR code and check-in support.
- * This is a proper entity (not embedded) to support check-in tracking and QR
- * codes.
+ * Enhanced with university student information for better event analytics.
  */
 @Entity
 @Table(name = "event_registrations_v2", uniqueConstraints = @UniqueConstraint(columnNames = { "event_id", "email" }))
@@ -72,6 +73,61 @@ public class EventRegistration {
      */
     @Enumerated(EnumType.STRING)
     private ShirtSize shirtSize;
+
+    // ===== New University Student Fields =====
+
+    /**
+     * The program/course the student is studying (e.g., "Computer Science",
+     * "Medicine")
+     */
+    private String program;
+
+    /**
+     * The academic level/year of the student
+     */
+    @Enumerated(EnumType.STRING)
+    private AcademicLevel academicLevel;
+
+    /**
+     * The name of the university/institution
+     */
+    private String university;
+
+    /**
+     * Department or faculty (optional)
+     */
+    private String department;
+
+    /**
+     * How the registrant heard about the event
+     */
+    @Enumerated(EnumType.STRING)
+    private ReferralSource referralSource;
+
+    /**
+     * If referralSource is OTHER, this field stores the custom source
+     */
+    private String referralSourceOther;
+
+    /**
+     * Student ID (optional, for verification purposes)
+     */
+    private String studentId;
+
+    /**
+     * Dietary restrictions or special requirements
+     */
+    private String dietaryRestrictions;
+
+    /**
+     * Emergency contact name
+     */
+    private String emergencyContactName;
+
+    /**
+     * Emergency contact phone
+     */
+    private String emergencyContactPhone;
 
     @PrePersist
     public void onCreate() {

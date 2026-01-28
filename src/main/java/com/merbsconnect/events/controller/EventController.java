@@ -51,10 +51,15 @@ public class EventController {
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<EventResponse> createEvent(@RequestBody CreateEventRequest eventRequest) {
         try {
+            log.info("Creating event with request: {}", eventRequest);
             EventResponse eventResponse = eventService.createEvent(eventRequest);
             return new ResponseEntity<>(eventResponse, HttpStatus.CREATED);
         } catch (BusinessException e) {
-            return new ResponseEntity<>((HttpHeaders) null, HttpStatus.BAD_REQUEST);
+            log.error("Business exception creating event: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            log.error("Unexpected error creating event: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -78,6 +83,24 @@ public class EventController {
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (BusinessException e) {
             return new ResponseEntity<>(new MessageResponse(e.getMessage()), HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @PostMapping(value = "/{eventId}/image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    public ResponseEntity<java.util.Map<String, String>> uploadEventImage(
+            @PathVariable Long eventId,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile image) {
+        try {
+            log.info("Uploading image for event ID: {}", eventId);
+            String imageUrl = eventService.uploadEventImage(eventId, image);
+            return new ResponseEntity<>(java.util.Map.of("imageUrl", imageUrl), HttpStatus.OK);
+        } catch (BusinessException e) {
+            log.error("Error uploading event image: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } catch (IOException e) {
+            log.error("IO error uploading event image: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

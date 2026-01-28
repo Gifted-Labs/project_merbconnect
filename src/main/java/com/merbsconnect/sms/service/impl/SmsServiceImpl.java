@@ -157,8 +157,9 @@ public class SmsServiceImpl implements SmsService {
         }
     }
 
+    @Override
     @Async
-    protected CompletableFuture<BulkSmsResponse> sendBulkSmsAsync(BulkSmsRequest bulkSmsRequest) {
+    public CompletableFuture<BulkSmsResponse> sendBulkSmsAsync(BulkSmsRequest bulkSmsRequest) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 bulkSmsRequest.setSender(SENDER_ID);

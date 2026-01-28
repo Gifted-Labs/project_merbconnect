@@ -19,10 +19,10 @@ public class AdminUserConfig {
     @Value("${app.admin.email}")
     private String adminEmail;
 
-    @Value(("${app.admin.password}"))
+    @Value("${app.admin.password}")
     private String adminPassword;
 
-    @Value(("${app.admin.phone}"))
+    @Value("${app.admin.phone}")
     private String phoneNumber;
 
     public AdminUserConfig(UserRepository userRepository, PasswordEncoder passwordEncoder) {

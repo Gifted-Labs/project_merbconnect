@@ -63,4 +63,6 @@ public interface EventService {
     com.merbsconnect.events.dto.response.DashboardResponse getDashboardData();
 
     MessageResponse deleteMultipleRegistrations(Long eventId, java.util.List<String> emails);
+
+    String uploadEventImage(Long eventId, org.springframework.web.multipart.MultipartFile image) throws IOException;
 }

@@ -1,6 +1,6 @@
 package com.merbsconnect.util.mapper;
 
-import com.merbsconnect.academics.dto.response.ApiResponse;
+import com.merbsconnect.dto.response.ApiResponse;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;

@@ -38,6 +38,12 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     boolean existsByEventIdAndEmail(Long eventId, String email);
 
     /**
+     * Find list of registrations by event ID and a list of emails.
+     * Used for bulk operations like SMS sending.
+     */
+    java.util.List<EventRegistration> findByEventIdAndEmailIn(Long eventId, java.util.List<String> emails);
+
+    /**
      * Count checked-in registrations for an event.
      */
     @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkedIn = :checkedIn")

@@ -1,5 +1,7 @@
 package com.merbsconnect.events.dto.response;
 
+import com.merbsconnect.enums.AcademicLevel;
+import com.merbsconnect.enums.ReferralSource;
 import com.merbsconnect.enums.ShirtSize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -31,4 +33,17 @@ public class RegistrationDetailsResponse {
     private LocalDateTime registeredAt;
     private boolean needsShirt;
     private ShirtSize shirtSize;
+
+    // ===== University Student Information =====
+
+    private String program;
+    private AcademicLevel academicLevel;
+    private String university;
+    private String department;
+    private ReferralSource referralSource;
+    private String referralSourceOther;
+    private String studentId;
+    private String dietaryRestrictions;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
 }

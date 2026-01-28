@@ -1,12 +1,20 @@
 package com.merbsconnect.util.mapper;
 
-import com.merbsconnect.academics.dto.response.PageResponse;
+import com.merbsconnect.dto.response.PageResponse;
 import com.merbsconnect.events.dto.request.CreateEventRequest;
 import com.merbsconnect.events.dto.request.EventRegistrationDto;
+import com.merbsconnect.events.dto.response.EventItineraryItemResponse;
 import com.merbsconnect.events.dto.response.EventResponse;
+import com.merbsconnect.events.dto.response.EventSpeakerResponse;
 import com.merbsconnect.events.model.Event;
+import com.merbsconnect.events.model.EventItineraryItem;
+import com.merbsconnect.events.model.EventSpeaker;
 import com.merbsconnect.events.model.Registration;
 import org.springframework.data.domain.Page;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class EventMapper {
 
@@ -14,7 +22,7 @@ public class EventMapper {
         // Private constructor to prevent instantiation
     }
 
-    public static Event mapToEvent(CreateEventRequest request){
+    public static Event mapToEvent(CreateEventRequest request) {
         return Event.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
@@ -25,10 +33,11 @@ public class EventMapper {
                 .speakers(request.getSpeakers())
                 .sponsors(request.getSponsors())
                 .contacts(request.getContacts())
+                .theme(request.getTheme())
                 .build();
     }
 
-    public static EventResponse mapToEventResponse(Event event){
+    public static EventResponse mapToEventResponse(Event event) {
         return EventResponse.builder()
                 .id(event.getId())
                 .title(event.getTitle())
@@ -40,10 +49,13 @@ public class EventMapper {
                 .speakers(event.getSpeakers())
                 .sponsors(event.getSponsors())
                 .contacts(event.getContacts())
+                .theme(event.getTheme())
+                .speakersV2(mapSpeakersV2(event.getSpeakersV2()))
+                .itinerary(mapItinerary(event.getItinerary()))
                 .build();
     }
 
-    public static Registration mapToRegistration(EventRegistrationDto registrationDto){
+    public static Registration mapToRegistration(EventRegistrationDto registrationDto) {
         return Registration.builder()
                 .name(registrationDto.getName())
                 .email(registrationDto.getEmail())
@@ -62,4 +74,54 @@ public class EventMapper {
                 .build();
     }
 
+    // ===== Helper Methods for V2 Mappings =====
+
+    private static List<EventSpeakerResponse> mapSpeakersV2(List<EventSpeaker> speakers) {
+        if (speakers == null || speakers.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return speakers.stream()
+                .map(EventMapper::mapSpeakerToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private static EventSpeakerResponse mapSpeakerToResponse(EventSpeaker speaker) {
+        return EventSpeakerResponse.builder()
+                .id(speaker.getId())
+                .name(speaker.getName())
+                .title(speaker.getTitle())
+                .bio(speaker.getBio())
+                .imageUrl(speaker.getImageUrl())
+                .linkedinUrl(speaker.getLinkedinUrl())
+                .twitterUrl(speaker.getTwitterUrl())
+                .displayOrder(speaker.getDisplayOrder())
+                .createdAt(speaker.getCreatedAt())
+                .updatedAt(speaker.getUpdatedAt())
+                .build();
+    }
+
+    private static List<EventItineraryItemResponse> mapItinerary(List<EventItineraryItem> items) {
+        if (items == null || items.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return items.stream()
+                .map(EventMapper::mapItineraryItemToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private static EventItineraryItemResponse mapItineraryItemToResponse(EventItineraryItem item) {
+        return EventItineraryItemResponse.builder()
+                .id(item.getId())
+                .title(item.getTitle())
+                .description(item.getDescription())
+                .startTime(item.getStartTime())
+                .endTime(item.getEndTime())
+                .speakerName(item.getSpeakerName())
+                .venue(item.getVenue())
+                .displayOrder(item.getDisplayOrder())
+                .itemType(item.getItemType())
+                .itemTypeDisplayName(item.getItemType() != null ? item.getItemType().getDisplayName() : null)
+                .durationMinutes(item.getDurationMinutes())
+                .build();
+    }
 }

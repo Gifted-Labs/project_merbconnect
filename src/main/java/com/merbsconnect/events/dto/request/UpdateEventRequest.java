@@ -21,5 +21,6 @@ public class UpdateEventRequest {
     private LocalTime time;
     private String imageUrl;
     private String videoUrl;
+    private String theme;
 
 }

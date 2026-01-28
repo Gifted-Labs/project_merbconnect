@@ -16,7 +16,7 @@ import java.util.Optional;
 public interface EventRepository extends JpaRepository<Event, Long> {
 
     boolean existsByTitleAndDate(String title, LocalDate date);
-    
+
     Page<Event> findEventByDateAfter(LocalDate dateAfter, Pageable pageable);
 
     Page<Event> findEventByDateBefore(LocalDate dateBefore, Pageable pageable);
@@ -24,16 +24,31 @@ public interface EventRepository extends JpaRepository<Event, Long> {
     @Query("SELECT e FROM Event e WHERE YEAR(e.date) = :year")
     Optional<Event> findEventByYear(@Param("year") Long year);
 
-
     @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Event e WHERE YEAR(e.date) = :year")
     boolean existsEventByYear(Long year);
-    
+
     @Query("SELECT e FROM Event e WHERE e.location = :location AND e.date = :date")
     List<Event> findConflictingEvents(
             @Param("location") String location,
             @Param("date") LocalDate date);
 
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM event_sponsors WHERE event_id = :eventId", nativeQuery = true)
+    void deleteEventSponsors(@Param("eventId") Long eventId);
 
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM event_speakers WHERE event_id = :eventId", nativeQuery = true)
+    void deleteEventSpeakers(@Param("eventId") Long eventId);
 
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM event_contacts WHERE event_id = :eventId", nativeQuery = true)
+    void deleteEventContacts(@Param("eventId") Long eventId);
 
+    @org.springframework.transaction.annotation.Transactional
+    @org.springframework.data.jpa.repository.Modifying
+    @Query(value = "DELETE FROM event_registrations WHERE event_id = :eventId", nativeQuery = true)
+    void deleteEventRegistrations(@Param("eventId") Long eventId);
 }
