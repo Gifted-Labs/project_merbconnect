@@ -188,9 +188,7 @@ public class CheckInServiceImpl implements CheckInService {
                         log.error("Failed to send t-shirt order SMS to admin: {}", e.getMessage());
                 }
 
-                // TODO: Send email to admin when email service supports arbitrary recipients
-                // For now, logging the order details
-                log.info("T-SHIRT ORDER DETAILS - Name: {}, Email: {}, Size: {}, Event: {}, Phone: {}",
+                 log.info("T-SHIRT ORDER DETAILS - Name: {}, Email: {}, Size: {}, Event: {}, Phone: {}",
                                 registration.getName(),
                                 registration.getEmail(),
                                 shirtSize,

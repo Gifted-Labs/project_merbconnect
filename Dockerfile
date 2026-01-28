@@ -23,6 +23,10 @@ WORKDIR /app
 # Copy the built JAR file from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> abcd63f (feat: Add API documentation, response models, and environment configuration for production)
 # Expose the port your application will run on
 EXPOSE 9000
 
