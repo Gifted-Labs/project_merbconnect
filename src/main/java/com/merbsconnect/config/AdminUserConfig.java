@@ -41,7 +41,7 @@ public class AdminUserConfig {
                 adminUser.setPhoneNumber(phoneNumber);
                 adminUser.setEmail(adminEmail);
                 adminUser.setPassword(passwordEncoder.encode(adminPassword));
-                adminUser.setRole(UserRole.ROLE_ADMIN);
+                adminUser.setRole(UserRole.ROLE_SUPER_ADMIN);
                 adminUser.setEnabled(true);
                 userRepository.save(adminUser);
                 System.out.println("Admin user created with email: " + adminEmail);

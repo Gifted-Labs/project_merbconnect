@@ -1,6 +1,5 @@
 package com.merbsconnect.authentication.service.impl;
 
-
 import com.merbsconnect.authentication.domain.TokenType;
 import com.merbsconnect.authentication.domain.User;
 import com.merbsconnect.authentication.domain.VerificationToken;
@@ -9,12 +8,12 @@ import com.merbsconnect.authentication.repository.VerificationTokenRepository;
 import com.merbsconnect.authentication.service.RateLimitService;
 import com.merbsconnect.authentication.service.TokenService;
 import com.merbsconnect.email.service.EmailService;
+import com.merbsconnect.exception.BusinessException;
 import com.merbsconnect.util.TokenGenerator;
 import com.merbsconnect.util.TokenValidator;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.BadRequestException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -56,7 +55,7 @@ public class TokenServiceImpl implements TokenService {
         List<VerificationToken> existingTokens = tokenRepository
                 .findAllByUserAndTokenTypeAndVerifiedAtIsNull(user, tokenType);
 
-        if  (!existingTokens.isEmpty()){
+        if (!existingTokens.isEmpty()) {
             tokenRepository.deleteAll(existingTokens);
             log.debug("Cleaned up {} existing {} tokens for user: {}",
                     existingTokens.size(), tokenType, user.getEmail());
@@ -68,9 +67,9 @@ public class TokenServiceImpl implements TokenService {
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with email: " + email));
     }
 
-    private void validateUserNotVerified(User user) throws BadRequestException {
+    private void validateUserNotVerified(User user) {
         if (user.isEnabled()) {
-            throw new BadRequestException("Account is already verified");
+            throw new BusinessException("Account is already verified");
         }
     }
 

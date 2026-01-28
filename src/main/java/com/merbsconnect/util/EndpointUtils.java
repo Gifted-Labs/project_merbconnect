@@ -15,7 +15,8 @@ public class EndpointUtils {
             "/swagger-ui/**",
             "/swagger-ui.html",
             "/",
-            "/api/v1/events/**",
+            // Event viewing endpoints are handled in SecurityConfig with GET method
+            // Registration endpoint: /api/v1/events/{id}/register (POST) is public
             "/index.html",
             "/admin.html",
             "/home.html",
@@ -26,8 +27,7 @@ public class EndpointUtils {
             "/images/**",
             "/favicon.ico",
             "/error",
-            "/webjars/**"
-    );
+            "/webjars/**");
 
     // Protected endpoints (require authentication)
     public static final List<Endpoint> PROTECTED_ENDPOINTS = Arrays.asList(
@@ -38,8 +38,7 @@ public class EndpointUtils {
             new Endpoint("/api/v1/events/{eventId}/speakers", HttpMethod.DELETE),
             new Endpoint("/api/v1/events/{eventId}/speakers/update", HttpMethod.PUT),
             new Endpoint("/api/v1/events/{eventId}/registrations", HttpMethod.GET),
-            new Endpoint("/api/v1/events/{eventId}/registrations/export", HttpMethod.GET)
-    );
+            new Endpoint("/api/v1/events/{eventId}/registrations/export", HttpMethod.GET));
 
     // Inner class to represent an endpoint with its HTTP method
     public static class Endpoint {
