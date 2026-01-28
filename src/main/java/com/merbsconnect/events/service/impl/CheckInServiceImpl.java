@@ -47,6 +47,7 @@ public class CheckInServiceImpl implements CheckInService {
 
         @Override
         @Transactional
+        @org.springframework.cache.annotation.CacheEvict(value = "registrations", key = "#eventId")
         public RegistrationDetailsResponse registerForEventV2(Long eventId, EventRegistrationDto registrationDto) {
                 log.info("Registering participant for event {}: {}", eventId, registrationDto.getEmail());
 
@@ -78,6 +79,17 @@ public class CheckInServiceImpl implements CheckInService {
                                 .qrCodeBase64(qrCodeBase64)
                                 .needsShirt(needsShirt)
                                 .shirtSize(needsShirt ? registrationDto.getShirtSize() : null)
+                                // New university student fields
+                                .program(registrationDto.getProgram())
+                                .academicLevel(registrationDto.getAcademicLevel())
+                                .university(registrationDto.getUniversity())
+                                .department(registrationDto.getDepartment())
+                                .referralSource(registrationDto.getReferralSource())
+                                .referralSourceOther(registrationDto.getReferralSourceOther())
+                                .studentId(registrationDto.getStudentId())
+                                .dietaryRestrictions(registrationDto.getDietaryRestrictions())
+                                .emergencyContactName(registrationDto.getEmergencyContactName())
+                                .emergencyContactPhone(registrationDto.getEmergencyContactPhone())
                                 .build();
 
                 EventRegistration savedRegistration = registrationRepository.save(registration);
@@ -312,6 +324,17 @@ public class CheckInServiceImpl implements CheckInService {
                                 .registeredAt(registration.getRegisteredAt())
                                 .needsShirt(registration.isNeedsShirt())
                                 .shirtSize(registration.getShirtSize())
+                                // New university student fields
+                                .program(registration.getProgram())
+                                .academicLevel(registration.getAcademicLevel())
+                                .university(registration.getUniversity())
+                                .department(registration.getDepartment())
+                                .referralSource(registration.getReferralSource())
+                                .referralSourceOther(registration.getReferralSourceOther())
+                                .studentId(registration.getStudentId())
+                                .dietaryRestrictions(registration.getDietaryRestrictions())
+                                .emergencyContactName(registration.getEmergencyContactName())
+                                .emergencyContactPhone(registration.getEmergencyContactPhone())
                                 .build();
         }
 }

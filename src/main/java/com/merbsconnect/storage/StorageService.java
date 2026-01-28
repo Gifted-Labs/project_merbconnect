@@ -29,13 +29,16 @@ import java.util.UUID;
 public class StorageService {
 
     private final S3Client s3Client;
+    private final S3Presigner s3Presigner;
     private final String bucketName;
     private final String endpoint;
 
     public StorageService(S3Client s3Client,
+            S3Presigner s3Presigner,
             @Qualifier("storageBucketName") String bucketName,
             @Qualifier("storageEndpoint") String endpoint) {
         this.s3Client = s3Client;
+        this.s3Presigner = s3Presigner;
         this.bucketName = bucketName;
         this.endpoint = endpoint;
     }
@@ -48,6 +51,42 @@ public class StorageService {
 
     private static final long MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
     private static final long MAX_VIDEO_SIZE = 100 * 1024 * 1024; // 100MB
+
+    /**
+     * Generates a presigned URL for accessing a private S3 object.
+     * The URL is valid for 1 hour.
+     *
+     * @param storedUrl The URL or key stored in the database
+     * @return A presigned URL for accessing the object
+     */
+    public String generatePresignedUrl(String storedUrl) {
+        if (storedUrl == null || storedUrl.isEmpty()) {
+            return null;
+        }
+
+        try {
+            String key = extractKeyFromUrl(storedUrl);
+
+            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(key)
+                    .build();
+
+            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+                    .signatureDuration(Duration.ofHours(1))
+                    .getObjectRequest(getObjectRequest)
+                    .build();
+
+            PresignedGetObjectRequest presignedRequest = s3Presigner.presignGetObject(presignRequest);
+            String presignedUrl = presignedRequest.url().toString();
+
+            log.debug("Generated presigned URL for key: {}", key);
+            return presignedUrl;
+        } catch (Exception e) {
+            log.error("Failed to generate presigned URL for: {}", storedUrl, e);
+            return storedUrl; // Fall back to original URL
+        }
+    }
 
     /**
      * Uploads a file to the storage bucket for an event gallery.

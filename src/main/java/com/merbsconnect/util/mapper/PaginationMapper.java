@@ -1,6 +1,6 @@
 package com.merbsconnect.util.mapper;
 
-import com.merbsconnect.academics.dto.response.PageResponse;
+import com.merbsconnect.dto.response.PageResponse;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -28,8 +28,9 @@ public class PaginationMapper {
         int pageSize = size != null ? size : 10;
 
         if (sortBy != null && !sortBy.isEmpty()) {
-            Sort.Direction direction = sortDirection != null && sortDirection.equalsIgnoreCase("DESC") ?
-                    Sort.Direction.DESC : Sort.Direction.ASC;
+            Sort.Direction direction = sortDirection != null && sortDirection.equalsIgnoreCase("DESC")
+                    ? Sort.Direction.DESC
+                    : Sort.Direction.ASC;
             return PageRequest.of(pageNumber, pageSize, Sort.by(direction, sortBy));
         } else {
             return PageRequest.of(pageNumber, pageSize);
@@ -127,8 +128,8 @@ public class PaginationMapper {
         if (sortCriteria != null && !sortCriteria.isEmpty()) {
             List<Sort.Order> orders = sortCriteria.entrySet().stream()
                     .map(entry -> {
-                        Sort.Direction direction = entry.getValue().equalsIgnoreCase("DESC") ?
-                                Sort.Direction.DESC : Sort.Direction.ASC;
+                        Sort.Direction direction = entry.getValue().equalsIgnoreCase("DESC") ? Sort.Direction.DESC
+                                : Sort.Direction.ASC;
                         return new Sort.Order(direction, entry.getKey());
                     })
                     .collect(Collectors.toList());
@@ -140,12 +141,13 @@ public class PaginationMapper {
     }
 
     /**
-     * Maps a Page of entities to a PageResponse DTO using the provided mapper function
+     * Maps a Page of entities to a PageResponse DTO using the provided mapper
+     * function
      *
-     * @param page the Spring Data Page object
+     * @param page   the Spring Data Page object
      * @param mapper the function to map each entity to a DTO
-     * @param <T> the entity type
-     * @param <R> the DTO type
+     * @param <T>    the entity type
+     * @param <R>    the DTO type
      * @return a PageResponse containing the mapped content and pagination metadata
      */
     public static <T, R> PageResponse<R> mapToPageResponse(Page<T> page, Function<T, R> mapper) {

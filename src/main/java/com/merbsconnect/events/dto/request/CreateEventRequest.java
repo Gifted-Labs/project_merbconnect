@@ -28,4 +28,8 @@ public class CreateEventRequest {
     private Set<Contact> contacts;
     private Set<Sponsors> sponsors;
 
+    /**
+     * Theme of the event (e.g., "Innovation & Technology", "Faith & Leadership")
+     */
+    private String theme;
 }

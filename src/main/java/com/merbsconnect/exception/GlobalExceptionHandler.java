@@ -27,8 +27,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 ex.getMessage(),
                 request.getDescription(false),
-                "BUSINESS_EXCEPTION"
-        );
+                "BUSINESS_EXCEPTION");
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
 
@@ -38,13 +37,13 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 ex.getMessage(),
                 request.getDescription(false),
-                "TOKEN_REFRESH_ERROR"
-        );
+                "TOKEN_REFRESH_ERROR");
         return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(EmailAlreadyExistException.class)
-    public ResponseEntity<ErrorDetails> handleEmailAlreadyExistException(EmailAlreadyExistException ex, WebRequest request) {
+    public ResponseEntity<ErrorDetails> handleEmailAlreadyExistException(EmailAlreadyExistException ex,
+            WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(
                 LocalDateTime.now(),
                 ex.getMessage(),
@@ -60,8 +59,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 ex.getMessage(),
                 request.getDescription(false),
-                "USER_NOT_FOUND"
-        );
+                "USER_NOT_FOUND");
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
 
@@ -71,8 +69,7 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 ex.getMessage(),
                 request.getDescription(false),
-                "INVALID_TOKEN"
-        );
+                "INVALID_TOKEN");
         return new ResponseEntity<>(errorDetails, HttpStatus.BAD_REQUEST);
     }
 
@@ -82,19 +79,18 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 ex.getMessage(),
                 request.getDescription(false),
-                "TOKEN_EXPIRED"
-        );
+                "TOKEN_EXPIRED");
         return new ResponseEntity<>(errorDetails, HttpStatus.GONE);
     }
 
     @ExceptionHandler(UsernameNotFoundException.class)
-    public ResponseEntity<ErrorDetails> handleUsernameNotFoundException(UsernameNotFoundException ex, WebRequest request) {
+    public ResponseEntity<ErrorDetails> handleUsernameNotFoundException(UsernameNotFoundException ex,
+            WebRequest request) {
         ErrorDetails errorDetails = new ErrorDetails(
                 LocalDateTime.now(),
                 ex.getMessage(),
                 request.getDescription(false),
-                "USERNAME_NOT_FOUND"
-        );
+                "USERNAME_NOT_FOUND");
         return new ResponseEntity<>(errorDetails, HttpStatus.NOT_FOUND);
     }
 
@@ -104,9 +100,8 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 ex.toString(),
                 request.getDescription(true),
-                "BAD_CREDENTIALS"
-        );
-        log.error("Bad credentials: {}",ex.getMessage(), ex);
+                "BAD_CREDENTIALS");
+        log.error("Bad credentials: {}", ex.getMessage(), ex);
         return new ResponseEntity<>(errorDetails, HttpStatus.UNAUTHORIZED);
     }
 
@@ -116,10 +111,21 @@ public class GlobalExceptionHandler {
         ex.getBindingResult().getAllErrors().forEach(error -> {
             String fieldName = ((FieldError) error).getField();
             String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, "This is coming from the global: "+errorMessage);
+            errors.put(fieldName, "This is coming from the global: " + errorMessage);
         });
         log.error("Validation errors: {}", errors);
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(org.springframework.security.access.AccessDeniedException.class)
+    public ResponseEntity<ErrorDetails> handleAccessDeniedException(
+            org.springframework.security.access.AccessDeniedException ex, WebRequest request) {
+        ErrorDetails errorDetails = new ErrorDetails(
+                LocalDateTime.now(),
+                "Access Denied: You do not have permission to access this resource",
+                request.getDescription(false),
+                "ACCESS_DENIED");
+        return new ResponseEntity<>(errorDetails, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)
@@ -128,21 +134,16 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now(),
                 ex.getMessage(),
                 request.getDescription(false),
-                "INTERNAL_SERVER_ERROR"
-        );
+                "INTERNAL_SERVER_ERROR");
         return new ResponseEntity<>(errorDetails, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-
     @AllArgsConstructor
     @Data
-    public static class ErrorDetails{
+    public static class ErrorDetails {
         private LocalDateTime timestamp;
         private String message;
         private String path;
         private String errorCode;
     }
 }
-
-
-

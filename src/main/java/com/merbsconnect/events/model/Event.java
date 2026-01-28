@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -27,6 +30,7 @@ public class Event {
 
     private String title;
 
+    @Column(columnDefinition = "TEXT")
     private String description;
 
     private String location;
@@ -40,8 +44,10 @@ public class Event {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_sponsors", joinColumns = @JoinColumn(name = "event_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Sponsors> sponsors = new HashSet<>();
 
+    @Column(length = 2048)
     private String imageUrl;
 
     private String createdBy;
@@ -52,19 +58,23 @@ public class Event {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Speaker> speakers = new HashSet<>();
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Testimonials> testimonials;
 
+    @Column(length = 2048)
     private String videoUrl;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "event_contacts", joinColumns = @JoinColumn(name = "event_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Contact> contacts = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "event_registrations", joinColumns = @JoinColumn(name = "event_id"))
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Registration> registrations = new HashSet<>();
 
     // ===== New Fields for Backend Enhancements =====
@@ -72,6 +82,7 @@ public class Event {
     /**
      * Optional Google Drive folder link for external gallery hosting.
      */
+    @Column(length = 2048)
     private String googleDriveFolderLink;
 
     /**
@@ -102,10 +113,38 @@ public class Event {
     @Builder.Default
     private List<EventRegistration> registrationsV2 = new ArrayList<>();
 
+    // ===== New Fields for V2 Enhancements =====
+
+    /**
+     * Theme of the event (e.g., "Innovation & Technology", "Faith & Leadership")
+     */
+    @Column(length = 1000)
+    private String theme;
+
+    /**
+     * Enhanced speakers stored as entities (supports S3 image upload).
+     * This replaces the embedded speakers for new events.
+     */
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private List<EventSpeaker> speakersV2 = new ArrayList<>();
+
+    /**
+     * Event itinerary/program lineup - ordered list of activities.
+     */
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    @Builder.Default
+    private List<EventItineraryItem> itinerary = new ArrayList<>();
+
     @PrePersist
     public void init() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = (LocalDateTime.now());
 
+    }
+
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.List;
 import java.util.Set;
 
 @Builder
@@ -32,4 +33,18 @@ public class EventResponse {
     private Set<Contact> contacts;
     private String videoUrl;
 
+    /**
+     * Theme of the event
+     */
+    private String theme;
+
+    /**
+     * Enhanced speakers with S3 images (v2)
+     */
+    private List<EventSpeakerResponse> speakersV2;
+
+    /**
+     * Event itinerary/program lineup
+     */
+    private List<EventItineraryItemResponse> itinerary;
 }

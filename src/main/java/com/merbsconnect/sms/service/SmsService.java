@@ -1,5 +1,4 @@
-package  com.merbsconnect.sms.service;
-
+package com.merbsconnect.sms.service;
 
 import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
 import com.merbsconnect.sms.dtos.request.CreateTemplateRequest;
@@ -8,11 +7,9 @@ import com.merbsconnect.sms.dtos.response.TemplateResponse;
 
 import java.io.IOException;
 
-
-public interface SmsService  {
+public interface SmsService {
 
     void sendSms();
-
 
     TemplateResponse createTemplate(CreateTemplateRequest request) throws IOException, InterruptedException;
 
@@ -21,4 +18,6 @@ public interface SmsService  {
     TemplateResponse getTemplateById(String templateId) throws IOException, InterruptedException;
 
     BulkSmsResponse sendBulkSms(BulkSmsRequest bulkSmsRequest);
+
+    java.util.concurrent.CompletableFuture<BulkSmsResponse> sendBulkSmsAsync(BulkSmsRequest bulkSmsRequest);
 }

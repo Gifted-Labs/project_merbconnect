@@ -9,6 +9,7 @@ import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 
 import java.net.URI;
 
@@ -55,6 +56,24 @@ public class StorageConfig {
                 .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .region(Region.of(region.equals("auto") ? "us-east-1" : region)) // Railway uses auto region
+                .serviceConfiguration(s3Config)
+                .build();
+    }
+
+    @Bean
+    public S3Presigner s3Presigner() {
+        log.info("Initializing S3 presigner for Railway storage bucket at {}", endpoint);
+
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+
+        S3Configuration s3Config = S3Configuration.builder()
+                .pathStyleAccessEnabled(true)
+                .build();
+
+        return S3Presigner.builder()
+                .endpointOverride(URI.create(endpoint))
+                .credentialsProvider(StaticCredentialsProvider.create(credentials))
+                .region(Region.of(region.equals("auto") ? "us-east-1" : region))
                 .serviceConfiguration(s3Config)
                 .build();
     }

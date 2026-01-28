@@ -10,66 +10,72 @@ spring:
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: ${JPA_SHOW_SQL}
+    show-sql: ${JPA_SHOW_SQL:false}
     properties:
       hibernate:
         format_sql: ${JPA_FORMAT_SQL:true}
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+      enabled: true
 
 server:
   port: ${SERVER_PORT:9000}
 
 app:
   jwt:
-    secret: ${JWT_SECRET}
-    expiration: ${JWT_EXPIRATION}
-    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION}
-    issuer: ${JWT_ISSUER}
+    secret: ${JWT_SECRET:verySecretKeyForLocalDevelopmentAndTestingOnly12345}
+    expiration: ${JWT_EXPIRATION:86400000}
+    refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+    issuer: ${JWT_ISSUER:merbsconnect}
 
   admin:
-    email: ${ADMIN_EMAIL}
-    password: ${ADMIN_PASSWORD}
-    phone: ${ADMIN_PHONE}
+    email: ${ADMIN_EMAIL:admin@example.com}
+    password: ${ADMIN_PASSWORD:password}
+    phone: ${ADMIN_PHONE:0543358413}
 
   token:
     expiry:
-      verification-hours: ${TOKEN_VERIFICATION_HOURS}
-      password-reset-hours: ${TOKEN_PASSWORD_RESET_HOURS}
+      verification-hours: ${TOKEN_VERIFICATION_HOURS:24}
+      password-reset-hours: ${TOKEN_PASSWORD_RESET_HOURS:24}
 
     rate-limit:
-      max-attempts: ${TOKEN_RATE_LIMIT_MAX_ATTEMPTS}
-      cooldown-minutes: ${TOKEN_RATE_LIMIT_COOLDOWN_MINUTES}
-      attempt-window-hours: ${TOKEN_RATE_LIMIT_ATTEMPT_WINDOW_HOURS}
+      max-attempts: ${TOKEN_RATE_LIMIT_MAX_ATTEMPTS:5}
+      cooldown-minutes: ${TOKEN_RATE_LIMIT_COOLDOWN_MINUTES:15}
+      attempt-window-hours: ${TOKEN_RATE_LIMIT_ATTEMPT_WINDOW_HOURS:1}
 
     cleanup:
-      cron: ${TOKEN_CLEANUP_CRON}
+      cron: ${TOKEN_CLEANUP_CRON:0 0 0 * * *}
 
   email:
-    from: ${EMAIL_FROM}
+    from: ${EMAIL_FROM:noreply@merbsconnect.com}
 
-  base-url: ${BASE_URL}
+  base-url: ${BASE_URL:http://localhost:9000}
 
   resend:
-    api-key: ${RESEND_API_KEY}
+    api-key: ${RESEND_API_KEY:re_123456789}
 
   sms:
     mnotify:
-      api-key: ${SMS_MNOTIFY_API_KEY}
-      url: ${SMS_MNOTIFY_URL}
+      api-key: ${SMS_MNOTIFY_API_KEY:dummy_key}
+      url: ${SMS_MNOTIFY_URL:https://api.mnotify.com/api/sms/quick}
 
 # Swagger/OpenAPI Configuration - Typically disabled in production
 springdoc:
   api-docs:
-    path: ${SWAGGER_API_DOCS_PATH}
+    path: ${SWAGGER_API_DOCS_PATH:/api-docs}
   swagger-ui:
-    path: ${SWAGGER_UI_PATH}
-    enabled: ${SWAGGER_UI_ENABLED}
-    operations-sorter: ${SWAGGER_OPERATIONS_SORTER}
-    tags-sorter: ${SWAGGER_TAGS_SORTER}
-    try-it-out-enabled: ${SWAGGER_TRY_IT_OUT_ENABLED}
-    doc-expansion: ${SWAGGER_DOC_EXPANSION}
-    deep-linking: ${SWAGGER_DEEP_LINKING}
-    use-root-path: ${SWAGGER_USE_ROOT_PATH}
+    path: ${SWAGGER_UI_PATH:/swagger-ui.html}
+    enabled: ${SWAGGER_UI_ENABLED:true}
+    operations-sorter: ${SWAGGER_OPERATIONS_SORTER:alpha}
+    tags-sorter: ${SWAGGER_TAGS_SORTER:alpha}
+    try-it-out-enabled: ${SWAGGER_TRY_IT_OUT_ENABLED:true}
+    doc-expansion: ${SWAGGER_DOC_EXPANSION:none}
+    deep-linking: ${SWAGGER_DEEP_LINKING:true}
+    use-root-path: ${SWAGGER_USE_ROOT_PATH:false}
 
 railway:
   storage:
@@ -78,4 +84,3 @@ railway:
     access-key-id: ${RAILWAY_STORAGE_ACCESS_KEY_ID}
     secret-access-key: ${RAILWAY_STORAGE_SECRET_ACCESS_KEY}
     region: ${RAILWAY_STORAGE_REGION:auto}
-

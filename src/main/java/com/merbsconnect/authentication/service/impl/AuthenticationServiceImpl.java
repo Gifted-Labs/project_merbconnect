@@ -1,6 +1,6 @@
 package com.merbsconnect.authentication.service.impl;
 
-import com.merbsconnect.academics.util.ResourceMapper;
+import com.merbsconnect.authentication.mapper.AuthenticationMapper;
 import com.merbsconnect.authentication.domain.RefreshToken;
 import com.merbsconnect.authentication.domain.TokenType;
 import com.merbsconnect.authentication.domain.User;
@@ -56,10 +56,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public MessageResponse registerUser(RegistrationRequest request) throws BadRequestException {
         validateRegistrationRequest(request);
 
-
         User user = createUserFromRequest(request);
         User savedUser = userRepository.save(user);
-        
+
         sendVerificationEmail(savedUser);
 
         return new MessageResponse("User registered successfully! Please check your email to verify your account.");
@@ -68,7 +67,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public JwtResponse authenticateUser(LoginRequest loginRequest) {
         Authentication authentication = authenticateCredentials(loginRequest);
-
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
@@ -84,26 +82,24 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 tokenValue, TokenType.VERIFICATION);
         User user = token.getUser();
 
-            if(user.isEnabled()) {
-                return new MessageResponse("Account is already verified.");
-            }
-
-            verifyUserEmail(user, token);
-            return new MessageResponse("Account verified successfully");
+        if (user.isEnabled()) {
+            return new MessageResponse("Account is already verified.");
         }
 
-
+        verifyUserEmail(user, token);
+        return new MessageResponse("Account verified successfully");
+    }
 
     @Override
     public MessageResponse requestPasswordReset(String email) {
         // Check if the user exists
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-                
+
         VerificationToken passwordResetToken = tokenService.generatePasswordResetToken(user);
         // Send password reset email
         emailService.sendPasswordResetEmail(user, passwordResetToken);
-        
+
         return new MessageResponse("Password reset instructions have been sent to your email.");
     }
 
@@ -111,8 +107,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public MessageResponse resetPassword(PasswordResetRequest passwordResetRequest) throws BadRequestException {
 
         validatePasswordMatch(passwordResetRequest);
-
-
 
         VerificationToken token = tokenService.validateToken(
                 passwordResetRequest.token(), TokenType.PASSWORD_RESET);
@@ -168,7 +162,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new MessageResponse(tokenType + " token resent successfully");
     }
 
-
     private void validateRegistrationRequest(RegistrationRequest request) throws BadRequestException {
         if (userRepository.existsByEmail(request.getEmail())) {
             throw new BadRequestException("Email is already in use");
@@ -197,15 +190,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         log.info("Sent verification email to {}", user.getEmail());
     }
 
-
     private Authentication authenticateCredentials(LoginRequest loginRequest) {
         try {
             return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             loginRequest.getEmail(),
-                            loginRequest.getPassword()
-                    )
-            );
+                            loginRequest.getPassword()));
         } catch (AuthenticationException e) {
             throw new UnauthorizedException("Invalid email or password");
         }
@@ -222,13 +212,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String accessToken = jwtService.generateToken(authentication);
         String refreshToken = jwtService.generateTokenFromEmail(userDetails.getUsername());
 
-        return ResourceMapper.toJwtResponse(
+        return AuthenticationMapper.toJwtResponse(
                 userDetails,
                 accessToken,
-                refreshToken
-        );
+                refreshToken);
     }
-
 
     private void verifyUserEmail(User user, VerificationToken token) {
         user.setEnabled(true);
@@ -237,6 +225,5 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         token.markAsUsed();
         tokenRepository.save(token);
     }
-
 
 }

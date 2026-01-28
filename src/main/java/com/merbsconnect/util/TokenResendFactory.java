@@ -1,6 +1,6 @@
 package com.merbsconnect.util;
 
-import com.merbsconnect.academics.exception.ResourceNotFoundException;
+import com.merbsconnect.exception.ResourceNotFoundException;
 import com.merbsconnect.authentication.domain.TokenType;
 import com.merbsconnect.authentication.domain.User;
 import com.merbsconnect.authentication.domain.VerificationToken;

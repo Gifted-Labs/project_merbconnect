@@ -1,6 +1,7 @@
 package com.merbsconnect.events.service.impl;
 
 import com.merbsconnect.authentication.dto.response.MessageResponse;
+import com.merbsconnect.enums.MediaType;
 import com.merbsconnect.events.dto.request.CreateEventRequest;
 import com.merbsconnect.events.dto.request.EventRegistrationDto;
 import com.merbsconnect.events.dto.request.SendBulkSmsToRegistrationsRequest;
@@ -15,6 +16,7 @@ import com.merbsconnect.exception.BusinessException;
 import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
 import com.merbsconnect.sms.dtos.response.BulkSmsResponse;
 import com.merbsconnect.sms.service.SmsService;
+import com.merbsconnect.storage.StorageService;
 import com.merbsconnect.util.mapper.EventMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -27,6 +29,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,19 +39,19 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
-
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class EventServiceImpl implements EventService {
 
     private final EventRepository eventRepository;
+    private final com.merbsconnect.events.repository.EventRegistrationRepository eventRegistrationRepository;
     private final SmsService smsService;
+    private final StorageService storageService;
 
     @Transactional
     @Override
-    @CachePut(value = "events", key = "#eventRequest.title + '-' + #eventRequest.date")
+    @CacheEvict(value = "events", allEntries = true)
     public EventResponse createEvent(CreateEventRequest eventRequest) {
         if (eventRequest.getDate().isBefore(java.time.LocalDate.now())) {
             throw new BusinessException("Event date cannot be in the past");
@@ -62,7 +65,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    @CachePut(value = "events", key = "#eventId")
+    @CacheEvict(value = "events", allEntries = true)
     public EventResponse updateEvent(UpdateEventRequest eventRequest, Long eventId) {
         Event existingEvent = getEventByIdInternal(eventId);
 
@@ -77,15 +80,23 @@ public class EventServiceImpl implements EventService {
         existingEvent.setDate(eventRequest.getDate());
         existingEvent.setTime(eventRequest.getTime());
         existingEvent.setImageUrl(eventRequest.getImageUrl());
+        existingEvent.setTheme(eventRequest.getTheme());
 
         Event updatedEvent = eventRepository.save(existingEvent);
         return EventMapper.mapToEventResponse(updatedEvent);
     }
 
     @Override
-    @CacheEvict(value = { "events", "registrations" }, key = "#eventId")
+    @CacheEvict(value = { "events", "registrations" }, allEntries = true)
     public MessageResponse deleteEvent(Long eventId) {
         Event event = getEventByIdInternal(eventId);
+
+        // Explicitly delete usage of ElementCollections to prevent FK violation via
+        // Native SQL
+        eventRepository.deleteEventSponsors(eventId);
+        eventRepository.deleteEventSpeakers(eventId);
+        eventRepository.deleteEventContacts(eventId);
+        eventRepository.deleteEventRegistrations(eventId);
 
         eventRepository.delete(event);
 
@@ -99,7 +110,31 @@ public class EventServiceImpl implements EventService {
     public Page<EventResponse> getAllEvents(Pageable pageable) {
         Page<Event> events = eventRepository.findAll(pageable);
 
-        return events.map(EventMapper::mapToEventResponse);
+        return events.map(event -> enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
+    }
+
+    /**
+     * Enriches an EventResponse with presigned URLs for S3 images.
+     * Converts stored S3 URLs to accessible presigned URLs.
+     */
+    private EventResponse enrichWithPresignedUrls(EventResponse response) {
+        // Generate presigned URL for event banner image
+        if (response.getImageUrl() != null && !response.getImageUrl().isEmpty()) {
+            String presignedUrl = storageService.generatePresignedUrl(response.getImageUrl());
+            response.setImageUrl(presignedUrl);
+        }
+
+        // Generate presigned URLs for speakersV2 images
+        if (response.getSpeakersV2() != null) {
+            response.getSpeakersV2().forEach(speaker -> {
+                if (speaker.getImageUrl() != null && !speaker.getImageUrl().isEmpty()) {
+                    String presignedUrl = storageService.generatePresignedUrl(speaker.getImageUrl());
+                    speaker.setImageUrl(presignedUrl);
+                }
+            });
+        }
+
+        return response;
     }
 
     @Override
@@ -107,7 +142,7 @@ public class EventServiceImpl implements EventService {
     public Optional<EventResponse> getEventById(Long eventId) {
         Event event = getEventByIdInternal(eventId);
 
-        return Optional.of(EventMapper.mapToEventResponse(event));
+        return Optional.of(enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
     }
 
     @Override
@@ -157,15 +192,14 @@ public class EventServiceImpl implements EventService {
     @Cacheable(value = "events", key = "'upcoming'")
     public Page<EventResponse> getUpcomingEvents(Pageable pageable) {
         return eventRepository.findEventByDateAfter(LocalDate.now(), pageable)
-                .map(EventMapper::mapToEventResponse);
+                .map(event -> enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
     }
 
     @Override
     @Cacheable(value = "events", key = "'past'")
     public Page<EventResponse> getPastEvents(Pageable pageable) {
-
         return eventRepository.findEventByDateBefore(LocalDate.now(), pageable)
-                .map(EventMapper::mapToEventResponse);
+                .map(event -> enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
     }
 
     @Override
@@ -220,20 +254,20 @@ public class EventServiceImpl implements EventService {
                 .build();
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     @Cacheable(value = "registrations", key = "#eventId")
     public Page<Registration> getEventRegistrations(Long eventId, Pageable pageable) {
-        Event event = getEventByIdInternal(eventId);
+        // Fetch V2 registrations from the new repository
+        Page<com.merbsconnect.events.model.EventRegistration> v2Registrations = eventRegistrationRepository
+                .findByEventId(eventId, pageable);
 
-        List<Registration> registrationsList = new ArrayList<>(event.getRegistrations());
-
-        int start = (int) pageable.getOffset();
-        int end = Math.min((start + pageable.getPageSize()), registrationsList.size());
-
-        return new PageImpl<>(
-                registrationsList.subList(start, end),
-                pageable,
-                registrationsList.size());
+        // Map V2 entity to V1 Registration embeddable for backward compatibility
+        return v2Registrations.map(v2Reg -> Registration.builder()
+                .name(v2Reg.getName())
+                .email(v2Reg.getEmail())
+                .phone(v2Reg.getPhone())
+                .note(v2Reg.getNote())
+                .build());
     }
 
     @Transactional(readOnly = true)
@@ -261,26 +295,82 @@ public class EventServiceImpl implements EventService {
         // Validate event exists
         Event event = getEventByIdInternal(request.getEventId());
 
-        // Filter registrations by selected emails
-        List<String> phoneNumbers = event.getRegistrations().stream()
-                .filter(registration -> request.getSelectedEmails().contains(registration.getEmail()))
-                .map(Registration::getPhone)
-                .toList();
+        // Filter registrations by selected emails calling V2 repository
+        List<com.merbsconnect.events.model.EventRegistration> registrations = eventRegistrationRepository
+                .findByEventIdAndEmailIn(request.getEventId(), request.getSelectedEmails());
 
-        if (phoneNumbers.isEmpty()) {
-            throw new BusinessException("No valid registrations found for the selected emails");
+        // Check if message contains placeholders
+        boolean hasPlaceholders = request.getMessage().contains("[fname]") || request.getMessage().contains("[name]");
+
+        if (hasPlaceholders) {
+            // Personalized sending (One request per user, Parallel execution)
+            List<java.util.concurrent.CompletableFuture<BulkSmsResponse>> futures = registrations.stream()
+                    .map(registration -> {
+                        // Personalize message
+                        String personalizedMessage = request.getMessage();
+                        if (personalizedMessage.contains("[fname]")) {
+                            String firstName = registration.getName().split(" ")[0]; // Simple split by space
+                            personalizedMessage = personalizedMessage.replace("[fname]", firstName);
+                        }
+                        if (personalizedMessage.contains("[name]")) {
+                            personalizedMessage = personalizedMessage.replace("[name]", registration.getName());
+                        }
+
+                        // Create request for single recipient
+                        BulkSmsRequest individualRequest = BulkSmsRequest.builder()
+                                .recipients(List.of(registration.getPhone()))
+                                .message(personalizedMessage)
+                                .isScheduled(false) // TODO: Support scheduling for bulk
+                                .build();
+
+                        return smsService.sendBulkSmsAsync(individualRequest);
+                    })
+                    .toList();
+
+            // Wait for all to complete
+            java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0]))
+                    .join();
+
+            // Aggregate results (Simple success count)
+            long successCount = futures.stream()
+                    .filter(f -> {
+                        try {
+                            return f.get().isSuccessful();
+                        } catch (Exception e) {
+                            return false;
+                        }
+                    })
+                    .count();
+
+            return BulkSmsResponse.builder()
+                    .code("200")
+                    .message(String.format("Bulk SMS processing completed. Successfully sent: %d/%d", successCount,
+                            futures.size()))
+                    .build(); // Using generic response structure
+
+        } else {
+            // Standard Bulk sending (One request, Many recipients) - More efficient for
+            // static messages
+            List<String> phoneNumbers = registrations.stream()
+                    .map(com.merbsconnect.events.model.EventRegistration::getPhone)
+                    .toList();
+
+            if (phoneNumbers.isEmpty()) {
+                throw new BusinessException("No valid registrations found for the selected emails");
+            }
+
+            // Create and send bulk SMS request
+            BulkSmsRequest smsRequest = BulkSmsRequest.builder()
+                    .recipients(phoneNumbers)
+                    .message(request.getMessage())
+                    .isScheduled(false)
+                    .scheduleDate("")
+                    .build();
+
+            log.info("Sending bulk SMS to {} registrations for event ID: {}", phoneNumbers.size(),
+                    request.getEventId());
+            return smsService.sendBulkSms(smsRequest);
         }
-
-        // Create and send bulk SMS request
-        BulkSmsRequest smsRequest = BulkSmsRequest.builder()
-                .recipients(phoneNumbers)
-                .message(request.getMessage())
-                .isScheduled(false)
-                .scheduleDate("")
-                .build();
-
-        log.info("Sending bulk SMS to {} registrations for event ID: {}", phoneNumbers.size(), request.getEventId());
-        return smsService.sendBulkSms(smsRequest);
     }
 
     private Event getEventByIdInternal(Long eventId) {
@@ -525,5 +615,32 @@ public class EventServiceImpl implements EventService {
         return MessageResponse.builder()
                 .message(String.format("Successfully deleted %d registration(s)", deletedCount))
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public String uploadEventImage(Long eventId, MultipartFile image) throws IOException {
+        Event event = getEventByIdInternal(eventId);
+
+        // Delete old image if exists
+        if (event.getImageUrl() != null && !event.getImageUrl().isEmpty()) {
+            try {
+                String key = storageService.extractKeyFromUrl(event.getImageUrl());
+                storageService.deleteFile(key);
+                log.info("Deleted old event image: {}", event.getImageUrl());
+            } catch (Exception e) {
+                log.warn("Failed to delete old event image: {}", e.getMessage());
+            }
+        }
+
+        // Upload new image
+        String imageUrl = storageService.uploadGalleryItem(eventId, image, MediaType.IMAGE);
+
+        event.setImageUrl(imageUrl);
+        eventRepository.save(event);
+
+        log.info("Uploaded new event image for event ID {}: {}", eventId, imageUrl);
+
+        return imageUrl;
     }
 }
