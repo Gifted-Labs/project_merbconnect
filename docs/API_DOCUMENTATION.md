@@ -19,11 +19,14 @@
 9. [Admin - Configuration](#9-admin---configuration)
 10. [Admin - Security & Audit](#10-admin---security--audit)
 11. [Academics](#11-academics)
+<<<<<<< HEAD
 12. [Event Speakers V2 (Enhanced)](#12-event-speakers-v2-enhanced)
 13. [Event Itinerary (Program Lineup)](#13-event-itinerary-program-lineup)
 14. [Enhanced Event Registration](#14-enhanced-event-registration)
 15. [Event with Theme](#15-event-with-theme)
 
+=======
+>>>>>>> abcd63f (feat: Add API documentation, response models, and environment configuration for production)
 
 ---
 
@@ -864,6 +867,7 @@ Response format:
   "last": false
 }
 ```
+<<<<<<< HEAD
 
 ---
 
@@ -1261,3 +1265,5 @@ POST /api/v1/events
 
 ---
 
+=======
+>>>>>>> abcd63f (feat: Add API documentation, response models, and environment configuration for production)
