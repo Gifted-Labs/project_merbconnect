@@ -1,6 +1,6 @@
 package com.merbsconnect.events.controller;
 
-import com.merbsconnect.academics.dto.response.PageResponse;
+import com.merbsconnect.dto.response.PageResponse;
 import com.merbsconnect.authentication.dto.response.MessageResponse;
 import com.merbsconnect.events.dto.request.CreateEventRequest;
 import com.merbsconnect.events.dto.request.EventRegistrationDto;
@@ -9,6 +9,7 @@ import com.merbsconnect.events.dto.request.UpdateEventRequest;
 import com.merbsconnect.events.dto.response.EventResponse;
 import com.merbsconnect.events.model.Registration;
 import com.merbsconnect.events.model.Speaker;
+import com.merbsconnect.events.service.CheckInService;
 import com.merbsconnect.events.service.EventService;
 import com.merbsconnect.exception.BusinessException;
 
@@ -44,6 +45,7 @@ public class EventController {
     private static final Logger log = LoggerFactory.getLogger(EventController.class);
     private final EventService eventService;
     private final SmsService smsService;
+    private final CheckInService checkInService;
 
     @PostMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
@@ -160,16 +162,26 @@ public class EventController {
 
     }
 
+    /**
+     * Register for an event (v2 - with QR code, SMS, and PDF ticket).
+     * This endpoint now redirects to the enhanced registration flow.
+     * 
+     * @deprecated Use POST /api/v1/events/{eventId}/register-v2 instead
+     */
     @PostMapping("/{eventId}/register")
-    public ResponseEntity<MessageResponse> registerForEvent(@PathVariable Long eventId,
+    public ResponseEntity<com.merbsconnect.events.dto.response.RegistrationDetailsResponse> registerForEvent(
+            @PathVariable Long eventId,
             @RequestBody EventRegistrationDto eventRegistrationDto) {
         try {
             log.info("Registering for event ID: {}, Registration Details: {}", eventId, eventRegistrationDto);
-            MessageResponse response = eventService.registerForEvent(eventId, eventRegistrationDto);
-            return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (BusinessException e) {
-            MessageResponse response = new MessageResponse(e.getMessage());
-            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            // Delegate to CheckInService v2 for enhanced registration with QR code, SMS,
+            // and PDF
+            com.merbsconnect.events.dto.response.RegistrationDetailsResponse response = checkInService
+                    .registerForEventV2(eventId, eventRegistrationDto);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IllegalStateException e) {
+            log.error("Registration failed: {}", e.getMessage());
+            throw new BusinessException(e.getMessage());
         }
     }
 

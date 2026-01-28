@@ -1,5 +1,6 @@
 package com.merbsconnect.events.model;
 
+import com.merbsconnect.enums.ShirtSize;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -59,6 +60,18 @@ public class EventRegistration {
     private LocalDateTime checkInTime;
 
     private LocalDateTime registeredAt;
+
+    /**
+     * Whether the participant needs a t-shirt.
+     */
+    @Builder.Default
+    private boolean needsShirt = false;
+
+    /**
+     * Shirt size if needsShirt is true.
+     */
+    @Enumerated(EnumType.STRING)
+    private ShirtSize shirtSize;
 
     @PrePersist
     public void onCreate() {

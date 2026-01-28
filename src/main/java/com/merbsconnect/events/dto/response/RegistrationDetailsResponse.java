@@ -1,5 +1,6 @@
 package com.merbsconnect.events.dto.response;
 
+import com.merbsconnect.enums.ShirtSize;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,4 +29,6 @@ public class RegistrationDetailsResponse {
     private boolean checkedIn;
     private LocalDateTime checkInTime;
     private LocalDateTime registeredAt;
+    private boolean needsShirt;
+    private ShirtSize shirtSize;
 }

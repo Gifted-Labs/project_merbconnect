@@ -85,4 +85,5 @@ public class CheckInController {
         RegistrationDetailsResponse response = checkInService.getRegistrationByToken(token);
         return ResponseEntity.ok(response);
     }
+
 }

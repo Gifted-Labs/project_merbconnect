@@ -4,6 +4,8 @@ import com.merbsconnect.events.model.EventRegistration;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -38,7 +40,8 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     /**
      * Count checked-in registrations for an event.
      */
-    long countByEventIdAndCheckedIn(Long eventId, boolean checkedIn);
+    @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkedIn = :checkedIn")
+    long countByEventIdAndCheckedInStatus(@Param("eventId") Long eventId, @Param("checkedIn") boolean checkedIn);
 
     /**
      * Count total registrations for an event.

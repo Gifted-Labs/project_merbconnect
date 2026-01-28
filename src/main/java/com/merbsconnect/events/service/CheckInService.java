@@ -13,6 +13,7 @@ public interface CheckInService {
 
     /**
      * Registers a participant for an event with QR code generation.
+     * Also sends confirmation email with PDF ticket and SMS notification.
      *
      * @param eventId         The event ID
      * @param registrationDto The registration details
@@ -46,4 +47,5 @@ public interface CheckInService {
      * @return The check-in statistics
      */
     CheckInStatsResponse getCheckInStats(Long eventId);
+
 }

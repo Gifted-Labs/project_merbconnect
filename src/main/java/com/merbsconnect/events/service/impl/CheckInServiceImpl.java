@@ -11,7 +11,10 @@ import com.merbsconnect.events.model.EventRegistration;
 import com.merbsconnect.events.repository.EventRegistrationRepository;
 import com.merbsconnect.events.repository.EventRepository;
 import com.merbsconnect.events.service.CheckInService;
+
 import com.merbsconnect.exception.ResourceNotFoundException;
+import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
+import com.merbsconnect.sms.service.SmsService;
 import com.merbsconnect.util.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +22,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -34,6 +39,11 @@ public class CheckInServiceImpl implements CheckInService {
         private final EventRepository eventRepository;
         private final QrCodeService qrCodeService;
         private final EmailService emailService;
+        private final SmsService smsService;
+
+        // Support admin contact details for t-shirt order notifications
+        private static final String SUPPORT_ADMIN_EMAIL = "juliusadjeteysowah@gmail.com";
+        private static final String SUPPORT_ADMIN_PHONE = "0543358413";
 
         @Override
         @Transactional
@@ -55,6 +65,9 @@ public class CheckInServiceImpl implements CheckInService {
                 // Generate QR code
                 String qrCodeBase64 = qrCodeService.generateTokenQrCode(registrationToken);
 
+                // Handle shirt preference
+                boolean needsShirt = Boolean.TRUE.equals(registrationDto.getNeedsShirt());
+
                 EventRegistration registration = EventRegistration.builder()
                                 .event(event)
                                 .email(registrationDto.getEmail())
@@ -63,13 +76,15 @@ public class CheckInServiceImpl implements CheckInService {
                                 .note(registrationDto.getNote())
                                 .registrationToken(registrationToken)
                                 .qrCodeBase64(qrCodeBase64)
+                                .needsShirt(needsShirt)
+                                .shirtSize(needsShirt ? registrationDto.getShirtSize() : null)
                                 .build();
 
                 EventRegistration savedRegistration = registrationRepository.save(registration);
                 log.info("Registration created with id: {} and token: {}", savedRegistration.getId(),
                                 registrationToken);
 
-                // Send confirmation email with QR code
+                // Send confirmation email with PDF attachment
                 try {
                         emailService.sendRegistrationConfirmationEmail(
                                         registrationDto.getEmail(),
@@ -84,10 +99,107 @@ public class CheckInServiceImpl implements CheckInService {
                 } catch (Exception e) {
                         log.error("Failed to send registration confirmation email to {}: {}",
                                         registrationDto.getEmail(), e.getMessage());
-                        // Don't fail registration if email sending fails
+                }
+
+                // Send SMS notification to participant
+                sendRegistrationSms(registrationDto, event);
+
+                // If t-shirt selected, notify support admin
+                if (needsShirt && registrationDto.getShirtSize() != null) {
+                        notifyAdminAboutTshirtOrder(savedRegistration, event);
                 }
 
                 return mapToDetailsResponse(savedRegistration, event);
+        }
+
+        /**
+         * Sends SMS notification to the participant after registration.
+         */
+        private void sendRegistrationSms(EventRegistrationDto registrationDto, Event event) {
+                if (registrationDto.getPhone() == null || registrationDto.getPhone().isBlank()) {
+                        log.info("No phone number provided, skipping SMS notification");
+                        return;
+                }
+
+                try {
+                        String dateStr = event.getDate() != null
+                                        ? event.getDate().format(DateTimeFormatter.ofPattern("MMM d, yyyy"))
+                                        : "TBA";
+
+                        String message = String.format(
+                                        "Hi %s! You're registered for %s on %s. Check your email for your ticket with QR code. See you there! - MerbsConnect",
+                                        registrationDto.getName(),
+                                        event.getTitle(),
+                                        dateStr);
+
+                        BulkSmsRequest smsRequest = BulkSmsRequest.builder()
+                                        .recipients(List.of(formatPhoneNumber(registrationDto.getPhone())))
+                                        .message(message)
+                                        .build();
+
+                        smsService.sendBulkSms(smsRequest);
+                        log.info("Registration SMS sent to: {}", registrationDto.getPhone());
+                } catch (Exception e) {
+                        log.error("Failed to send registration SMS to {}: {}",
+                                        registrationDto.getPhone(), e.getMessage());
+                }
+        }
+
+        /**
+         * Notifies support admin about a t-shirt order via email and SMS.
+         */
+        private void notifyAdminAboutTshirtOrder(EventRegistration registration, Event event) {
+                log.info("Notifying admin about t-shirt order for registration: {}", registration.getId());
+
+                String shirtSize = registration.getShirtSize() != null
+                                ? registration.getShirtSize().getDisplayName()
+                                : "Not specified";
+
+                // Send SMS to admin
+                try {
+                        String smsMessage = String.format(
+                                        "NEW T-SHIRT ORDER: %s (%s) - Size: %s - Event: %s - Phone: %s",
+                                        registration.getName(),
+                                        registration.getEmail(),
+                                        shirtSize,
+                                        event.getTitle(),
+                                        registration.getPhone() != null ? registration.getPhone() : "N/A");
+
+                        BulkSmsRequest smsRequest = BulkSmsRequest.builder()
+                                        .recipients(List.of(formatPhoneNumber(SUPPORT_ADMIN_PHONE)))
+                                        .message(smsMessage)
+                                        .build();
+
+                        smsService.sendBulkSms(smsRequest);
+                        log.info("T-shirt order SMS notification sent to admin");
+                } catch (Exception e) {
+                        log.error("Failed to send t-shirt order SMS to admin: {}", e.getMessage());
+                }
+
+                // TODO: Send email to admin when email service supports arbitrary recipients
+                // For now, logging the order details
+                log.info("T-SHIRT ORDER DETAILS - Name: {}, Email: {}, Size: {}, Event: {}, Phone: {}",
+                                registration.getName(),
+                                registration.getEmail(),
+                                shirtSize,
+                                event.getTitle(),
+                                registration.getPhone());
+        }
+
+        /**
+         * Formats phone number for Ghana (removes leading 0, adds 233).
+         */
+        private String formatPhoneNumber(String phone) {
+                if (phone == null)
+                        return "";
+                String cleaned = phone.replaceAll("[^0-9]", "");
+                if (cleaned.startsWith("0")) {
+                        cleaned = "233" + cleaned.substring(1);
+                }
+                if (!cleaned.startsWith("233")) {
+                        cleaned = "233" + cleaned;
+                }
+                return cleaned;
         }
 
         @Override
@@ -164,7 +276,7 @@ public class CheckInServiceImpl implements CheckInService {
                                                 "Event not found with id: " + eventId));
 
                 long totalRegistrations = registrationRepository.countByEventId(eventId);
-                long checkedInCount = registrationRepository.countByEventIdAndCheckedIn(eventId, true);
+                long checkedInCount = registrationRepository.countByEventIdAndCheckedInStatus(eventId, true);
                 long pendingCount = totalRegistrations - checkedInCount;
 
                 double checkInPercentage = totalRegistrations > 0
@@ -198,6 +310,8 @@ public class CheckInServiceImpl implements CheckInService {
                                 .checkedIn(registration.isCheckedIn())
                                 .checkInTime(registration.getCheckInTime())
                                 .registeredAt(registration.getRegisteredAt())
+                                .needsShirt(registration.isNeedsShirt())
+                                .shirtSize(registration.getShirtSize())
                                 .build();
         }
 }

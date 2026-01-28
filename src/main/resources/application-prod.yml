@@ -4,20 +4,20 @@ spring:
 
   datasource:
     url: ${DB_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
 
   jpa:
     hibernate:
-      ddl-auto: ${JPA_DDL_AUTO}
+      ddl-auto: update
     show-sql: ${JPA_SHOW_SQL}
     properties:
       hibernate:
-        format_sql: ${JPA_FORMAT_SQL}
+        format_sql: ${JPA_FORMAT_SQL:true}
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
 server:
-  port: ${SERVER_PORT}
+  port: ${SERVER_PORT:9000}
 
 app:
   jwt:
@@ -70,3 +70,12 @@ springdoc:
     doc-expansion: ${SWAGGER_DOC_EXPANSION}
     deep-linking: ${SWAGGER_DEEP_LINKING}
     use-root-path: ${SWAGGER_USE_ROOT_PATH}
+
+railway:
+  storage:
+    endpoint: ${RAILWAY_STORAGE_ENDPOINT}
+    bucket: ${RAILWAY_STORAGE_BUCKET}
+    access-key-id: ${RAILWAY_STORAGE_ACCESS_KEY_ID}
+    secret-access-key: ${RAILWAY_STORAGE_SECRET_ACCESS_KEY}
+    region: ${RAILWAY_STORAGE_REGION:auto}
+

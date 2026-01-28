@@ -1,7 +1,6 @@
 package com.merbsconnect.storage;
 
 import com.merbsconnect.enums.MediaType;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -27,16 +26,19 @@ import java.util.UUID;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class StorageService {
 
     private final S3Client s3Client;
-
-    @Qualifier("storageBucketName")
     private final String bucketName;
-
-    @Qualifier("storageEndpoint")
     private final String endpoint;
+
+    public StorageService(S3Client s3Client,
+            @Qualifier("storageBucketName") String bucketName,
+            @Qualifier("storageEndpoint") String endpoint) {
+        this.s3Client = s3Client;
+        this.bucketName = bucketName;
+        this.endpoint = endpoint;
+    }
 
     private static final List<String> ALLOWED_IMAGE_TYPES = Arrays.asList(
             "image/jpeg", "image/png", "image/gif", "image/webp");
