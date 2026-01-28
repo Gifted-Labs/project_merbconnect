@@ -23,9 +23,6 @@ WORKDIR /app
 # Copy the built JAR file from the builder stage
 COPY --from=builder /app/target/*.jar app.jar
 
-# Copy the application.yaml file
-COPY src/main/resources/application.yaml .
-
 # Expose the port your application will run on
 EXPOSE 9000
 
