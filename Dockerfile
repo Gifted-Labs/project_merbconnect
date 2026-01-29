@@ -1,34 +1,32 @@
-# Use an official OpenJDK 21 runtime as the base image for the build stage
-FROM eclipse-temurin:21-jdk-jammy as builder
+# Build Stage
+FROM ubuntu:latest as builder
 
-# Install Maven
-RUN apt-get update && apt-get install -y maven && rm -rf /var/lib/apt/lists/*
+# Install OpenJDK 21 and Maven
+RUN apt-get update && \
+    apt-get install -y openjdk-21-jdk maven && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy the Maven build files
 COPY pom.xml .
 COPY src ./src
 
-# Build the application using Maven (fail fast if build fails)
-RUN mvn clean package -Dmaven.test.skip=true && \
-    ls -la /app/target/
+# Build the application skipping tests
+RUN mvn clean package -Dmaven.test.skip=true
 
-# Use a smaller base image for the final stage
-FROM eclipse-temurin:21-jre-jammy
+# Run Stage
+FROM ubuntu:latest
 
-# Set the working directory inside the container
+# Install OpenJDK 21 JRE
+RUN apt-get update && \
+    apt-get install -y openjdk-21-jre-headless && \
+    rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
-# Copy the built JAR file from the builder stage (be more specific)
+# Copy the specific JAR file
 COPY --from=builder /app/target/merbsconnect-0.0.1-SNAPSHOT.jar app.jar
 
-# Verify the JAR exists
-RUN ls -la /app/
-
-# Expose the port your application will run on
 EXPOSE 9000
 
-# Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
