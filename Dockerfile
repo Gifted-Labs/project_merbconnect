@@ -12,7 +12,7 @@ COPY pom.xml .
 COPY src ./src
 
 # Build the application using Maven (fail fast if build fails)
-RUN mvn clean package -DskipTests && \
+RUN mvn clean package -Dmaven.test.skip=true && \
     ls -la /app/target/
 
 # Use a smaller base image for the final stage
