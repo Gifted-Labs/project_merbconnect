@@ -27,15 +27,15 @@ server:
 
 app:
   jwt:
-    secret: ${JWT_SECRET:verySecretKeyForLocalDevelopmentAndTestingOnly12345}
+    secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION:86400000}
     refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
     issuer: ${JWT_ISSUER:merbsconnect}
 
   admin:
-    email: ${ADMIN_EMAIL:admin@example.com}
-    password: ${ADMIN_PASSWORD:password}
-    phone: ${ADMIN_PHONE:0543358413}
+    email: ${ADMIN_EMAIL}
+    password: ${ADMIN_PASSWORD}
+    phone: ${ADMIN_PHONE:+233000000000}
 
   token:
     expiry:
@@ -53,14 +53,14 @@ app:
   email:
     from: ${EMAIL_FROM:noreply@merbsconnect.com}
 
-  base-url: ${BASE_URL:http://localhost:9000}
+  base-url: ${BASE_URL:https://api.merbsconnect.com}
 
   resend:
-    api-key: ${RESEND_API_KEY:re_123456789}
+    api-key: ${RESEND_API_KEY}
 
   sms:
     mnotify:
-      api-key: ${SMS_MNOTIFY_API_KEY:dummy_key}
+      api-key: ${SMS_MNOTIFY_API_KEY}
       url: ${SMS_MNOTIFY_URL:https://api.mnotify.com/api/sms/quick}
 
 # Swagger/OpenAPI Configuration - Typically disabled in production

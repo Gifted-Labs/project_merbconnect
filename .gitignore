@@ -21,7 +21,9 @@ target/
 
 /src/main/resources/application-dev.yaml
 /src/main/resources/*.properties
-/src/main/resources/*.yaml
+# Allow application.yaml and application-prod.yml to be tracked
+!src/main/resources/application.yaml
+!src/main/resources/application-prod.yml
 
 ### NetBeans ###
 /nbproject/private/
@@ -35,5 +37,11 @@ build/
 
 ### VS Code ###
 .vscode/
+
+### Environment Files ###
 .env
 .env.dev
+.env.local
+.env.production
+# Allow .env.example to be tracked
+!.env.example
