@@ -22,7 +22,7 @@ FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
 
 # Copy the built JAR file from the builder stage (be more specific)
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /app/target/merbsconnect-0.0.1-SNAPSHOT.jar app.jar
 
 # Verify the JAR exists
 RUN ls -la /app/
