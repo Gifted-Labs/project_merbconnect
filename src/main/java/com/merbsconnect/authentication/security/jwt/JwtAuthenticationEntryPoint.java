@@ -1,6 +1,5 @@
 package com.merbsconnect.authentication.security.jwt;
 
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +10,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
-import tools.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -20,16 +19,23 @@ import java.util.Map;
 /**
  * JWT Authentication Entry Point implementation.
  *
- * This class handles the authentication entry point for JWT-based authentication
- * in a Spring Security configuration by implementing the AuthenticationEntryPoint interface.
+ * This class handles the authentication entry point for JWT-based
+ * authentication
+ * in a Spring Security configuration by implementing the
+ * AuthenticationEntryPoint interface.
  *
- * When an unauthenticated user tries to access a secured resource and authentication fails,
- * this entry point is triggered to commence the authentication scheme appropriate to the resource.
- * It typically responds with a 401 Unauthorized status code and may include additional
+ * When an unauthenticated user tries to access a secured resource and
+ * authentication fails,
+ * this entry point is triggered to commence the authentication scheme
+ * appropriate to the resource.
+ * It typically responds with a 401 Unauthorized status code and may include
+ * additional
  * information about the authentication failure.
  *
- * The @Component annotation registers this class as a Spring bean to be managed by the Spring container.
- * The @Slf4j annotation provides a logger field named 'log' for logging purposes.
+ * The @Component annotation registers this class as a Spring bean to be managed
+ * by the Spring container.
+ * The @Slf4j annotation provides a logger field named 'log' for logging
+ * purposes.
  */
 
 @Component
@@ -71,8 +77,8 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
             final Map<String, Object> body = new HashMap<>();
             body.put("status", HttpServletResponse.SC_UNAUTHORIZED);
             body.put("error", "Unauthorized");
-            body.put("message", authException.getMessage() != null ?
-                    authException.getMessage() : "Authentication failed");
+            body.put("message",
+                    authException.getMessage() != null ? authException.getMessage() : "Authentication failed");
             body.put("path", request.getServletPath());
             body.put("timestamp", System.currentTimeMillis());
 
@@ -80,7 +86,6 @@ public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
         } catch (Exception e) {
             logger.error("Error during authentication failure handling", e.getMessage());
-
 
             response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             response.setContentType(MediaType.TEXT_PLAIN_VALUE);
