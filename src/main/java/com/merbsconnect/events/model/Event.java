@@ -1,27 +1,32 @@
 package com.merbsconnect.events.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Data
+@Getter
+@Setter
+@ToString(exclude = { "registrations", "reviews", "articles", "galleryItems", "registrationsV2", "speakersV2",
+        "itinerary", "testimonials", "gallery" })
+@EqualsAndHashCode(exclude = { "registrations", "reviews", "articles", "galleryItems", "registrationsV2", "speakersV2",
+        "itinerary", "testimonials", "gallery" })
 public class Event {
 
     @Id

@@ -1,19 +1,25 @@
 package com.merbsconnect.events.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@Data
+@ToString(exclude = "event")
+@EqualsAndHashCode(exclude = "event")
 public class Gallery {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

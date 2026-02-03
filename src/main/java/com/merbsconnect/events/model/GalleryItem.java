@@ -2,9 +2,12 @@ package com.merbsconnect.events.model;
 
 import com.merbsconnect.enums.MediaType;
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
@@ -15,10 +18,13 @@ import java.time.LocalDateTime;
  */
 @Entity
 @Table(name = "event_gallery_items")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "event")
+@EqualsAndHashCode(exclude = "event")
 public class GalleryItem {
 
     @Id
@@ -30,18 +36,18 @@ public class GalleryItem {
     private Event event;
 
     @Column(nullable = false)
-    private String mediaUrl;  // URL or key in storage bucket
+    private String mediaUrl; // URL or key in storage bucket
 
     private String caption;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private MediaType type;  // IMAGE or VIDEO
+    private MediaType type; // IMAGE or VIDEO
 
     @Column(nullable = false)
-    private String fileName;  // Original file name
+    private String fileName; // Original file name
 
-    private Long fileSize;  // File size in bytes
+    private Long fileSize; // File size in bytes
 
     private LocalDateTime createdAt;
 

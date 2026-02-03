@@ -2,9 +2,12 @@ package com.merbsconnect.events.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalTime;
@@ -15,10 +18,13 @@ import java.time.LocalTime;
  */
 @Entity
 @Table(name = "event_itinerary_items")
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@ToString(exclude = "event")
+@EqualsAndHashCode(exclude = "event")
 public class EventItineraryItem {
 
     @Id

@@ -4,24 +4,24 @@ import com.merbsconnect.authentication.domain.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
-
-/**
- * Entity representing a user review for an event.
- * Each user can only submit one review per event (enforced by unique
- * constraint).
- */
 @Entity
 @Table(name = "event_reviews", uniqueConstraints = @UniqueConstraint(columnNames = { "event_id", "user_id" }))
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "event")
+@EqualsAndHashCode(exclude = "event")
 public class Review {
 
     @Id

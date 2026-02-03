@@ -1,23 +1,24 @@
 package com.merbsconnect.events.model;
 
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
-
-/**
- * Entity representing an article/transcript for an event.
- * Supports multiple articles per event (e.g., one per speaker).
- */
 @Entity
 @Table(name = "event_articles")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "event")
+@EqualsAndHashCode(exclude = "event")
 public class Article {
 
     @Id

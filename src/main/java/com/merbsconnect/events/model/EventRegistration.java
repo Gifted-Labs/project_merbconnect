@@ -5,23 +5,24 @@ import com.merbsconnect.enums.ReferralSource;
 import com.merbsconnect.enums.ShirtSize;
 import com.merbsconnect.enums.University;
 import jakarta.persistence.*;
+import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 
-import java.time.LocalDateTime;
-
-/**
- * Entity representing an event registration with QR code and check-in support.
- * Enhanced with university student information for better event analytics.
- */
 @Entity
 @Table(name = "event_registrations_v2", uniqueConstraints = @UniqueConstraint(columnNames = { "event_id", "email" }))
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = "event")
+@EqualsAndHashCode(exclude = "event")
 public class EventRegistration {
 
     @Id
