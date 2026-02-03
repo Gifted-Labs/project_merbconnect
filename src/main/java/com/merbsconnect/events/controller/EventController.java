@@ -39,7 +39,9 @@ import static com.merbsconnect.util.mapper.EventMapper.convertToPageResponse;
 @RestController
 @RequestMapping("/api/v1/events")
 @RequiredArgsConstructor
-@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:5173" }, allowedHeaders = { "*" }, maxAge = 3600)
+@CrossOrigin(origins = { "http://localhost:8080", "http://localhost:5173", "https://merbsconnect.com",
+        "https://src.merbsconnect.com",
+        "https://startright.merbsconnect.com" }, allowedHeaders = { "*" }, maxAge = 3600)
 public class EventController {
 
     private static final Logger log = LoggerFactory.getLogger(EventController.class);

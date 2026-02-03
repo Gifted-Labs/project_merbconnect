@@ -165,7 +165,9 @@ public class SecurityConfig {
                                                 "http://localhost:5174",
                                                 "http://localhost:5175", "https://merbsconnect.com",
                                                 "https://www.merbsconnect.com",
-                                                "https://admin.merbsconnect.com"));
+                                                "https://admin.merbsconnect.com",
+                                                "https://src.merbsconnect.com",
+                                                "https://startright.merbsconnect.com"));
                 configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
                 configuration.setAllowedHeaders(List.of("*"));
                 configuration.setAllowCredentials(true);
