@@ -76,13 +76,13 @@ public class EventMapper {
 
     // ===== Helper Methods for V2 Mappings =====
 
-    private static List<EventSpeakerResponse> mapSpeakersV2(List<EventSpeaker> speakers) {
+    private static java.util.Set<EventSpeakerResponse> mapSpeakersV2(java.util.Collection<EventSpeaker> speakers) {
         if (speakers == null || speakers.isEmpty()) {
-            return Collections.emptyList();
+            return java.util.Collections.emptySet();
         }
         return speakers.stream()
                 .map(EventMapper::mapSpeakerToResponse)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
     }
 
     private static EventSpeakerResponse mapSpeakerToResponse(EventSpeaker speaker) {
@@ -100,13 +100,14 @@ public class EventMapper {
                 .build();
     }
 
-    private static List<EventItineraryItemResponse> mapItinerary(List<EventItineraryItem> items) {
+    private static java.util.Set<EventItineraryItemResponse> mapItinerary(
+            java.util.Collection<EventItineraryItem> items) {
         if (items == null || items.isEmpty()) {
-            return Collections.emptyList();
+            return java.util.Collections.emptySet();
         }
         return items.stream()
                 .map(EventMapper::mapItineraryItemToResponse)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(java.util.LinkedHashSet::new));
     }
 
     private static EventItineraryItemResponse mapItineraryItemToResponse(EventItineraryItem item) {

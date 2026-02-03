@@ -90,28 +90,28 @@ public class Event {
      */
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Review> reviews = new ArrayList<>();
+    private Set<Review> reviews = new java.util.LinkedHashSet<>();
 
     /**
      * Speaker articles/transcripts for this event.
      */
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<Article> articles = new ArrayList<>();
+    private Set<Article> articles = new java.util.LinkedHashSet<>();
 
     /**
      * Gallery items (images/videos) stored in Railway bucket.
      */
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<GalleryItem> galleryItems = new ArrayList<>();
+    private Set<GalleryItem> galleryItems = new java.util.LinkedHashSet<>();
 
     /**
      * Enhanced registrations with QR codes and check-in support.
      */
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
-    private List<EventRegistration> registrationsV2 = new ArrayList<>();
+    private Set<EventRegistration> registrationsV2 = new java.util.LinkedHashSet<>();
 
     // ===== New Fields for V2 Enhancements =====
 
@@ -127,14 +127,14 @@ public class Event {
      */
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
-    private List<EventSpeaker> speakersV2 = new ArrayList<>();
+    private Set<EventSpeaker> speakersV2 = new java.util.LinkedHashSet<>();
 
     /**
      * Event itinerary/program lineup - ordered list of activities.
      */
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
     @Builder.Default
-    private List<EventItineraryItem> itinerary = new ArrayList<>();
+    private Set<EventItineraryItem> itinerary = new java.util.LinkedHashSet<>();
 
     @PrePersist
     public void init() {

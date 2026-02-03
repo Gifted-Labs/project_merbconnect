@@ -41,10 +41,10 @@ public class EventResponse {
     /**
      * Enhanced speakers with S3 images (v2)
      */
-    private List<EventSpeakerResponse> speakersV2;
+    private Set<EventSpeakerResponse> speakersV2;
 
     /**
      * Event itinerary/program lineup
      */
-    private List<EventItineraryItemResponse> itinerary;
+    private Set<EventItineraryItemResponse> itinerary;
 }
