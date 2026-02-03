@@ -17,10 +17,16 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
     boolean existsByTitleAndDate(String title, LocalDate date);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = { "speakersV2", "speakers" })
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
+            "speakersV2", "speakers", "itinerary", "reviews", "articles",
+            "galleryItems", "registrationsV2", "testimonials"
+    })
     Page<Event> findEventByDateAfter(LocalDate dateAfter, Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = { "speakersV2", "speakers" })
+    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
+            "speakersV2", "speakers", "itinerary", "reviews", "articles",
+            "galleryItems", "registrationsV2", "testimonials"
+    })
     Page<Event> findEventByDateBefore(LocalDate dateBefore, Pageable pageable);
 
     @Query("SELECT e FROM Event e WHERE YEAR(e.date) = :year")
