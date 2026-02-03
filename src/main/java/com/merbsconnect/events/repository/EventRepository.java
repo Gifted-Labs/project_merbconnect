@@ -19,27 +19,27 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
         @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
                         "speakersV2", "speakers", "itinerary", "reviews", "articles",
-                        "galleryItems", "registrationsV2", "testimonials"
+                        "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
         })
         @Override
         org.springframework.data.domain.Page<Event> findAll(org.springframework.data.domain.Pageable pageable);
 
         @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
                         "speakersV2", "speakers", "itinerary", "reviews", "articles",
-                        "galleryItems", "registrationsV2", "testimonials"
+                        "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
         })
         @Override
         java.util.Optional<Event> findById(Long id);
 
         @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
                         "speakersV2", "speakers", "itinerary", "reviews", "articles",
-                        "galleryItems", "registrationsV2", "testimonials"
+                        "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
         })
         Page<Event> findEventByDateAfter(LocalDate dateAfter, Pageable pageable);
 
         @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
                         "speakersV2", "speakers", "itinerary", "reviews", "articles",
-                        "galleryItems", "registrationsV2", "testimonials"
+                        "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
         })
         Page<Event> findEventByDateBefore(LocalDate dateBefore, Pageable pageable);
 
