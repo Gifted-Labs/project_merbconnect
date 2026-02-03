@@ -60,6 +60,13 @@ public class EventMapper {
                 .name(registrationDto.getName())
                 .email(registrationDto.getEmail())
                 .phone(registrationDto.getPhone())
+                .note(registrationDto.getNote())
+                .program(registrationDto.getProgram())
+                .academicLevel(registrationDto.getAcademicLevel())
+                .university(registrationDto.getUniversity() != null ? registrationDto.getUniversity().getDisplayName()
+                        : null)
+                .referralSource(registrationDto.getReferralSource())
+                .referralSourceOther(registrationDto.getReferralSourceOther())
                 .build();
     }
 

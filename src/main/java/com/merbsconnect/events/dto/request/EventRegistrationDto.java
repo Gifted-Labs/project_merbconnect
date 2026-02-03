@@ -45,12 +45,7 @@ public class EventRegistrationDto {
     /**
      * The name of the university/institution
      */
-    private String university;
-
-    /**
-     * Department or faculty (optional)
-     */
-    private String department;
+    private com.merbsconnect.enums.University university;
 
     /**
      * How the registrant heard about the event
@@ -61,24 +56,4 @@ public class EventRegistrationDto {
      * If referralSource is OTHER, this field stores the custom source
      */
     private String referralSourceOther;
-
-    /**
-     * Student ID (optional, for verification purposes)
-     */
-    private String studentId;
-
-    /**
-     * Dietary restrictions or special requirements
-     */
-    private String dietaryRestrictions;
-
-    /**
-     * Emergency contact name
-     */
-    private String emergencyContactName;
-
-    /**
-     * Emergency contact phone
-     */
-    private String emergencyContactPhone;
 }

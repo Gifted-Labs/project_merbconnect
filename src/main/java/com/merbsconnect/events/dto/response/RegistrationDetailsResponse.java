@@ -38,12 +38,7 @@ public class RegistrationDetailsResponse {
 
     private String program;
     private AcademicLevel academicLevel;
-    private String university;
-    private String department;
+    private com.merbsconnect.enums.University university;
     private ReferralSource referralSource;
     private String referralSourceOther;
-    private String studentId;
-    private String dietaryRestrictions;
-    private String emergencyContactName;
-    private String emergencyContactPhone;
 }

@@ -377,13 +377,8 @@ public class CheckInServiceImpl implements CheckInService {
                                 .program(registration.getProgram())
                                 .academicLevel(registration.getAcademicLevel())
                                 .university(registration.getUniversity())
-                                .department(registration.getDepartment())
                                 .referralSource(registration.getReferralSource())
                                 .referralSourceOther(registration.getReferralSourceOther())
-                                .studentId(registration.getStudentId())
-                                .dietaryRestrictions(registration.getDietaryRestrictions())
-                                .emergencyContactName(registration.getEmergencyContactName())
-                                .emergencyContactPhone(registration.getEmergencyContactPhone())
                                 .build();
         }
 }

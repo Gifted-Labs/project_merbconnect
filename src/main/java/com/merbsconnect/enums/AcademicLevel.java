@@ -4,17 +4,13 @@ package com.merbsconnect.enums;
  * Enum representing the academic level of a university student.
  */
 public enum AcademicLevel {
-    LEVEL_100("100 Level - Freshman"),
-    LEVEL_200("200 Level - Sophomore"),
-    LEVEL_300("300 Level - Junior"),
-    LEVEL_400("400 Level - Senior"),
-    LEVEL_500("500 Level - Fifth Year"),
-    LEVEL_600("600 Level - Sixth Year"),
-    GRADUATE("Graduate Student"),
-    POSTGRADUATE("Postgraduate Student"),
-    PHD("PhD Candidate"),
-    ALUMNI("Alumni"),
-    OTHER("Other");
+    LEVEL_100("Level 100"),
+    LEVEL_200("Level 200"),
+    LEVEL_300("Level 300"),
+    LEVEL_400("Level 400"),
+    LEVEL_500("Level 500"),
+    LEVEL_600("Level 600"),
+    GRADUATE("Graduate Student");
 
     private final String displayName;
 
