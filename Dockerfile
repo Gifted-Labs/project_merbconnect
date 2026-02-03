@@ -48,11 +48,9 @@ USER merbsconnect
 
 # Railway uses PORT env variable (defaults to 9000 if not set)
 ENV PORT=9000
-EXPOSE $PORT
+EXPOSE 9000
 
-# JVM tuning for containers
-ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=50.0 -Djava.security.egd=file:/dev/./urandom"
+# Run with production profile using exec form
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-XX:InitialRAMPercentage=50.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar", "--spring.profiles.active=prod"]
 
-# Run with production profile, using Railway's PORT
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Dserver.port=$PORT -jar app.jar --spring.profiles.active=prod"]
 
