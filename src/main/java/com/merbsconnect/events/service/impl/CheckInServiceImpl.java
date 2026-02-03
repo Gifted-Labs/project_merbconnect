@@ -158,7 +158,8 @@ public class CheckInServiceImpl implements CheckInService {
         }
 
         /**
-         * Notifies support admin about a t-shirt order via email and SMS.
+         * Notifies support admin about a t-shirt order via email and SMS,
+         * and sends confirmation SMS to the user.
          */
         private void notifyAdminAboutTshirtOrder(EventRegistration registration, Event event) {
                 log.info("Notifying admin about t-shirt order for registration: {}", registration.getId());
@@ -167,7 +168,7 @@ public class CheckInServiceImpl implements CheckInService {
                                 ? registration.getShirtSize().getDisplayName()
                                 : "Not specified";
 
-                // Send SMS to admin
+                // 1. Send SMS to admin (existing)
                 try {
                         String smsMessage = String.format(
                                         "NEW T-SHIRT ORDER: %s (%s) - Size: %s - Event: %s - Phone: %s",
@@ -188,12 +189,62 @@ public class CheckInServiceImpl implements CheckInService {
                         log.error("Failed to send t-shirt order SMS to admin: {}", e.getMessage());
                 }
 
-                 log.info("T-SHIRT ORDER DETAILS - Name: {}, Email: {}, Size: {}, Event: {}, Phone: {}",
+                // 2. Send Email to admin (NEW)
+                try {
+                        emailService.sendTshirtOrderAdminEmail(
+                                        registration.getName(),
+                                        registration.getEmail(),
+                                        registration.getPhone(),
+                                        shirtSize,
+                                        event.getTitle());
+                        log.info("T-shirt order email notification sent to admin");
+                } catch (Exception e) {
+                        log.error("Failed to send t-shirt order email to admin: {}", e.getMessage());
+                }
+
+                // 3. Send confirmation SMS to user (NEW)
+                sendTshirtConfirmationSmsToUser(registration, event);
+
+                log.info("T-SHIRT ORDER DETAILS - Name: {}, Email: {}, Size: {}, Event: {}, Phone: {}",
                                 registration.getName(),
                                 registration.getEmail(),
                                 shirtSize,
                                 event.getTitle(),
                                 registration.getPhone());
+        }
+
+        /**
+         * Sends a confirmation SMS to the user after their T-shirt order.
+         */
+        private void sendTshirtConfirmationSmsToUser(EventRegistration registration, Event event) {
+                if (registration.getPhone() == null || registration.getPhone().isBlank()) {
+                        log.info("No phone number provided for T-shirt confirmation SMS, skipping");
+                        return;
+                }
+
+                try {
+                        // Extract first name from full name
+                        String firstName = registration.getName();
+                        if (firstName != null && firstName.contains(" ")) {
+                                firstName = firstName.split(" ")[0];
+                        }
+
+                        String message = String.format(
+                                        "Hello %s, your T-shirt order for %s has been received successfully. Our team will contact you shortly for the next steps. Thank you! - MerbsConnect",
+                                        firstName,
+                                        event.getTitle());
+
+                        BulkSmsRequest smsRequest = BulkSmsRequest.builder()
+                                        .recipients(List.of(formatPhoneNumber(registration.getPhone())))
+                                        .message(message)
+                                        .build();
+
+                        smsService.sendBulkSms(smsRequest);
+                        log.info("T-shirt confirmation SMS sent to user: {}", registration.getPhone());
+                } catch (Exception e) {
+                        log.error("Failed to send T-shirt confirmation SMS to user {}: {}",
+                                        registration.getPhone(), e.getMessage());
+                }
         }
 
         /**

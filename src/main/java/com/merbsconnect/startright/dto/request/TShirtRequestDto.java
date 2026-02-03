@@ -23,9 +23,11 @@ public class TShirtRequestDto {
     private String phoneNumber;
 
     @NotNull(message = "T-shirt color is required")
+    @com.fasterxml.jackson.annotation.JsonProperty("tShirtColor")
     private ShirtColor tShirtColor;
 
     @NotNull(message = "T-shirt size is required")
+    @com.fasterxml.jackson.annotation.JsonProperty("tShirtSize")
     private ShirtSize tShirtSize;
 
     @NotNull(message = "Quantity is required")

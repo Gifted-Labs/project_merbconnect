@@ -256,4 +256,100 @@ public class EmailServiceImpl implements EmailService {
                 """
                 .formatted(name, eventTitle, eventTitle, eventDate, eventTime, location != null ? location : "TBA");
     }
+
+    @Override
+    @Async
+    public void sendTshirtOrderAdminEmail(String registrantName, String registrantEmail,
+            String registrantPhone, String shirtSize, String eventTitle) {
+
+        // Admin email for T-shirt orders
+        String adminEmail = "juliusadjeteysowah@gmail.com";
+        String subject = "New T-Shirt Request – " + eventTitle;
+
+        String content = buildTshirtOrderAdminEmail(registrantName, registrantEmail,
+                registrantPhone, shirtSize, eventTitle);
+
+        sendEmail(adminEmail, subject, content);
+        log.info("T-shirt order admin email sent for registrant: {} - Size: {}", registrantName, shirtSize);
+    }
+
+    /**
+     * Builds the T-shirt order admin notification email HTML content.
+     */
+    private String buildTshirtOrderAdminEmail(String registrantName, String registrantEmail,
+            String registrantPhone, String shirtSize, String eventTitle) {
+        String timestamp = java.time.LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy 'at' h:mm a"));
+
+        return """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                        .order-details { background: white; padding: 20px; border-radius: 10px; margin: 20px 0; border-left: 4px solid #c41e3a; }
+                        .order-details h3 { color: #c41e3a; margin-top: 0; }
+                        .detail-row { padding: 10px 0; border-bottom: 1px solid #eee; display: flex; }
+                        .detail-label { color: #666; font-weight: 600; width: 120px; }
+                        .detail-value { color: #333; font-weight: 500; }
+                        .size-badge { display: inline-block; background: #c41e3a; color: white; padding: 8px 20px; border-radius: 20px; font-weight: bold; font-size: 18px; }
+                        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                        .action-note { background: #fff3cd; border: 1px solid #ffc107; padding: 15px; border-radius: 8px; margin-top: 20px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1 style="margin: 0;">👕 New T-Shirt Order</h1>
+                            <p style="margin: 10px 0 0;">A new T-shirt has been requested</p>
+                        </div>
+                        <div class="content">
+                            <p>A participant has requested a T-shirt during event registration.</p>
+
+                            <div class="order-details">
+                                <h3>📋 Order Details</h3>
+                                <div class="detail-row">
+                                    <span class="detail-label">Name:</span>
+                                    <span class="detail-value">%s</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Email:</span>
+                                    <span class="detail-value">%s</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Phone:</span>
+                                    <span class="detail-value">%s</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Event:</span>
+                                    <span class="detail-value">%s</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Shirt Size:</span>
+                                    <span class="size-badge">%s</span>
+                                </div>
+                                <div class="detail-row">
+                                    <span class="detail-label">Requested:</span>
+                                    <span class="detail-value">%s</span>
+                                </div>
+                            </div>
+
+                            <div class="action-note">
+                                <strong>⚡ Action Required:</strong> Please contact the registrant to arrange payment and delivery details.
+                            </div>
+                        </div>
+                        <div class="footer">
+                            <p>This notification was sent by MerbsConnect T-Shirt Order System.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+                .formatted(registrantName, registrantEmail,
+                        registrantPhone != null ? registrantPhone : "Not provided",
+                        eventTitle, shirtSize, timestamp);
+    }
 }
