@@ -90,6 +90,9 @@ public class SecurityConfig {
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/registration")
                                                         .permitAll();
 
+                                        // Public T-shirt request - no login required
+                                        auth.requestMatchers(HttpMethod.POST, "/api/v1/tshirt-requests").permitAll();
+
                                         // Admin-only event management operations (includes SUPER_ADMIN and
                                         // SUPPORT_ADMIN)
                                         auth.requestMatchers(HttpMethod.POST, "/api/v1/events").hasAnyRole("ADMIN",
