@@ -15,48 +15,62 @@ import java.util.Optional;
 @Repository
 public interface EventRepository extends JpaRepository<Event, Long> {
 
-    boolean existsByTitleAndDate(String title, LocalDate date);
+        boolean existsByTitleAndDate(String title, LocalDate date);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
-            "speakersV2", "speakers", "itinerary", "reviews", "articles",
-            "galleryItems", "registrationsV2", "testimonials"
-    })
-    Page<Event> findEventByDateAfter(LocalDate dateAfter, Pageable pageable);
+        @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
+                        "speakersV2", "speakers", "itinerary", "reviews", "articles",
+                        "galleryItems", "registrationsV2", "testimonials"
+        })
+        @Override
+        org.springframework.data.domain.Page<Event> findAll(org.springframework.data.domain.Pageable pageable);
 
-    @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
-            "speakersV2", "speakers", "itinerary", "reviews", "articles",
-            "galleryItems", "registrationsV2", "testimonials"
-    })
-    Page<Event> findEventByDateBefore(LocalDate dateBefore, Pageable pageable);
+        @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
+                        "speakersV2", "speakers", "itinerary", "reviews", "articles",
+                        "galleryItems", "registrationsV2", "testimonials"
+        })
+        @Override
+        java.util.Optional<Event> findById(Long id);
 
-    @Query("SELECT e FROM Event e WHERE YEAR(e.date) = :year")
-    Optional<Event> findEventByYear(@Param("year") Long year);
+        @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
+                        "speakersV2", "speakers", "itinerary", "reviews", "articles",
+                        "galleryItems", "registrationsV2", "testimonials"
+        })
+        Page<Event> findEventByDateAfter(LocalDate dateAfter, Pageable pageable);
 
-    @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Event e WHERE YEAR(e.date) = :year")
-    boolean existsEventByYear(Long year);
+        @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
+                        "speakersV2", "speakers", "itinerary", "reviews", "articles",
+                        "galleryItems", "registrationsV2", "testimonials"
+        })
+        Page<Event> findEventByDateBefore(LocalDate dateBefore, Pageable pageable);
 
-    @Query("SELECT e FROM Event e WHERE e.location = :location AND e.date = :date")
-    List<Event> findConflictingEvents(
-            @Param("location") String location,
-            @Param("date") LocalDate date);
+        @Query("SELECT e FROM Event e WHERE YEAR(e.date) = :year")
+        Optional<Event> findEventByYear(@Param("year") Long year);
 
-    @org.springframework.transaction.annotation.Transactional
-    @org.springframework.data.jpa.repository.Modifying
-    @Query(value = "DELETE FROM event_sponsors WHERE event_id = :eventId", nativeQuery = true)
-    void deleteEventSponsors(@Param("eventId") Long eventId);
+        @Query("SELECT CASE WHEN COUNT(e) > 0 THEN true ELSE false END FROM Event e WHERE YEAR(e.date) = :year")
+        boolean existsEventByYear(Long year);
 
-    @org.springframework.transaction.annotation.Transactional
-    @org.springframework.data.jpa.repository.Modifying
-    @Query(value = "DELETE FROM event_speakers WHERE event_id = :eventId", nativeQuery = true)
-    void deleteEventSpeakers(@Param("eventId") Long eventId);
+        @Query("SELECT e FROM Event e WHERE e.location = :location AND e.date = :date")
+        List<Event> findConflictingEvents(
+                        @Param("location") String location,
+                        @Param("date") LocalDate date);
 
-    @org.springframework.transaction.annotation.Transactional
-    @org.springframework.data.jpa.repository.Modifying
-    @Query(value = "DELETE FROM event_contacts WHERE event_id = :eventId", nativeQuery = true)
-    void deleteEventContacts(@Param("eventId") Long eventId);
+        @org.springframework.transaction.annotation.Transactional
+        @org.springframework.data.jpa.repository.Modifying
+        @Query(value = "DELETE FROM event_sponsors WHERE event_id = :eventId", nativeQuery = true)
+        void deleteEventSponsors(@Param("eventId") Long eventId);
 
-    @org.springframework.transaction.annotation.Transactional
-    @org.springframework.data.jpa.repository.Modifying
-    @Query(value = "DELETE FROM event_registrations WHERE event_id = :eventId", nativeQuery = true)
-    void deleteEventRegistrations(@Param("eventId") Long eventId);
+        @org.springframework.transaction.annotation.Transactional
+        @org.springframework.data.jpa.repository.Modifying
+        @Query(value = "DELETE FROM event_speakers WHERE event_id = :eventId", nativeQuery = true)
+        void deleteEventSpeakers(@Param("eventId") Long eventId);
+
+        @org.springframework.transaction.annotation.Transactional
+        @org.springframework.data.jpa.repository.Modifying
+        @Query(value = "DELETE FROM event_contacts WHERE event_id = :eventId", nativeQuery = true)
+        void deleteEventContacts(@Param("eventId") Long eventId);
+
+        @org.springframework.transaction.annotation.Transactional
+        @org.springframework.data.jpa.repository.Modifying
+        @Query(value = "DELETE FROM event_registrations WHERE event_id = :eventId", nativeQuery = true)
+        void deleteEventRegistrations(@Param("eventId") Long eventId);
 }
