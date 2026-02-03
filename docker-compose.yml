@@ -1,0 +1,92 @@
+# =============================================================================
+# MerbsConnect Backend - Docker Compose Configuration
+# =============================================================================
+# Usage:
+#   Development: docker-compose up -d
+#   Production:  docker-compose -f docker-compose.yml up -d
+# =============================================================================
+
+version: '3.8'
+
+services:
+  # =========================================================================
+  # Backend API Service
+  # =========================================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: merbsconnect-api
+    restart: unless-stopped
+    ports:
+      - "${SERVER_PORT:-9000}:9000"
+    environment:
+      # Spring Profile
+      - SPRING_PROFILES_ACTIVE=prod
+
+      # Database
+      - DB_URL=${DB_URL}
+      - DB_USERNAME=${DB_USERNAME}
+      - DB_PASSWORD=${DB_PASSWORD}
+
+      # JWT Authentication
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION:-86400000}
+      - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION:-604800000}
+      - JWT_ISSUER=${JWT_ISSUER:-merbsconnect}
+
+      # Admin Account
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
+      - ADMIN_PHONE=${ADMIN_PHONE}
+
+      # Email (Resend)
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - EMAIL_FROM=${EMAIL_FROM:-noreply@merbsconnect.com}
+
+      # SMS (mNotify)
+      - SMS_MNOTIFY_API_KEY=${SMS_MNOTIFY_API_KEY}
+      - SMS_MNOTIFY_URL=${SMS_MNOTIFY_URL:-https://api.mnotify.com/api/sms/quick}
+
+      # S3 Storage
+      - RAILWAY_STORAGE_ENDPOINT=${RAILWAY_STORAGE_ENDPOINT}
+      - RAILWAY_STORAGE_BUCKET=${RAILWAY_STORAGE_BUCKET}
+      - RAILWAY_STORAGE_ACCESS_KEY_ID=${RAILWAY_STORAGE_ACCESS_KEY_ID}
+      - RAILWAY_STORAGE_SECRET_ACCESS_KEY=${RAILWAY_STORAGE_SECRET_ACCESS_KEY}
+      - RAILWAY_STORAGE_REGION=${RAILWAY_STORAGE_REGION:-auto}
+
+      # Application
+      - BASE_URL=${BASE_URL:-https://api.merbsconnect.com}
+      - SERVER_PORT=9000
+
+      # Swagger (disabled by default in production)
+      - SWAGGER_UI_ENABLED=${SWAGGER_UI_ENABLED:-false}
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9000/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - merbsconnect-network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+# =============================================================================
+# Networks
+# =============================================================================
+networks:
+  merbsconnect-network:
+    driver: bridge
+
+# =============================================================================
+# Volumes (optional - for persistent data)
+# =============================================================================
+volumes:
+  logs:
+    driver: local
