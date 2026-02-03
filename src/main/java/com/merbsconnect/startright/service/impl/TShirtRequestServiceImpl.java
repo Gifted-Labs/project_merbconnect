@@ -6,6 +6,8 @@ import com.merbsconnect.startright.dto.response.TShirtDashboardDto;
 import com.merbsconnect.startright.dto.response.TShirtRequestResponseDto;
 import com.merbsconnect.startright.entity.TShirtRequest;
 import com.merbsconnect.startright.enums.RequestStatus;
+import com.merbsconnect.enums.ShirtColor;
+import com.merbsconnect.enums.ShirtSize;
 import com.merbsconnect.startright.repository.TShirtRequestRepository;
 import com.merbsconnect.startright.service.TShirtRequestService;
 import lombok.RequiredArgsConstructor;
@@ -87,11 +89,22 @@ public class TShirtRequestServiceImpl implements TShirtRequestService {
     public List<TShirtDailyAnalyticsDto> getDailyAnalytics() {
         List<Object[]> rawData = repository.getDailyAnalytics();
         return rawData.stream()
-                .map(row -> TShirtDailyAnalyticsDto.builder()
-                        .date((LocalDate) row[0])
-                        .totalRequests((Long) row[1])
-                        .totalQuantity(((Number) row[2]).intValue())
-                        .build())
+                .map(row -> {
+                    LocalDate date;
+                    Object dateObj = row[0];
+                    if (dateObj instanceof java.sql.Date) {
+                        date = ((java.sql.Date) dateObj).toLocalDate();
+                    } else if (dateObj instanceof LocalDate) {
+                        date = (LocalDate) dateObj;
+                    } else {
+                        date = LocalDate.parse(dateObj.toString());
+                    }
+                    return TShirtDailyAnalyticsDto.builder()
+                            .date(date)
+                            .totalRequests(((Number) row[1]).longValue())
+                            .totalQuantity(((Number) row[2]).intValue())
+                            .build();
+                })
                 .collect(Collectors.toList());
     }
 

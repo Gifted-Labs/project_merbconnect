@@ -1,5 +1,7 @@
 package com.merbsconnect.startright.dto.request;
 
+import com.merbsconnect.enums.ShirtColor;
+import com.merbsconnect.enums.ShirtSize;
 import jakarta.validation.constraints.*;
 import lombok.*;
 
@@ -20,11 +22,11 @@ public class TShirtRequestDto {
     @NotBlank(message = "Phone number is required")
     private String phoneNumber;
 
-    @NotBlank(message = "T-shirt color is required")
-    private String tShirtColor;
+    @NotNull(message = "T-shirt color is required")
+    private ShirtColor tShirtColor;
 
-    @NotBlank(message = "T-shirt size is required")
-    private String tShirtSize;
+    @NotNull(message = "T-shirt size is required")
+    private ShirtSize tShirtSize;
 
     @NotNull(message = "Quantity is required")
     @Min(value = 1, message = "Quantity must be at least 1")

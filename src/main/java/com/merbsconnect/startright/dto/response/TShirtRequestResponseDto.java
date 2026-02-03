@@ -1,6 +1,8 @@
 package com.merbsconnect.startright.dto.response;
 
 import com.merbsconnect.startright.enums.RequestStatus;
+import com.merbsconnect.enums.ShirtColor;
+import com.merbsconnect.enums.ShirtSize;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -16,8 +18,8 @@ public class TShirtRequestResponseDto {
     private String fullName;
     private String email;
     private String phoneNumber;
-    private String tShirtColor;
-    private String tShirtSize;
+    private ShirtColor tShirtColor;
+    private ShirtSize tShirtSize;
     private Integer quantity;
     private RequestStatus requestStatus;
     private LocalDateTime createdAt;

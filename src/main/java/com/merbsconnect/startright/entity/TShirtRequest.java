@@ -1,6 +1,8 @@
 package com.merbsconnect.startright.entity;
 
 import com.merbsconnect.startright.enums.RequestStatus;
+import com.merbsconnect.enums.ShirtColor;
+import com.merbsconnect.enums.ShirtSize;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -28,11 +30,13 @@ public class TShirtRequest {
     @Column(nullable = false)
     private String phoneNumber;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String tShirtColor;
+    private ShirtColor tShirtColor;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String tShirtSize;
+    private ShirtSize tShirtSize;
 
     @Column(nullable = false)
     private Integer quantity;

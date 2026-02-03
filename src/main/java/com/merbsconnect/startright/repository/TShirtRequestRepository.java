@@ -24,11 +24,11 @@ public interface TShirtRequestRepository extends JpaRepository<TShirtRequest, Lo
     @Query("SELECT COALESCE(SUM(t.quantity), 0) FROM TShirtRequest t")
     Integer sumAllQuantities();
 
-    // Daily analytics - group by date
-    @Query("SELECT CAST(t.createdAt AS LocalDate) as date, COUNT(t) as totalRequests, COALESCE(SUM(t.quantity), 0) as totalQuantity "
+    // Daily analytics - group by date using native query for PostgreSQL
+    @Query(value = "SELECT DATE(created_at) as date, COUNT(*) as total_requests, COALESCE(SUM(quantity), 0) as total_quantity "
             +
-            "FROM TShirtRequest t " +
-            "GROUP BY CAST(t.createdAt AS LocalDate) " +
-            "ORDER BY CAST(t.createdAt AS LocalDate) DESC")
+            "FROM tshirt_requests " +
+            "GROUP BY DATE(created_at) " +
+            "ORDER BY DATE(created_at) DESC", nativeQuery = true)
     List<Object[]> getDailyAnalytics();
 }
