@@ -189,12 +189,10 @@ public class EventController {
 
     /**
      * Register for an event (v2 - with QR code, SMS, and PDF ticket).
-     * This endpoint now redirects to the enhanced registration flow.
-     * 
-     * @deprecated Use POST /api/v1/events/{eventId}/register-v2 instead
+     * Both endpoints point to the same enhanced registration flow.
      */
-    @PostMapping("/{eventId}/register")
-    public ResponseEntity<com.merbsconnect.events.dto.response.RegistrationDetailsResponse> registerForEvent(
+    @PostMapping({ "/{eventId}/register", "/{eventId}/register-v2" })
+    public ResponseEntity<com.merbsconnect.events.dto.response.RegistrationDetailsResponse> registerForEventV2(
             @PathVariable Long eventId,
             @RequestBody EventRegistrationDto eventRegistrationDto) {
         try {
