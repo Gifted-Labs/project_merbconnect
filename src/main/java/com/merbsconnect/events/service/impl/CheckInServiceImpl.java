@@ -83,13 +83,8 @@ public class CheckInServiceImpl implements CheckInService {
                                 .program(registrationDto.getProgram())
                                 .academicLevel(registrationDto.getAcademicLevel())
                                 .university(registrationDto.getUniversity())
-                                .department(registrationDto.getDepartment())
                                 .referralSource(registrationDto.getReferralSource())
                                 .referralSourceOther(registrationDto.getReferralSourceOther())
-                                .studentId(registrationDto.getStudentId())
-                                .dietaryRestrictions(registrationDto.getDietaryRestrictions())
-                                .emergencyContactName(registrationDto.getEmergencyContactName())
-                                .emergencyContactPhone(registrationDto.getEmergencyContactPhone())
                                 .build();
 
                 EventRegistration savedRegistration = registrationRepository.save(registration);
