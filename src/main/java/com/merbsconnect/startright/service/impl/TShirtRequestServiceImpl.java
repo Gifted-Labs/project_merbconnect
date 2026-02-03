@@ -1,6 +1,8 @@
 package com.merbsconnect.startright.service.impl;
 
 import com.merbsconnect.startright.dto.request.TShirtRequestDto;
+import com.merbsconnect.startright.dto.response.TShirtDailyAnalyticsDto;
+import com.merbsconnect.startright.dto.response.TShirtDashboardDto;
 import com.merbsconnect.startright.dto.response.TShirtRequestResponseDto;
 import com.merbsconnect.startright.entity.TShirtRequest;
 import com.merbsconnect.startright.enums.RequestStatus;
@@ -10,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +23,9 @@ import java.util.stream.Collectors;
 public class TShirtRequestServiceImpl implements TShirtRequestService {
 
     private final TShirtRequestRepository repository;
+
+    // Configurable price per shirt (can be moved to application.properties later)
+    private static final BigDecimal PRICE_PER_SHIRT = new BigDecimal("50.00");
 
     @Override
     @Transactional
@@ -67,6 +74,46 @@ public class TShirtRequestServiceImpl implements TShirtRequestService {
         TShirtRequest request = repository.findById(requestId)
                 .orElseThrow(() -> new RuntimeException("Request not found with ID: " + requestId));
         return mapToResponseDto(request);
+    }
+
+    @Override
+    public List<TShirtRequestResponseDto> getAllRequestsForExport() {
+        return repository.findAllByOrderByCreatedAtDesc().stream()
+                .map(this::mapToResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<TShirtDailyAnalyticsDto> getDailyAnalytics() {
+        List<Object[]> rawData = repository.getDailyAnalytics();
+        return rawData.stream()
+                .map(row -> TShirtDailyAnalyticsDto.builder()
+                        .date((LocalDate) row[0])
+                        .totalRequests((Long) row[1])
+                        .totalQuantity(((Number) row[2]).intValue())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public TShirtDashboardDto getDashboardMetrics() {
+        Long totalRequests = repository.count();
+        Integer totalShirts = repository.sumAllQuantities();
+        Long pendingCount = repository.countByRequestStatus(RequestStatus.PENDING);
+        Long completedCount = repository.countByRequestStatus(RequestStatus.COMPLETED);
+        Long declinedCount = repository.countByRequestStatus(RequestStatus.DECLINED);
+
+        BigDecimal totalRevenue = PRICE_PER_SHIRT.multiply(new BigDecimal(totalShirts));
+
+        return TShirtDashboardDto.builder()
+                .totalRequests(totalRequests)
+                .totalShirtsRequested(totalShirts)
+                .totalRevenue(totalRevenue)
+                .pricePerShirt(PRICE_PER_SHIRT)
+                .pendingRequests(pendingCount)
+                .completedRequests(completedCount)
+                .declinedRequests(declinedCount)
+                .build();
     }
 
     private TShirtRequestResponseDto mapToResponseDto(TShirtRequest request) {
