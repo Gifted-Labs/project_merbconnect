@@ -1,3 +1,5 @@
+package com.merbsconnect.events.model;
+
 import com.merbsconnect.enums.AcademicLevel;
 import com.merbsconnect.enums.ReferralSource;
 import com.merbsconnect.enums.University;
