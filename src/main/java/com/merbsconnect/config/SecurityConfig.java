@@ -69,6 +69,9 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> {
                                         auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 
+                                        // Actuator health endpoint for monitoring and health checks
+                                        auth.requestMatchers("/actuator/health", "/actuator/health/**").permitAll();
+
                                         // Public auth endpoints
                                         auth.requestMatchers("/api/v1/auth/**").permitAll();
 
