@@ -24,9 +24,9 @@ import lombok.EqualsAndHashCode;
 @Getter
 @Setter
 @ToString(exclude = { "registrations", "reviews", "articles", "galleryItems", "registrationsV2", "speakersV2",
-        "itinerary", "testimonials", "gallery" })
+        "itinerary", "testimonials", "gallery", "sponsors", "speakers", "contacts" })
 @EqualsAndHashCode(exclude = { "registrations", "reviews", "articles", "galleryItems", "registrationsV2", "speakersV2",
-        "itinerary", "testimonials", "gallery" })
+        "itinerary", "testimonials", "gallery", "sponsors", "speakers", "contacts" })
 public class Event {
 
     @Id

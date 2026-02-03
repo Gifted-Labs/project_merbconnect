@@ -106,6 +106,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "events")
     public Page<EventResponse> getAllEvents(Pageable pageable) {
         Page<Event> events = eventRepository.findAll(pageable);
@@ -189,6 +190,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "events", key = "'upcoming'")
     public Page<EventResponse> getUpcomingEvents(Pageable pageable) {
         return eventRepository.findEventByDateAfter(LocalDate.now(), pageable)
