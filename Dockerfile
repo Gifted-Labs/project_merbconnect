@@ -43,6 +43,10 @@ RUN mkdir -p /app/logs && chown -R merbsconnect:merbsconnect /app
 # Copy JAR from builder
 COPY --from=builder --chown=merbsconnect:merbsconnect /app/target/merbsconnect-0.0.1-SNAPSHOT.jar app.jar
 
+# Copy entrypoint script
+COPY --chown=merbsconnect:merbsconnect entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Switch to non-root user
 USER merbsconnect
 
@@ -50,7 +54,8 @@ USER merbsconnect
 ENV PORT=9000
 EXPOSE 9000
 
-# Run with production profile using exec form
-ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-XX:InitialRAMPercentage=50.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar", "--spring.profiles.active=prod"]
+# Use entrypoint script to handle dynamic PORT
+ENTRYPOINT ["/app/entrypoint.sh"]
+
 
 
