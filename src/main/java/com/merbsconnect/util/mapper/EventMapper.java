@@ -63,8 +63,7 @@ public class EventMapper {
                 .note(registrationDto.getNote())
                 .program(registrationDto.getProgram())
                 .academicLevel(registrationDto.getAcademicLevel())
-                .university(registrationDto.getUniversity() != null ? registrationDto.getUniversity().getDisplayName()
-                        : null)
+                .university(registrationDto.getUniversity())
                 .referralSource(registrationDto.getReferralSource())
                 .referralSourceOther(registrationDto.getReferralSourceOther())
                 .build();
