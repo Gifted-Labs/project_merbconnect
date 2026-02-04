@@ -158,7 +158,6 @@ public class EmailServiceImpl implements EmailService {
             Attachment qrAttachment = Attachment.builder()
                     .fileName(filename)
                     .content(imageBase64)
-                    .contentType("image/png")
                     .build();
 
             SendEmailRequest request = SendEmailRequest.builder()
