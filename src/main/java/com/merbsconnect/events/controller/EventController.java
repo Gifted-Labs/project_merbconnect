@@ -65,7 +65,7 @@ public class EventController {
         }
     }
 
-    @PutMapping("/{eventId}")
+    @PutMapping("/{eventId:[0-9]+}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<EventResponse> updateEvent(@PathVariable Long eventId,
             @Valid @RequestBody UpdateEventRequest eventRequest) {
@@ -77,7 +77,7 @@ public class EventController {
         }
     }
 
-    @DeleteMapping("/{eventId}")
+    @DeleteMapping("/{eventId:[0-9]+}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MessageResponse> deleteEvent(@PathVariable Long eventId) {
         try {
@@ -88,7 +88,7 @@ public class EventController {
         }
     }
 
-    @PostMapping(value = "/{eventId}/image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/{eventId:[0-9]+}/image", consumes = org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<java.util.Map<String, String>> uploadEventImage(
             @PathVariable Long eventId,
@@ -112,7 +112,7 @@ public class EventController {
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
-    @GetMapping("/{eventId}")
+    @GetMapping("/{eventId:[0-9]+}")
     public ResponseEntity<EventResponse> getEventById(@PathVariable Long eventId) {
         Optional<EventResponse> eventResponse = eventService.getEventById(eventId);
         return eventResponse.map(response -> new ResponseEntity<>(response, HttpStatus.OK))
@@ -130,7 +130,7 @@ public class EventController {
         }
     }
 
-    @PostMapping("/{eventId}/speakers")
+    @PostMapping("/{eventId:[0-9]+}/speakers")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<MessageResponse> addSpeakerToEvent(@PathVariable Long eventId, @RequestBody Speaker speaker) {
         try {
@@ -141,7 +141,7 @@ public class EventController {
         }
     }
 
-    @DeleteMapping("/{eventId}/speakers")
+    @DeleteMapping("/{eventId:[0-9]+}/speakers")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MessageResponse> removeSpeakerFromEvent(@PathVariable Long eventId,
             @RequestParam(value = "speakerName", required = false) String speakerName) {
@@ -165,7 +165,7 @@ public class EventController {
         return new ResponseEntity<>(events, HttpStatus.OK);
     }
 
-    @PutMapping("/{eventId}/speakers/update")
+    @PutMapping("/{eventId:[0-9]+}/speakers/update")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<MessageResponse> updateEventSpeaker(@PathVariable Long eventId,
             @RequestBody Speaker speaker) {
@@ -177,7 +177,7 @@ public class EventController {
         }
     }
 
-    @GetMapping("/{eventId}/registrations")
+    @GetMapping("/{eventId:[0-9]+}/registrations")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<PageResponse<Registration>> getEventRegistrations(
             @PathVariable Long eventId, Pageable pageable) {
@@ -191,7 +191,7 @@ public class EventController {
      * Register for an event (v2 - with QR code, SMS, and PDF ticket).
      * Both endpoints point to the same enhanced registration flow.
      */
-    @PostMapping({ "/{eventId}/register", "/{eventId}/register-v2" })
+    @PostMapping({ "/{eventId:[0-9]+}/register", "/{eventId:[0-9]+}/register-v2" })
     public ResponseEntity<com.merbsconnect.events.dto.response.RegistrationDetailsResponse> registerForEventV2(
             @PathVariable Long eventId,
             @RequestBody EventRegistrationDto eventRegistrationDto) {
@@ -208,7 +208,7 @@ public class EventController {
         }
     }
 
-    @GetMapping("{eventId}/registrations/export")
+    @GetMapping("{eventId:[0-9]+}/registrations/export")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public void downloadRegistrations(@PathVariable Long eventId, HttpServletResponse response) {
         try {
@@ -224,7 +224,7 @@ public class EventController {
         }
     }
 
-    @PostMapping("/{eventId}/registrations/send-sms")
+    @PostMapping("/{eventId:[0-9]+}/registrations/send-sms")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<BulkSmsResponse> sendBulkSmsToSelectedRegistrations(
             @PathVariable Long eventId,
@@ -319,7 +319,7 @@ public class EventController {
      * @param eventId The ID of the event
      * @return ResponseEntity containing event analytics
      */
-    @GetMapping("/{eventId}/analytics")
+    @GetMapping("/{eventId:[0-9]+}/analytics")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<com.merbsconnect.events.dto.response.EventAnalyticsResponse> getEventAnalytics(
             @PathVariable Long eventId) {
@@ -345,7 +345,7 @@ public class EventController {
      * @param email   The email of the registration to delete
      * @return ResponseEntity containing success message
      */
-    @DeleteMapping("/{eventId}/registrations/{email}")
+    @DeleteMapping("/{eventId:[0-9]+}/registrations/{email}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MessageResponse> deleteRegistration(
             @PathVariable Long eventId,
@@ -394,7 +394,7 @@ public class EventController {
      * @param eventId The ID of the event
      * @return ResponseEntity containing list of speakers
      */
-    @GetMapping("/{eventId}/speakers")
+    @GetMapping("/{eventId:[0-9]+}/speakers")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<java.util.List<Speaker>> getEventSpeakers(@PathVariable Long eventId) {
         try {
@@ -437,7 +437,7 @@ public class EventController {
      * @param request The bulk delete request containing list of emails
      * @return ResponseEntity containing success message with count
      */
-    @DeleteMapping("/{eventId}/registrations/bulk")
+    @DeleteMapping("/{eventId:[0-9]+}/registrations/bulk")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
     public ResponseEntity<MessageResponse> deleteMultipleRegistrations(
             @PathVariable Long eventId,
