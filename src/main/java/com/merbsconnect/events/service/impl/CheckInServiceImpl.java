@@ -3,16 +3,19 @@ package com.merbsconnect.events.service.impl;
 import com.merbsconnect.email.service.EmailService;
 import com.merbsconnect.events.dto.request.CheckInRequest;
 import com.merbsconnect.events.dto.request.EventRegistrationDto;
+import com.merbsconnect.events.dto.request.MerchandiseOrderDto;
 import com.merbsconnect.events.dto.response.CheckInResponse;
 import com.merbsconnect.events.dto.response.CheckInStatsResponse;
 import com.merbsconnect.events.dto.response.RegistrationDetailsResponse;
 import com.merbsconnect.events.model.Event;
 import com.merbsconnect.events.model.EventRegistration;
+import com.merbsconnect.events.model.MerchandiseOrder;
 import com.merbsconnect.events.repository.EventRegistrationRepository;
 import com.merbsconnect.events.repository.EventRepository;
 import com.merbsconnect.events.service.CheckInService;
 
 import com.merbsconnect.exception.ResourceNotFoundException;
+import com.merbsconnect.enums.CheckInMethod;
 import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
 import com.merbsconnect.sms.service.SmsService;
 import com.merbsconnect.util.QrCodeService;
@@ -24,8 +27,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of CheckInService for managing event registrations and
@@ -73,6 +78,18 @@ public class CheckInServiceImpl implements CheckInService {
                 // Handle shirt preference
                 boolean needsShirt = Boolean.TRUE.equals(registrationDto.getNeedsShirt());
 
+                // Build merchandise orders from DTO
+                List<MerchandiseOrder> merchandiseOrders = new ArrayList<>();
+                if (needsShirt && registrationDto.getMerchandiseOrders() != null) {
+                        merchandiseOrders = registrationDto.getMerchandiseOrders().stream()
+                                        .map(dto -> MerchandiseOrder.builder()
+                                                        .color(dto.getColor())
+                                                        .size(dto.getSize())
+                                                        .quantity(dto.getQuantity() != null ? dto.getQuantity() : 1)
+                                                        .build())
+                                        .collect(Collectors.toList());
+                }
+
                 EventRegistration registration = EventRegistration.builder()
                                 .event(event)
                                 .email(registrationDto.getEmail())
@@ -82,7 +99,10 @@ public class CheckInServiceImpl implements CheckInService {
                                 .registrationToken(registrationToken)
                                 .qrCodeBase64(qrCodeBase64)
                                 .needsShirt(needsShirt)
+                                // Legacy shirtSize for backward compatibility
                                 .shirtSize(needsShirt ? registrationDto.getShirtSize() : null)
+                                // New detailed merchandise orders
+                                .merchandiseOrders(merchandiseOrders)
                                 // New university student fields
                                 .program(registrationDto.getProgram())
                                 .academicLevel(registrationDto.getAcademicLevel())
@@ -109,14 +129,14 @@ public class CheckInServiceImpl implements CheckInService {
                         log.info("Registration confirmation email sent to: {}", registrationDto.getEmail());
                 } catch (Exception e) {
                         log.error("Failed to send registration confirmation email to {}: {}",
-                                        registrationDto.getEmail(), e.getMessage());
+                                        registrationDto.getEmail(), e.getMessage(), e);
                 }
 
                 // Send SMS notification to participant
                 sendRegistrationSms(registrationDto, event);
 
                 // If t-shirt selected, notify support admin
-                if (needsShirt && registrationDto.getShirtSize() != null) {
+                if (needsShirt && (registrationDto.getShirtSize() != null || !merchandiseOrders.isEmpty())) {
                         notifyAdminAboutTshirtOrder(savedRegistration, event);
                 }
 
@@ -163,17 +183,16 @@ public class CheckInServiceImpl implements CheckInService {
         private void notifyAdminAboutTshirtOrder(EventRegistration registration, Event event) {
                 log.info("Notifying admin about t-shirt order for registration: {}", registration.getId());
 
-                String shirtSize = registration.getShirtSize() != null
-                                ? registration.getShirtSize().getDisplayName()
-                                : "Not specified";
+                // Get merchandise display string (handles both legacy and new format)
+                String merchandiseDisplay = registration.getMerchandiseOrdersDisplay();
 
-                // 1. Send SMS to admin (existing)
+                // 1. Send SMS to admin
                 try {
                         String smsMessage = String.format(
-                                        "NEW T-SHIRT ORDER: %s (%s) - Size: %s - Event: %s - Phone: %s",
+                                        "NEW T-SHIRT ORDER: %s (%s) - Items: %s - Event: %s - Phone: %s",
                                         registration.getName(),
                                         registration.getEmail(),
-                                        shirtSize,
+                                        merchandiseDisplay,
                                         event.getTitle(),
                                         registration.getPhone() != null ? registration.getPhone() : "N/A");
 
@@ -188,26 +207,26 @@ public class CheckInServiceImpl implements CheckInService {
                         log.error("Failed to send t-shirt order SMS to admin: ", e);
                 }
 
-                // 2. Send Email to admin (NEW)
+                // 2. Send Email to admin with detailed merchandise info
                 try {
                         emailService.sendTshirtOrderAdminEmail(
                                         registration.getName(),
                                         registration.getEmail(),
                                         registration.getPhone(),
-                                        shirtSize,
+                                        merchandiseDisplay,
                                         event.getTitle());
                         log.info("T-shirt order email notification sent to admin at: {}", adminEmail);
                 } catch (Exception e) {
                         log.error("Failed to send t-shirt order email to admin: ", e);
                 }
 
-                // 3. Send confirmation SMS to user (NEW)
+                // 3. Send confirmation SMS to user
                 sendTshirtConfirmationSmsToUser(registration, event);
 
-                log.info("T-SHIRT ORDER DETAILS - Name: {}, Email: {}, Size: {}, Event: {}, Phone: {}",
+                log.info("T-SHIRT ORDER DETAILS - Name: {}, Email: {}, Items: {}, Event: {}, Phone: {}",
                                 registration.getName(),
                                 registration.getEmail(),
-                                shirtSize,
+                                merchandiseDisplay,
                                 event.getTitle(),
                                 registration.getPhone());
         }
@@ -300,9 +319,13 @@ public class CheckInServiceImpl implements CheckInService {
                 // Perform check-in
                 registration.setCheckedIn(true);
                 registration.setCheckInTime(LocalDateTime.now());
+                registration.setCheckInMethod(
+                                request.getMethod() != null ? request.getMethod() : CheckInMethod.MANUAL);
                 registrationRepository.save(registration);
 
-                log.info("Check-in successful for {} at event {}", registration.getEmail(), eventId);
+                log.info("Check-in successful for {} at event {} via {}",
+                                registration.getEmail(), eventId,
+                                registration.getCheckInMethod());
 
                 return CheckInResponse.builder()
                                 .success(true)
@@ -343,6 +366,11 @@ public class CheckInServiceImpl implements CheckInService {
                                 ? (double) checkedInCount / totalRegistrations * 100
                                 : 0.0;
 
+                // Count by check-in method
+                long qrScanCount = registrationRepository.countByEventIdAndCheckInMethod(eventId,
+                                CheckInMethod.QR_SCAN);
+                long manualCount = registrationRepository.countByEventIdAndCheckInMethod(eventId, CheckInMethod.MANUAL);
+
                 return CheckInStatsResponse.builder()
                                 .eventId(eventId)
                                 .eventTitle(event.getTitle())
@@ -350,6 +378,8 @@ public class CheckInServiceImpl implements CheckInService {
                                 .checkedInCount(checkedInCount)
                                 .pendingCount(pendingCount)
                                 .checkInPercentage(Math.round(checkInPercentage * 10.0) / 10.0)
+                                .qrScanCount(qrScanCount)
+                                .manualCount(manualCount)
                                 .build();
         }
 
@@ -357,6 +387,18 @@ public class CheckInServiceImpl implements CheckInService {
          * Maps an EventRegistration entity to a RegistrationDetailsResponse DTO.
          */
         private RegistrationDetailsResponse mapToDetailsResponse(EventRegistration registration, Event event) {
+                // Convert entity MerchandiseOrder to DTO
+                List<MerchandiseOrderDto> merchandiseOrderDtos = null;
+                if (registration.getMerchandiseOrders() != null && !registration.getMerchandiseOrders().isEmpty()) {
+                        merchandiseOrderDtos = registration.getMerchandiseOrders().stream()
+                                        .map(order -> MerchandiseOrderDto.builder()
+                                                        .color(order.getColor())
+                                                        .size(order.getSize())
+                                                        .quantity(order.getQuantity())
+                                                        .build())
+                                        .collect(Collectors.toList());
+                }
+
                 return RegistrationDetailsResponse.builder()
                                 .id(registration.getId())
                                 .eventId(event.getId())
@@ -372,6 +414,8 @@ public class CheckInServiceImpl implements CheckInService {
                                 .registeredAt(registration.getRegisteredAt())
                                 .needsShirt(registration.isNeedsShirt())
                                 .shirtSize(registration.getShirtSize())
+                                .merchandiseOrders(merchandiseOrderDtos)
+                                .merchandiseOrdersDisplay(registration.getMerchandiseOrdersDisplay())
                                 // New university student fields
                                 .program(registration.getProgram())
                                 .academicLevel(registration.getAcademicLevel())

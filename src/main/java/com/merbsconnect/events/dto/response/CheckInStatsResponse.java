@@ -20,4 +20,8 @@ public class CheckInStatsResponse {
     private long checkedInCount;
     private long pendingCount;
     private double checkInPercentage;
+
+    // Check-in method breakdown
+    private long qrScanCount;
+    private long manualCount;
 }

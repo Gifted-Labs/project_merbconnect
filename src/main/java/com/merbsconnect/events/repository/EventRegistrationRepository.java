@@ -53,4 +53,11 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
      * Count total registrations for an event.
      */
     long countByEventId(Long eventId);
+
+    /**
+     * Count check-ins by method for an event.
+     */
+    @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkInMethod = :method")
+    long countByEventIdAndCheckInMethod(@Param("eventId") Long eventId,
+            @Param("method") com.merbsconnect.enums.CheckInMethod method);
 }

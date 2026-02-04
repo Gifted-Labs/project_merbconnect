@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Builder
 @Data
 @NoArgsConstructor
@@ -25,9 +27,17 @@ public class EventRegistrationDto {
     private Boolean needsShirt;
 
     /**
-     * Shirt size if needsShirt is true.
+     * Legacy: Simple shirt size field.
+     * Kept for backward compatibility.
+     * New registrations should use merchandiseOrders instead.
      */
     private ShirtSize shirtSize;
+
+    /**
+     * Detailed merchandise orders (color, size, quantity).
+     * Use this instead of simple shirtSize for new registrations.
+     */
+    private List<MerchandiseOrderDto> merchandiseOrders;
 
     // ===== University Student Information =====
 

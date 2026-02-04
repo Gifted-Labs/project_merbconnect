@@ -1,11 +1,14 @@
 package com.merbsconnect.events.model;
 
 import com.merbsconnect.enums.AcademicLevel;
+import com.merbsconnect.enums.CheckInMethod;
 import com.merbsconnect.enums.ReferralSource;
 import com.merbsconnect.enums.ShirtSize;
 import com.merbsconnect.enums.University;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -62,6 +65,13 @@ public class EventRegistration {
 
     private LocalDateTime checkInTime;
 
+    /**
+     * Method used for check-in (MANUAL, QR_SCAN, BULK).
+     * Nullable for backward compatibility with existing records.
+     */
+    @Enumerated(EnumType.STRING)
+    private CheckInMethod checkInMethod;
+
     private LocalDateTime registeredAt;
 
     /**
@@ -71,10 +81,21 @@ public class EventRegistration {
     private boolean needsShirt = false;
 
     /**
-     * Shirt size if needsShirt is true.
+     * Legacy: Simple shirt size field.
+     * Kept for backward compatibility with existing records.
+     * New registrations should use merchandiseOrders instead.
      */
     @Enumerated(EnumType.STRING)
     private ShirtSize shirtSize;
+
+    /**
+     * Detailed merchandise orders (color, size, quantity).
+     * Replaces simple shirtSize for new registrations.
+     */
+    @ElementCollection
+    @CollectionTable(name = "registration_merchandise_orders", joinColumns = @JoinColumn(name = "registration_id"))
+    @Builder.Default
+    private List<MerchandiseOrder> merchandiseOrders = new ArrayList<>();
 
     // ===== New University Student Fields =====
 
@@ -110,5 +131,25 @@ public class EventRegistration {
     @PrePersist
     public void onCreate() {
         this.registeredAt = LocalDateTime.now();
+    }
+
+    /**
+     * Returns a formatted string of all merchandise orders.
+     */
+    public String getMerchandiseOrdersDisplay() {
+        if (merchandiseOrders == null || merchandiseOrders.isEmpty()) {
+            // Fallback to legacy shirtSize if no orders
+            if (shirtSize != null) {
+                return shirtSize.getDisplayName();
+            }
+            return "No orders";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < merchandiseOrders.size(); i++) {
+            if (i > 0)
+                sb.append(", ");
+            sb.append(merchandiseOrders.get(i).getDisplayString());
+        }
+        return sb.toString();
     }
 }
