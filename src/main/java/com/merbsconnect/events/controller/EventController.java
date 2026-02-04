@@ -191,7 +191,7 @@ public class EventController {
      * Register for an event (v2 - with QR code, SMS, and PDF ticket).
      * Both endpoints point to the same enhanced registration flow.
      */
-    @PostMapping({ "/{eventId:[0-9]+}/register", "/{eventId:[0-9]+}/register-v2" })
+    @PostMapping("/{eventId:[0-9]+}/register")
     public ResponseEntity<com.merbsconnect.events.dto.response.RegistrationDetailsResponse> registerForEventV2(
             @PathVariable Long eventId,
             @RequestBody EventRegistrationDto eventRegistrationDto) {
