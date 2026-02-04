@@ -132,9 +132,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ErrorDetails> handleMethodArgumentTypeMismatchException(
             MethodArgumentTypeMismatchException ex, WebRequest request) {
+        String typeName = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown";
         String message = String.format("Parameter '%s' expects a value of type '%s' but received '%s'",
-                ex.getName(), ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "unknown",
-                ex.getValue());
+                ex.getName(), typeName, ex.getValue());
         ErrorDetails errorDetails = new ErrorDetails(
                 LocalDateTime.now(),
                 message,
