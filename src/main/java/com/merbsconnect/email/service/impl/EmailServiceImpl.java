@@ -7,6 +7,7 @@ import com.merbsconnect.email.service.EmailService;
 import com.merbsconnect.email.service.EmailTemplateService;
 import com.resend.Resend;
 import com.resend.core.exception.ResendException;
+import com.resend.services.emails.model.Attachment;
 import com.resend.services.emails.model.SendEmailRequest;
 import com.resend.services.emails.model.SendEmailResponse;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -76,10 +79,18 @@ public class EmailServiceImpl implements EmailService {
         String dateStr = eventDate.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy"));
         String timeStr = eventTime != null ? eventTime.format(DateTimeFormatter.ofPattern("h:mm a")) : "TBA";
 
+        // Build email content with CID reference for QR code
         String content = buildRegistrationConfirmationEmail(name, eventTitle, dateStr, timeStr,
-                eventLocation, qrCodeBase64, registrationToken);
+                eventLocation, registrationToken);
 
-        sendEmail(email, subject, content);
+        // Extract raw base64 data (remove data URI prefix if present)
+        String rawBase64 = qrCodeBase64;
+        if (qrCodeBase64 != null && qrCodeBase64.contains(",")) {
+            rawBase64 = qrCodeBase64.substring(qrCodeBase64.indexOf(",") + 1);
+        }
+
+        // Send email with QR code as inline CID attachment
+        sendEmailWithInlineImage(email, subject, content, rawBase64, "qrcode", "qrcode.png");
         log.info("Registration confirmation email sent to: {} for event: {}", email, eventTitle);
     }
 
@@ -128,11 +139,61 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
+     * Sends an email with an inline image attachment using Content-ID (CID).
+     * This ensures the image renders in email clients that block base64 data URIs.
+     *
+     * @param to          recipient email address
+     * @param subject     email subject
+     * @param htmlContent HTML content with cid: reference (e.g., src="cid:qrcode")
+     * @param imageBase64 base64 encoded image data (without data URI prefix)
+     * @param contentId   Content-ID for the image (e.g., "qrcode")
+     * @param filename    filename for the attachment (e.g., "qrcode.png")
+     */
+    private void sendEmailWithInlineImage(String to, String subject, String htmlContent,
+            String imageBase64, String contentId, String filename) {
+        try {
+            Resend resend = new Resend(resendApiKey);
+
+            // Create inline attachment with Content-ID
+            Attachment qrAttachment = Attachment.builder()
+                    .filename(filename)
+                    .content(imageBase64)
+                    .contentType("image/png")
+                    .build();
+
+            SendEmailRequest request = SendEmailRequest.builder()
+                    .from(fromEmail)
+                    .to(to)
+                    .subject(subject)
+                    .html(htmlContent)
+                    .attachments(List.of(qrAttachment))
+                    .build();
+
+            SendEmailResponse response = resend.emails().send(request);
+
+            if (response.getId() != null) {
+                log.info("Email with inline image sent via Resend. ID: {}, To: {}", response.getId(), to);
+            } else {
+                log.error("Failed to send email with inline image via Resend to: {}", to);
+                throw new EmailSendException("Failed to send email with inline image via Resend");
+            }
+
+        } catch (ResendException e) {
+            log.error("Resend API error when sending email with image to {}: {}", to, e.getMessage());
+            throw new EmailSendException("Failed to send email with inline image via Resend", e);
+        } catch (Exception e) {
+            log.error("Unexpected error when sending email with image to {}: {}", to, e.getMessage());
+            throw new EmailSendException("Failed to send email with inline image", e);
+        }
+    }
+
+    /**
      * Builds the registration confirmation email HTML content.
+     * Uses CID reference for QR code instead of inline base64 for better email
+     * client compatibility.
      */
     private String buildRegistrationConfirmationEmail(String name, String eventTitle, String eventDate,
-            String eventTime, String location,
-            String qrCodeBase64, String registrationToken) {
+            String eventTime, String location, String registrationToken) {
         return """
                 <!DOCTYPE html>
                 <html>
@@ -165,7 +226,7 @@ public class EmailServiceImpl implements EmailService {
                             <div class="qr-section">
                                 <h3 style="margin-top: 0;">Your Check-in QR Code</h3>
                                 <p>Present this QR code at the event entrance for quick check-in.</p>
-                                <img class="qr-code" src="%s" alt="Check-in QR Code" />
+                                <img class="qr-code" src="cid:qrcode.png" alt="Check-in QR Code" style="max-width: 200px; margin: 15px auto; display: block;" />
                                 <p class="token">Token: %s</p>
                             </div>
 
@@ -194,7 +255,7 @@ public class EmailServiceImpl implements EmailService {
                 </body>
                 </html>
                 """
-                .formatted(name, eventTitle, qrCodeBase64, registrationToken, eventTitle, eventDate, eventTime,
+                .formatted(name, eventTitle, registrationToken, eventTitle, eventDate, eventTime,
                         location != null ? location : "TBA");
     }
 
