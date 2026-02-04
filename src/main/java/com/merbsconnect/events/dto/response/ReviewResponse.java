@@ -1,5 +1,6 @@
 package com.merbsconnect.events.dto.response;
 
+import com.merbsconnect.enums.AcademicLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,4 +25,10 @@ public class ReviewResponse {
     private String comment;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    // Guest fields
+    private String guestName;
+    private AcademicLevel guestAcademicLevel;
+    private String guestProgram;
+    private boolean isGuest;
 }

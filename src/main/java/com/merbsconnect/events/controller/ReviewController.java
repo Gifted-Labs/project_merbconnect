@@ -32,18 +32,19 @@ public class ReviewController {
 
     /**
      * Submit a new review for an event.
-     * Requires authentication. Users can only submit one review per event.
+     * Open to authenticated users and guests. Users can only submit one review per
+     * event.
      */
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
-    @Operation(summary = "Submit a review", description = "Submit a new review for an event (authenticated users only)")
+    @Operation(summary = "Submit a review", description = "Submit a new review for an event (public/authenticated)")
     public ResponseEntity<ReviewResponse> createReview(
             @PathVariable Long eventId,
             @Valid @RequestBody CreateReviewRequest request,
-            @AuthenticationPrincipal CustomUserDetails userDetails) {
+            @AuthenticationPrincipal(expression = "#this") CustomUserDetails userDetails) {
 
-        log.info("Creating review for event {} by user {}", eventId, userDetails.getId());
-        ReviewResponse response = reviewService.createReview(eventId, request, userDetails.getId());
+        Long userId = userDetails != null ? userDetails.getId() : null;
+        log.info("Creating review for event {} (userId: {})", eventId, userId);
+        ReviewResponse response = reviewService.createReview(eventId, request, userId);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 

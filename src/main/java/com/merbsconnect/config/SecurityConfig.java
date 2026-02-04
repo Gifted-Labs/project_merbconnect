@@ -79,13 +79,13 @@ public class SecurityConfig {
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/events").permitAll();
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/events/**").permitAll();
 
-                                        // Public event registration - anyone can register (includes v2 with QR code)
+                                        // Public event registration & reviews
                                         auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/register").permitAll();
                                         auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/register-v2")
                                                         .permitAll();
+                                        auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/reviews").permitAll();
 
                                         // Public: View reviews, articles, gallery
-                                        auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/reviews").permitAll();
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/articles").permitAll();
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/articles/**")
                                                         .permitAll();

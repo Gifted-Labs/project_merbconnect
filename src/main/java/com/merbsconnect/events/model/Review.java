@@ -1,6 +1,7 @@
 package com.merbsconnect.events.model;
 
 import com.merbsconnect.authentication.domain.User;
+import com.merbsconnect.enums.AcademicLevel;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -14,7 +15,7 @@ import lombok.ToString;
 import lombok.EqualsAndHashCode;
 
 @Entity
-@Table(name = "event_reviews", uniqueConstraints = @UniqueConstraint(columnNames = { "event_id", "user_id" }))
+@Table(name = "event_reviews")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -33,8 +34,16 @@ public class Review {
     private Event event;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @JoinColumn(name = "user_id", nullable = true)
+    private com.merbsconnect.authentication.domain.User user;
+
+    // Guest fields
+    private String guestName;
+
+    @Enumerated(EnumType.STRING)
+    private AcademicLevel guestAcademicLevel;
+
+    private String guestProgram;
 
     @Min(1)
     @Max(5)

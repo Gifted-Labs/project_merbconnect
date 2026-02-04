@@ -2,6 +2,7 @@ package com.merbsconnect.events.service.impl;
 
 import com.merbsconnect.authentication.domain.User;
 import com.merbsconnect.authentication.repository.UserRepository;
+import com.merbsconnect.enums.AcademicLevel;
 import com.merbsconnect.events.dto.request.CreateReviewRequest;
 import com.merbsconnect.events.dto.response.ReviewPageResponse;
 import com.merbsconnect.events.dto.response.ReviewResponse;
@@ -38,25 +39,31 @@ public class ReviewServiceImpl implements ReviewService {
     @Override
     @Transactional
     public ReviewResponse createReview(Long eventId, CreateReviewRequest request, Long userId) {
-        log.info("Creating review for event {} by user {}", eventId, userId);
+        log.info("Creating review for event {} by user/guest {}", eventId, userId);
 
         // Check if event exists
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new ResourceNotFoundException("Event not found with id: " + eventId));
 
-        // Check if user exists
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+        User user = null;
+        if (userId != null) {
+            // Check if user exists
+            user = userRepository.findById(userId)
+                    .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
 
-        // Check for duplicate review
-        if (reviewRepository.existsByEventIdAndUserId(eventId, userId)) {
-            throw new IllegalStateException(
-                    "You have already reviewed this event. You can only update your existing review.");
+            // Check for duplicate review for registered users
+            if (reviewRepository.existsByEventIdAndUserId(eventId, userId)) {
+                throw new IllegalStateException(
+                        "You have already reviewed this event. You can only update your existing review.");
+            }
         }
 
         Review review = Review.builder()
                 .event(event)
                 .user(user)
+                .guestName(request.getGuestName())
+                .guestAcademicLevel(request.getGuestAcademicLevel())
+                .guestProgram(request.getGuestProgram())
                 .rating(request.getRating())
                 .comment(request.getComment())
                 .build();
@@ -160,15 +167,23 @@ public class ReviewServiceImpl implements ReviewService {
      * Maps a Review entity to a ReviewResponse DTO.
      */
     private ReviewResponse mapToResponse(Review review) {
+        boolean isGuest = review.getUser() == null;
+        String userName = isGuest ? review.getGuestName()
+                : (review.getUser().getFirstName() + " " + review.getUser().getLastName());
+
         return ReviewResponse.builder()
                 .id(review.getId())
                 .eventId(review.getEvent().getId())
-                .userId(review.getUser().getId())
-                .userName(review.getUser().getFirstName() + " " + review.getUser().getLastName())
+                .userId(isGuest ? null : review.getUser().getId())
+                .userName(userName)
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .createdAt(review.getCreatedAt())
                 .updatedAt(review.getUpdatedAt())
+                .guestName(review.getGuestName())
+                .guestAcademicLevel(review.getGuestAcademicLevel())
+                .guestProgram(review.getGuestProgram())
+                .isGuest(isGuest)
                 .build();
     }
 }

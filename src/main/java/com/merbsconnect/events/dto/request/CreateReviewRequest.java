@@ -1,5 +1,6 @@
 package com.merbsconnect.events.dto.request;
 
+import com.merbsconnect.enums.AcademicLevel;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
@@ -25,4 +26,11 @@ public class CreateReviewRequest {
 
     @Size(max = 2000, message = "Comment cannot exceed 2000 characters")
     private String comment;
+
+    // Guest fields
+    private String guestName;
+
+    private AcademicLevel guestAcademicLevel;
+
+    private String guestProgram;
 }

@@ -26,6 +26,7 @@ public class EndpointUtils {
             "/js/**",
             "/images/**",
             "/favicon.ico",
+            "/api/v1/events/*/reviews/**",
             "/error",
             "/webjars/**");
 
