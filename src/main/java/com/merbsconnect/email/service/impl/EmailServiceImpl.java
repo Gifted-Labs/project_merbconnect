@@ -156,7 +156,7 @@ public class EmailServiceImpl implements EmailService {
 
             // Create inline attachment with Content-ID
             Attachment qrAttachment = Attachment.builder()
-                    .filename(filename)
+                    .fileName(filename)
                     .content(imageBase64)
                     .contentType("image/png")
                     .build();
