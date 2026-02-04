@@ -18,6 +18,7 @@ import com.merbsconnect.sms.service.SmsService;
 import com.merbsconnect.util.QrCodeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,9 +42,12 @@ public class CheckInServiceImpl implements CheckInService {
         private final EmailService emailService;
         private final SmsService smsService;
 
-        // Support admin contact details for t-shirt order notifications
-        private static final String SUPPORT_ADMIN_EMAIL = "juliusadjeteysowah@gmail.com";
-        private static final String SUPPORT_ADMIN_PHONE = "0543358413";
+        // Admin contact details injected from application config
+        @Value("${app.admin.email:merbsconnect@gmail.com}")
+        private String adminEmail;
+
+        @Value("${app.admin.phone:0543358413}")
+        private String adminPhone;
 
         @Override
         @Transactional
@@ -147,8 +151,8 @@ public class CheckInServiceImpl implements CheckInService {
                         smsService.sendBulkSms(smsRequest);
                         log.info("Registration SMS sent to: {}", registrationDto.getPhone());
                 } catch (Exception e) {
-                        log.error("Failed to send registration SMS to {}: {}",
-                                        registrationDto.getPhone(), e.getMessage());
+                        log.error("Failed to send registration SMS to {}: ",
+                                        registrationDto.getPhone(), e);
                 }
         }
 
@@ -174,14 +178,14 @@ public class CheckInServiceImpl implements CheckInService {
                                         registration.getPhone() != null ? registration.getPhone() : "N/A");
 
                         BulkSmsRequest smsRequest = BulkSmsRequest.builder()
-                                        .recipients(List.of(formatPhoneNumber(SUPPORT_ADMIN_PHONE)))
+                                        .recipients(List.of(formatPhoneNumber(adminPhone)))
                                         .message(smsMessage)
                                         .build();
 
                         smsService.sendBulkSms(smsRequest);
-                        log.info("T-shirt order SMS notification sent to admin");
+                        log.info("T-shirt order SMS notification sent to admin at: {}", adminPhone);
                 } catch (Exception e) {
-                        log.error("Failed to send t-shirt order SMS to admin: {}", e.getMessage());
+                        log.error("Failed to send t-shirt order SMS to admin: ", e);
                 }
 
                 // 2. Send Email to admin (NEW)
@@ -192,9 +196,9 @@ public class CheckInServiceImpl implements CheckInService {
                                         registration.getPhone(),
                                         shirtSize,
                                         event.getTitle());
-                        log.info("T-shirt order email notification sent to admin");
+                        log.info("T-shirt order email notification sent to admin at: {}", adminEmail);
                 } catch (Exception e) {
-                        log.error("Failed to send t-shirt order email to admin: {}", e.getMessage());
+                        log.error("Failed to send t-shirt order email to admin: ", e);
                 }
 
                 // 3. Send confirmation SMS to user (NEW)
@@ -237,8 +241,8 @@ public class CheckInServiceImpl implements CheckInService {
                         smsService.sendBulkSms(smsRequest);
                         log.info("T-shirt confirmation SMS sent to user: {}", registration.getPhone());
                 } catch (Exception e) {
-                        log.error("Failed to send T-shirt confirmation SMS to user {}: {}",
-                                        registration.getPhone(), e.getMessage());
+                        log.error("Failed to send T-shirt confirmation SMS to user {}: ",
+                                        registration.getPhone(), e);
                 }
         }
 
