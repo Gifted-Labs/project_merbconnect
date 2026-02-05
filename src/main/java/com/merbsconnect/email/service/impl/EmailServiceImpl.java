@@ -172,9 +172,19 @@ public class EmailServiceImpl implements EmailService {
             String dateStr = eventDate.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy"));
             String timeStr = eventTime != null ? eventTime.format(DateTimeFormatter.ofPattern("h:mm a")) : "TBA";
 
-            log.info("[EMAIL] Building email content...");
-            String content = buildRegistrationConfirmationEmail(name, eventTitle, dateStr, timeStr,
-                    eventLocation, registrationToken);
+            log.info("[EMAIL] Building email content with embedded QR code...");
+
+            // Ensure QR code has proper data URI prefix for embedding in HTML
+            String qrDataUri = qrCodeBase64;
+            if (!qrCodeBase64.startsWith("data:")) {
+                qrDataUri = "data:image/png;base64," + qrCodeBase64;
+            }
+            log.info("[EMAIL] QR code prepared as data URI (length: {} chars)", qrDataUri.length());
+
+            // Build email content with embedded QR code (data URI instead of CID
+            // attachment)
+            String content = buildRegistrationConfirmationEmailWithEmbeddedQR(
+                    name, eventTitle, dateStr, timeStr, eventLocation, registrationToken, qrDataUri);
 
             if (content == null || content.isBlank()) {
                 log.error("[EMAIL FAILED] Email content generation returned empty!");
@@ -182,16 +192,9 @@ public class EmailServiceImpl implements EmailService {
             }
             log.info("[EMAIL] Email content built successfully (length: {} chars)", content.length());
 
-            // ===== PROCESS QR CODE =====
-            String rawBase64 = qrCodeBase64;
-            if (qrCodeBase64.contains(",")) {
-                rawBase64 = qrCodeBase64.substring(qrCodeBase64.indexOf(",") + 1);
-            }
-            log.info("[EMAIL] QR code processed (base64 length: {} chars)", rawBase64.length());
-
-            // ===== SEND EMAIL =====
-            log.info("[EMAIL] Sending email via Resend API...");
-            sendEmailWithInlineImage(email, subject, content, rawBase64, "qrcode", "qrcode.png");
+            // ===== SEND EMAIL (without attachments - QR is embedded as data URI) =====
+            log.info("[EMAIL] Sending email via Resend API (no attachments)...");
+            sendEmail(email, subject, content);
 
             log.info("[EMAIL SUCCESS] ============================================");
             log.info("[EMAIL SUCCESS] Registration confirmation email sent!");
@@ -300,12 +303,12 @@ public class EmailServiceImpl implements EmailService {
     }
 
     /**
-     * Builds the registration confirmation email HTML content.
-     * Uses CID reference for QR code instead of inline base64 for better email
-     * client compatibility.
+     * Builds the registration confirmation email HTML content with embedded QR
+     * code.
+     * Uses data URI for QR code instead of CID attachment for better compatibility.
      */
-    private String buildRegistrationConfirmationEmail(String name, String eventTitle, String eventDate,
-            String eventTime, String location, String registrationToken) {
+    private String buildRegistrationConfirmationEmailWithEmbeddedQR(String name, String eventTitle, String eventDate,
+            String eventTime, String location, String registrationToken, String qrDataUri) {
         return """
                 <!DOCTYPE html>
                 <html>
@@ -338,7 +341,7 @@ public class EmailServiceImpl implements EmailService {
                             <div class="qr-section">
                                 <h3 style="margin-top: 0;">Your Check-in QR Code</h3>
                                 <p>Present this QR code at the event entrance for quick check-in.</p>
-                                <img class="qr-code" src="cid:qrcode.png" alt="Check-in QR Code" style="max-width: 200px; margin: 15px auto; display: block;" />
+                                <img class="qr-code" src="%s" alt="Check-in QR Code" style="max-width: 200px; margin: 15px auto; display: block;" />
                                 <p class="token">Token: %s</p>
                             </div>
 
@@ -367,7 +370,7 @@ public class EmailServiceImpl implements EmailService {
                 </body>
                 </html>
                 """
-                .formatted(name, eventTitle, registrationToken, eventTitle, eventDate, eventTime,
+                .formatted(name, eventTitle, qrDataUri, registrationToken, eventTitle, eventDate, eventTime,
                         location != null ? location : "TBA");
     }
 
