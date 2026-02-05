@@ -434,10 +434,14 @@ public class EventServiceImpl implements EventService {
                 .getTotalElements();
         long pastEvents = eventRepository.findEventByDateBefore(LocalDate.now(), Pageable.unpaged()).getTotalElements();
 
-        // Calculate total registrations across all events
+        // Calculate total registrations across all events (V1 + V2)
         List<Event> allEvents = eventRepository.findAll();
         long totalRegistrations = allEvents.stream()
-                .mapToLong(event -> event.getRegistrations().size())
+                .mapToLong(event -> {
+                    long v1Count = (event.getRegistrations() != null) ? event.getRegistrations().size() : 0;
+                    long v2Count = (event.getRegistrationsV2() != null) ? event.getRegistrationsV2().size() : 0;
+                    return v1Count + v2Count;
+                })
                 .sum();
 
         // Calculate average registrations per event
@@ -472,7 +476,8 @@ public class EventServiceImpl implements EventService {
                 .eventId(event.getId())
                 .eventTitle(event.getTitle())
                 .eventDate(event.getDate())
-                .totalRegistrations((long) event.getRegistrations().size())
+                .totalRegistrations((long) ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
+                        (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0)))
                 .speakerCount(event.getSpeakers().size())
                 .eventStatus(eventStatus)
                 .build();
@@ -515,29 +520,47 @@ public class EventServiceImpl implements EventService {
             events = eventRepository.findAll();
         }
 
-        // Calculate total registrations
+        // Calculate total registrations (V1 + V2)
         long totalRegistrations = events.stream()
-                .mapToLong(event -> event.getRegistrations().size())
+                .mapToLong(event -> {
+                    long v1 = (event.getRegistrations() != null) ? event.getRegistrations().size() : 0;
+                    long v2 = (event.getRegistrationsV2() != null) ? event.getRegistrationsV2().size() : 0;
+                    return v1 + v2;
+                })
                 .sum();
 
-        // Build registrations by event
+        // Build registrations by event (V1 + V2)
         List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.EventRegistrationCount> registrationsByEvent = events
                 .stream()
-                .map(event -> com.merbsconnect.events.dto.response.RegistrationStatsResponse.EventRegistrationCount
-                        .builder()
-                        .eventName(event.getTitle())
-                        .count((long) event.getRegistrations().size())
-                        .build())
+                .map(event -> {
+                    long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
+                            (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
+                    return com.merbsconnect.events.dto.response.RegistrationStatsResponse.EventRegistrationCount
+                            .builder()
+                            .eventName(event.getTitle())
+                            .count(count)
+                            .build();
+                })
                 .toList();
 
-        // Get top 5 events by registrations
+        // Get top 5 events by registrations (V1 + V2)
         List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = events.stream()
-                .sorted((e1, e2) -> Integer.compare(e2.getRegistrations().size(), e1.getRegistrations().size()))
+                .sorted((e1, e2) -> {
+                    long c1 = ((e1.getRegistrations() != null ? e1.getRegistrations().size() : 0) +
+                            (e1.getRegistrationsV2() != null ? e1.getRegistrationsV2().size() : 0));
+                    long c2 = ((e2.getRegistrations() != null ? e2.getRegistrations().size() : 0) +
+                            (e2.getRegistrationsV2() != null ? e2.getRegistrationsV2().size() : 0));
+                    return Long.compare(c2, c1);
+                })
                 .limit(5)
-                .map(event -> com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
-                        .eventTitle(event.getTitle())
-                        .registrationCount((long) event.getRegistrations().size())
-                        .build())
+                .map(event -> {
+                    long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
+                            (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
+                    return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
+                            .eventTitle(event.getTitle())
+                            .registrationCount(count)
+                            .build();
+                })
                 .toList();
 
         return com.merbsconnect.events.dto.response.RegistrationStatsResponse.builder()
@@ -570,15 +593,25 @@ public class EventServiceImpl implements EventService {
                 .map(EventMapper::mapToEventResponse)
                 .toList();
 
-        // Get top 5 events by registrations
+        // Get top 5 events by registrations (V1 + V2)
         List<Event> allEvents = eventRepository.findAll();
         List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = allEvents.stream()
-                .sorted((e1, e2) -> Integer.compare(e2.getRegistrations().size(), e1.getRegistrations().size()))
+                .sorted((e1, e2) -> {
+                    long count1 = ((e1.getRegistrations() != null ? e1.getRegistrations().size() : 0) +
+                            (e1.getRegistrationsV2() != null ? e1.getRegistrationsV2().size() : 0));
+                    long count2 = ((e2.getRegistrations() != null ? e2.getRegistrations().size() : 0) +
+                            (e2.getRegistrationsV2() != null ? e2.getRegistrationsV2().size() : 0));
+                    return Long.compare(count2, count1);
+                })
                 .limit(5)
-                .map(event -> com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
-                        .eventTitle(event.getTitle())
-                        .registrationCount((long) event.getRegistrations().size())
-                        .build())
+                .map(event -> {
+                    long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
+                            (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
+                    return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
+                            .eventTitle(event.getTitle())
+                            .registrationCount(count)
+                            .build();
+                })
                 .toList();
 
         // Determine system status (simple health check)
