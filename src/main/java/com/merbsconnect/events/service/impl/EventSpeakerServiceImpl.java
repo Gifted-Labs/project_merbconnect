@@ -199,12 +199,17 @@ public class EventSpeakerServiceImpl implements EventSpeakerService {
     }
 
     private EventSpeakerResponse mapToResponse(EventSpeaker speaker) {
+        String presignedUrl = null;
+        if (speaker.getImageUrl() != null && !speaker.getImageUrl().isEmpty()) {
+            presignedUrl = storageService.generatePresignedUrl(speaker.getImageUrl());
+        }
+
         return EventSpeakerResponse.builder()
                 .id(speaker.getId())
                 .name(speaker.getName())
                 .title(speaker.getTitle())
                 .bio(speaker.getBio())
-                .imageUrl(speaker.getImageUrl())
+                .imageUrl(presignedUrl)
                 .linkedinUrl(speaker.getLinkedinUrl())
                 .twitterUrl(speaker.getTwitterUrl())
                 .displayOrder(speaker.getDisplayOrder())

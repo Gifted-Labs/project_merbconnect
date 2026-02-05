@@ -142,11 +142,31 @@ public class StorageService {
      * @return The object key
      */
     public String extractKeyFromUrl(String url) {
-        // URL format: https://storage.railway.app/bucket-name/path/to/file
+        if (url == null || url.isEmpty()) {
+            return null;
+        }
+
+        // Try to find the bucket name in the URL to extract the key
+        // URL format: .../bucket-name/path/to/file or path/to/file
+        String bucketSegment = "/" + bucketName + "/";
+        int index = url.indexOf(bucketSegment);
+
+        if (index != -1) {
+            return url.substring(index + bucketSegment.length());
+        }
+
+        // Check if it matches the prefix strictly (fallback for some cases)
         String prefix = endpoint + "/" + bucketName + "/";
         if (url.startsWith(prefix)) {
             return url.substring(prefix.length());
         }
+
+        // If the URL already looks like a key (doesn't start with http), return it
+        if (!url.startsWith("http")) {
+            return url;
+        }
+
+        log.warn("Could not extract key from URL: {} using bucket: {}", url, bucketName);
         return url;
     }
 
