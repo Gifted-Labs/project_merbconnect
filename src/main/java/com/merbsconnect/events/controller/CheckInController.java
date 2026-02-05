@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Slf4j
 @RestController
-@RequestMapping("/api/v1/events/{eventId:[0-9]+}")
+@RequestMapping("/api/v1/events")
 @RequiredArgsConstructor
 @Tag(name = "Event Check-in", description = "Event registration and check-in operations")
 public class CheckInController {
@@ -32,7 +32,7 @@ public class CheckInController {
      * Register for an event with QR code generation.
      * Public endpoint - anyone can register.
      */
-    @PostMapping("/register-v2")
+    @PostMapping("/{eventId:[0-9]+}/register-v2")
     @Operation(summary = "Register for event", description = "Register for an event and receive a QR code")
     public ResponseEntity<RegistrationDetailsResponse> registerForEvent(
             @PathVariable Long eventId,
@@ -47,7 +47,7 @@ public class CheckInController {
      * Check in a participant using QR code token.
      * Staff-only operation.
      */
-    @PostMapping("/check-in")
+    @PostMapping("/{eventId:[0-9]+}/check-in")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     @Operation(summary = "Check in participant", description = "Check in a participant using their QR code token (staff-only)")
     public ResponseEntity<CheckInResponse> checkIn(
@@ -63,7 +63,7 @@ public class CheckInController {
      * Get check-in statistics for an event.
      * Staff-only operation.
      */
-    @GetMapping("/check-in/stats")
+    @GetMapping("/{eventId:[0-9]+}/check-in/stats")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     @Operation(summary = "Get check-in stats", description = "Get check-in statistics for an event (staff-only)")
     public ResponseEntity<CheckInStatsResponse> getCheckInStats(@PathVariable Long eventId) {
