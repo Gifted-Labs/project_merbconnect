@@ -41,31 +41,77 @@ public class EmailServiceImpl implements EmailService {
     @Override
     @Async
     public void sendVerificationEmail(User user, String token) {
-        String verificationLink = baseUrl + "/api/v1/auth/verify-email?token=" + token;
-        String subject = "Verify Your Email Address";
+        try {
+            log.info("[EMAIL] Starting verification email to: {}", user.getEmail());
 
-        String content = templateService.getVerificationEmailContent(
-                user.getFirstName(),
-                verificationLink,
-                "24 hours");
+            // Validate inputs
+            if (user == null || user.getEmail() == null) {
+                log.error("[EMAIL FAILED] Cannot send verification email - user or email is null");
+                return;
+            }
+            if (token == null || token.isBlank()) {
+                log.error("[EMAIL FAILED] Cannot send verification email - token is null or blank");
+                return;
+            }
 
-        sendEmail(user.getEmail(), subject, content);
-        log.info("Verification email sent to: {}", user.getEmail());
+            // Validate configuration
+            if (resendApiKey == null || resendApiKey.isBlank()) {
+                log.error("[EMAIL FAILED] Resend API key is not configured!");
+                return;
+            }
+            if (fromEmail == null || fromEmail.isBlank()) {
+                log.error("[EMAIL FAILED] From email is not configured!");
+                return;
+            }
+
+            String verificationLink = baseUrl + "/api/v1/auth/verify-email?token=" + token;
+            String subject = "Verify Your Email Address";
+
+            String content = templateService.getVerificationEmailContent(
+                    user.getFirstName(),
+                    verificationLink,
+                    "24 hours");
+
+            sendEmail(user.getEmail(), subject, content);
+            log.info("[EMAIL SUCCESS] Verification email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("[EMAIL FAILED] Failed to send verification email to {}: {}",
+                    user != null ? user.getEmail() : "null", e.getMessage());
+            log.error("[EMAIL FAILED] Full stack trace:", e);
+        }
     }
 
     @Override
     @Async
     public void sendPasswordResetEmail(User user, VerificationToken token) {
-        String resetLink = baseUrl + "/api/v1/auth/reset-password?token=" + token.getToken();
-        String subject = "Password Reset Request";
+        try {
+            log.info("[EMAIL] Starting password reset email to: {}", user.getEmail());
 
-        String content = templateService.getPasswordResetEmailContent(
-                user.getFirstName(),
-                resetLink,
-                "1 hour");
+            // Validate inputs
+            if (user == null || user.getEmail() == null) {
+                log.error("[EMAIL FAILED] Cannot send password reset email - user or email is null");
+                return;
+            }
+            if (token == null || token.getToken() == null) {
+                log.error("[EMAIL FAILED] Cannot send password reset email - token is null");
+                return;
+            }
 
-        sendEmail(user.getEmail(), subject, content);
-        log.info("Password reset email sent to: {}", user.getEmail());
+            String resetLink = baseUrl + "/api/v1/auth/reset-password?token=" + token.getToken();
+            String subject = "Password Reset Request";
+
+            String content = templateService.getPasswordResetEmailContent(
+                    user.getFirstName(),
+                    resetLink,
+                    "1 hour");
+
+            sendEmail(user.getEmail(), subject, content);
+            log.info("[EMAIL SUCCESS] Password reset email sent to: {}", user.getEmail());
+        } catch (Exception e) {
+            log.error("[EMAIL FAILED] Failed to send password reset email to {}: {}",
+                    user != null ? user.getEmail() : "null", e.getMessage());
+            log.error("[EMAIL FAILED] Full stack trace:", e);
+        }
     }
 
     @Override
@@ -74,24 +120,91 @@ public class EmailServiceImpl implements EmailService {
             LocalDate eventDate, LocalTime eventTime,
             String eventLocation, String qrCodeBase64,
             String registrationToken) {
-        String subject = "Registration Confirmed: " + eventTitle;
+        try {
+            log.info("[EMAIL] ============================================");
+            log.info("[EMAIL] Starting registration confirmation email");
+            log.info("[EMAIL] To: {}, Event: {}", email, eventTitle);
 
-        String dateStr = eventDate.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy"));
-        String timeStr = eventTime != null ? eventTime.format(DateTimeFormatter.ofPattern("h:mm a")) : "TBA";
+            // ===== VALIDATE INPUTS =====
+            if (email == null || email.isBlank()) {
+                log.error("[EMAIL FAILED] Cannot send registration email - email is null or blank");
+                return;
+            }
+            if (name == null || name.isBlank()) {
+                log.error("[EMAIL FAILED] Cannot send registration email - name is null or blank");
+                return;
+            }
+            if (eventTitle == null || eventTitle.isBlank()) {
+                log.error("[EMAIL FAILED] Cannot send registration email - eventTitle is null or blank");
+                return;
+            }
+            if (eventDate == null) {
+                log.error("[EMAIL FAILED] Cannot send registration email - eventDate is null");
+                return;
+            }
+            if (qrCodeBase64 == null || qrCodeBase64.isBlank()) {
+                log.error("[EMAIL FAILED] Cannot send registration email - QR code is null or blank!");
+                log.error("[EMAIL FAILED] This likely means QR code generation failed earlier.");
+                return;
+            }
+            if (registrationToken == null || registrationToken.isBlank()) {
+                log.error("[EMAIL FAILED] Cannot send registration email - registrationToken is null");
+                return;
+            }
 
-        // Build email content with CID reference for QR code
-        String content = buildRegistrationConfirmationEmail(name, eventTitle, dateStr, timeStr,
-                eventLocation, registrationToken);
+            // ===== VALIDATE CONFIGURATION =====
+            if (resendApiKey == null || resendApiKey.isBlank()) {
+                log.error("[EMAIL FAILED] CRITICAL: Resend API key is NOT configured!");
+                log.error("[EMAIL FAILED] Check app.resend.api-key in application.yaml");
+                return;
+            }
+            if (fromEmail == null || fromEmail.isBlank()) {
+                log.error("[EMAIL FAILED] CRITICAL: From email is NOT configured!");
+                log.error("[EMAIL FAILED] Check app.email.from in application.yaml");
+                return;
+            }
 
-        // Extract raw base64 data (remove data URI prefix if present)
-        String rawBase64 = qrCodeBase64;
-        if (qrCodeBase64 != null && qrCodeBase64.contains(",")) {
-            rawBase64 = qrCodeBase64.substring(qrCodeBase64.indexOf(",") + 1);
+            log.info("[EMAIL] Configuration OK - API Key: {}..., From: {}",
+                    resendApiKey.substring(0, Math.min(8, resendApiKey.length())), fromEmail);
+
+            // ===== BUILD EMAIL CONTENT =====
+            String subject = "Registration Confirmed: " + eventTitle;
+            String dateStr = eventDate.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy"));
+            String timeStr = eventTime != null ? eventTime.format(DateTimeFormatter.ofPattern("h:mm a")) : "TBA";
+
+            log.info("[EMAIL] Building email content...");
+            String content = buildRegistrationConfirmationEmail(name, eventTitle, dateStr, timeStr,
+                    eventLocation, registrationToken);
+
+            if (content == null || content.isBlank()) {
+                log.error("[EMAIL FAILED] Email content generation returned empty!");
+                return;
+            }
+            log.info("[EMAIL] Email content built successfully (length: {} chars)", content.length());
+
+            // ===== PROCESS QR CODE =====
+            String rawBase64 = qrCodeBase64;
+            if (qrCodeBase64.contains(",")) {
+                rawBase64 = qrCodeBase64.substring(qrCodeBase64.indexOf(",") + 1);
+            }
+            log.info("[EMAIL] QR code processed (base64 length: {} chars)", rawBase64.length());
+
+            // ===== SEND EMAIL =====
+            log.info("[EMAIL] Sending email via Resend API...");
+            sendEmailWithInlineImage(email, subject, content, rawBase64, "qrcode", "qrcode.png");
+
+            log.info("[EMAIL SUCCESS] ============================================");
+            log.info("[EMAIL SUCCESS] Registration confirmation email sent!");
+            log.info("[EMAIL SUCCESS] To: {}, Event: {}", email, eventTitle);
+
+        } catch (Exception e) {
+            log.error("[EMAIL FAILED] ============================================");
+            log.error("[EMAIL FAILED] Failed to send registration email to: {}", email);
+            log.error("[EMAIL FAILED] Event: {}", eventTitle);
+            log.error("[EMAIL FAILED] Error message: {}", e.getMessage());
+            log.error("[EMAIL FAILED] Full stack trace:", e);
+            // DO NOT re-throw - this would be lost in async thread anyway
         }
-
-        // Send email with QR code as inline CID attachment
-        sendEmailWithInlineImage(email, subject, content, rawBase64, "qrcode", "qrcode.png");
-        log.info("Registration confirmation email sent to: {} for event: {}", email, eventTitle);
     }
 
     @Override

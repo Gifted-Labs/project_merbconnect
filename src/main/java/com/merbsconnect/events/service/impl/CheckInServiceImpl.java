@@ -115,20 +115,28 @@ public class CheckInServiceImpl implements CheckInService {
                 log.info("Registration created with id: {} and token: {}", savedRegistration.getId(),
                                 registrationToken);
 
-                // Send confirmation email with PDF attachment
+                // Send confirmation email with QR code attachment (ASYNC)
+                // NOTE: This is async - the email is triggered but may complete later
                 try {
-                        emailService.sendRegistrationConfirmationEmail(
-                                        registrationDto.getEmail(),
-                                        registrationDto.getName(),
-                                        event.getTitle(),
-                                        event.getDate(),
-                                        event.getTime(),
-                                        event.getLocation(),
-                                        qrCodeBase64,
-                                        registrationToken);
-                        log.info("Registration confirmation email sent to: {}", registrationDto.getEmail());
+                        // Pre-validate QR code before triggering email
+                        if (qrCodeBase64 == null || qrCodeBase64.isBlank()) {
+                                log.error("[REGISTRATION] QR code is null/blank - email cannot be sent!");
+                        } else {
+                                log.info("[REGISTRATION] Triggering async email to: {}", registrationDto.getEmail());
+                                emailService.sendRegistrationConfirmationEmail(
+                                                registrationDto.getEmail(),
+                                                registrationDto.getName(),
+                                                event.getTitle(),
+                                                event.getDate(),
+                                                event.getTime(),
+                                                event.getLocation(),
+                                                qrCodeBase64,
+                                                registrationToken);
+                                log.info("[REGISTRATION] Email triggered (async) for: {} - check email logs for delivery status",
+                                                registrationDto.getEmail());
+                        }
                 } catch (Exception e) {
-                        log.error("Failed to send registration confirmation email to {}: {}",
+                        log.error("[REGISTRATION] Failed to trigger email for {}: {}",
                                         registrationDto.getEmail(), e.getMessage(), e);
                 }
 
