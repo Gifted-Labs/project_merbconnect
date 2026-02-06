@@ -111,7 +111,7 @@ public class EventSpeakerServiceImpl implements EventSpeakerService {
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "eventSpeakers", key = "#eventId")
+    @org.springframework.cache.annotation.Cacheable(value = "eventSpeakers", key = "#eventId")
     public List<EventSpeakerResponse> getSpeakers(Long eventId) {
         log.debug("Fetching speakers for event {}", eventId);
         // Verify event exists
