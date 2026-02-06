@@ -14,7 +14,8 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class EventSpeakerResponse {
+public class EventSpeakerResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
 
     private Long id;
 

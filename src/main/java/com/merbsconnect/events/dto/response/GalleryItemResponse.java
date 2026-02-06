@@ -15,7 +15,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GalleryItemResponse {
+public class GalleryItemResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
 
     private Long id;
     private Long eventId;

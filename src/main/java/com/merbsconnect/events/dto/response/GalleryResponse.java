@@ -15,7 +15,8 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GalleryResponse {
+public class GalleryResponse implements java.io.Serializable {
+    private static final long serialVersionUID = 1L;
 
     private Long eventId;
     private String eventTitle;
