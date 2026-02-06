@@ -179,12 +179,15 @@ public class EmailServiceImpl implements EmailService {
             if (!qrCodeBase64.startsWith("data:")) {
                 qrDataUri = "data:image/png;base64," + qrCodeBase64;
             }
+
+            // Extract raw base64 for attachment
+            String rawBase64 = qrDataUri.replace("data:image/png;base64,", "");
+
             log.info("[EMAIL] QR code prepared as data URI (length: {} chars)", qrDataUri.length());
 
-            // Build email content with embedded QR code (data URI instead of CID
-            // attachment)
+            // Build email content with embedded QR code (using CID)
             String content = buildRegistrationConfirmationEmailWithEmbeddedQR(
-                    name, eventTitle, dateStr, timeStr, eventLocation, registrationToken, qrDataUri);
+                    name, eventTitle, dateStr, timeStr, eventLocation, registrationToken, "cid:qrcode");
 
             if (content == null || content.isBlank()) {
                 log.error("[EMAIL FAILED] Email content generation returned empty!");
@@ -192,9 +195,9 @@ public class EmailServiceImpl implements EmailService {
             }
             log.info("[EMAIL] Email content built successfully (length: {} chars)", content.length());
 
-            // ===== SEND EMAIL (without attachments - QR is embedded as data URI) =====
-            log.info("[EMAIL] Sending email via Resend API (no attachments)...");
-            sendEmail(email, subject, content);
+            // ===== SEND EMAIL (with inline attachment for QR code) =====
+            log.info("[EMAIL] Sending email via Resend API (with inline QR attachment)...");
+            sendEmailWithInlineImage(email, subject, content, rawBase64, "qrcode", "qrcode.png");
 
             log.info("[EMAIL SUCCESS] ============================================");
             log.info("[EMAIL SUCCESS] Registration confirmation email sent!");
@@ -274,6 +277,7 @@ public class EmailServiceImpl implements EmailService {
             Attachment qrAttachment = Attachment.builder()
                     .fileName(filename)
                     .content(imageBase64)
+                    .contentId(contentId) // Using contentId for inline embedding
                     .build();
 
             SendEmailRequest request = SendEmailRequest.builder()
@@ -308,7 +312,7 @@ public class EmailServiceImpl implements EmailService {
      * Uses data URI for QR code instead of CID attachment for better compatibility.
      */
     private String buildRegistrationConfirmationEmailWithEmbeddedQR(String name, String eventTitle, String eventDate,
-            String eventTime, String location, String registrationToken, String qrDataUri) {
+            String eventTime, String location, String registrationToken, String imageSrc) {
         return """
                 <!DOCTYPE html>
                 <html>
@@ -370,7 +374,7 @@ public class EmailServiceImpl implements EmailService {
                 </body>
                 </html>
                 """
-                .formatted(name, eventTitle, qrDataUri, registrationToken, eventTitle, eventDate, eventTime,
+                .formatted(name, eventTitle, imageSrc, registrationToken, eventTitle, eventDate, eventTime,
                         location != null ? location : "TBA");
     }
 
