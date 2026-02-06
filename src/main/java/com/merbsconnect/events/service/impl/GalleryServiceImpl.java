@@ -64,6 +64,7 @@ public class GalleryServiceImpl implements GalleryService {
 
         @Override
         @Transactional(readOnly = true)
+        @org.springframework.cache.annotation.Cacheable(value = "eventGallery", key = "#eventId")
         public GalleryResponse getGallery(Long eventId) {
                 log.debug("Fetching gallery for event {}", eventId);
 
