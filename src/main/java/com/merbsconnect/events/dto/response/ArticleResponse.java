@@ -21,6 +21,7 @@ public class ArticleResponse {
     private String speakerName;
     private String title;
     private String content;
+    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

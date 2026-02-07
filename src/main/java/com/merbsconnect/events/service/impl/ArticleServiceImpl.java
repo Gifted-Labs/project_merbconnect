@@ -40,6 +40,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .speakerName(request.getSpeakerName())
                 .title(request.getTitle())
                 .content(request.getContent())
+                .imageUrl(request.getImageUrl())
                 .build();
 
         Article savedArticle = articleRepository.save(article);
@@ -84,6 +85,7 @@ public class ArticleServiceImpl implements ArticleService {
         article.setSpeakerName(request.getSpeakerName());
         article.setTitle(request.getTitle());
         article.setContent(request.getContent());
+        article.setImageUrl(request.getImageUrl());
 
         Article updatedArticle = articleRepository.save(article);
         log.info("Article {} updated successfully", articleId);
@@ -114,6 +116,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .speakerName(article.getSpeakerName())
                 .title(article.getTitle())
                 .content(article.getContent())
+                .imageUrl(article.getImageUrl())
                 .createdAt(article.getCreatedAt())
                 .updatedAt(article.getUpdatedAt())
                 .build();

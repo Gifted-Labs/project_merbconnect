@@ -38,6 +38,9 @@ public class Article {
     @Column(columnDefinition = "TEXT")
     private String content; // Markdown or rich text content
 
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
+
     private LocalDateTime createdAt;
 
     private LocalDateTime updatedAt;

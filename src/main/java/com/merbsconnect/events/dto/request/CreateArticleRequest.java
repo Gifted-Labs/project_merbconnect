@@ -26,4 +26,6 @@ public class CreateArticleRequest {
 
     @NotBlank(message = "Content is required")
     private String content; // Markdown or rich text
+
+    private String imageUrl;
 }
