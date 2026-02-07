@@ -1,26 +1,27 @@
 package com.merbsconnect.email.service.impl;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.merbsconnect.authentication.domain.User;
 import com.merbsconnect.authentication.domain.VerificationToken;
 import com.merbsconnect.email.exception.EmailSendException;
 import com.merbsconnect.email.service.EmailService;
 import com.merbsconnect.email.service.EmailTemplateService;
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.Attachment;
-import com.resend.services.emails.model.SendEmailRequest;
-import com.resend.services.emails.model.SendEmailResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -28,164 +29,65 @@ import java.time.format.DateTimeFormatter;
 public class EmailServiceImpl implements EmailService {
 
     private final EmailTemplateService templateService;
+    private final ObjectMapper objectMapper;
 
-    @Value("${app.email.from}")
+    @Value("${resend.api.key}")
+    private String resendApiKey;
+
+    @Value("${resend.from.email}")
     private String fromEmail;
 
-    @Value("${app.base-url}")
-    private String baseUrl;
-
-    @Value("${app.resend.api-key}")
-    private String resendApiKey;
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     @Override
     @Async
     public void sendVerificationEmail(User user, String token) {
-        try {
-            log.info("[EMAIL] Starting verification email to: {}", user.getEmail());
+        String verificationUrl = frontendUrl + "/verify-email?token=" + token;
+        String subject = "Verify your email address";
+        String fullName = user.getFirstName() + (user.getLastName() != null ? " " + user.getLastName() : "");
+        String content = templateService.getVerificationEmailContent(fullName, verificationUrl, "24 hours");
 
-            // Validate inputs
-            if (user == null || user.getEmail() == null) {
-                log.error("[EMAIL FAILED] Cannot send verification email - user or email is null");
-                return;
-            }
-            if (token == null || token.isBlank()) {
-                log.error("[EMAIL FAILED] Cannot send verification email - token is null or blank");
-                return;
-            }
-
-            // Validate configuration
-            if (resendApiKey == null || resendApiKey.isBlank()) {
-                log.error("[EMAIL FAILED] Resend API key is not configured!");
-                return;
-            }
-            if (fromEmail == null || fromEmail.isBlank()) {
-                log.error("[EMAIL FAILED] From email is not configured!");
-                return;
-            }
-
-            String verificationLink = baseUrl + "/api/v1/auth/verify-email?token=" + token;
-            String subject = "Verify Your Email Address";
-
-            String content = templateService.getVerificationEmailContent(
-                    user.getFirstName(),
-                    verificationLink,
-                    "24 hours");
-
-            sendEmail(user.getEmail(), subject, content);
-            log.info("[EMAIL SUCCESS] Verification email sent to: {}", user.getEmail());
-        } catch (Exception e) {
-            log.error("[EMAIL FAILED] Failed to send verification email to {}: {}",
-                    user != null ? user.getEmail() : "null", e.getMessage());
-            log.error("[EMAIL FAILED] Full stack trace:", e);
-        }
+        sendEmail(user.getEmail(), subject, content);
+        log.info("Verification email sent to: {}", user.getEmail());
     }
 
     @Override
     @Async
     public void sendPasswordResetEmail(User user, VerificationToken token) {
-        try {
-            log.info("[EMAIL] Starting password reset email to: {}", user.getEmail());
+        String resetUrl = frontendUrl + "/reset-password?token=" + token.getToken();
+        String subject = "Reset your password";
+        String fullName = user.getFirstName() + (user.getLastName() != null ? " " + user.getLastName() : "");
+        String content = templateService.getPasswordResetEmailContent(fullName, resetUrl, "24 hours");
 
-            // Validate inputs
-            if (user == null || user.getEmail() == null) {
-                log.error("[EMAIL FAILED] Cannot send password reset email - user or email is null");
-                return;
-            }
-            if (token == null || token.getToken() == null) {
-                log.error("[EMAIL FAILED] Cannot send password reset email - token is null");
-                return;
-            }
-
-            String resetLink = baseUrl + "/api/v1/auth/reset-password?token=" + token.getToken();
-            String subject = "Password Reset Request";
-
-            String content = templateService.getPasswordResetEmailContent(
-                    user.getFirstName(),
-                    resetLink,
-                    "1 hour");
-
-            sendEmail(user.getEmail(), subject, content);
-            log.info("[EMAIL SUCCESS] Password reset email sent to: {}", user.getEmail());
-        } catch (Exception e) {
-            log.error("[EMAIL FAILED] Failed to send password reset email to {}: {}",
-                    user != null ? user.getEmail() : "null", e.getMessage());
-            log.error("[EMAIL FAILED] Full stack trace:", e);
-        }
+        sendEmail(user.getEmail(), subject, content);
+        log.info("Password reset email sent to: {}", user.getEmail());
     }
 
     @Override
     @Async
     public void sendRegistrationConfirmationEmail(String email, String name, String eventTitle,
-            LocalDate eventDate, LocalTime eventTime,
-            String eventLocation, String qrCodeBase64,
-            String registrationToken) {
+            LocalDate eventDate, LocalTime eventTime, String eventLocation,
+            String qrCodeBase64, String registrationToken) {
+
+        log.info("[EMAIL START] ============================================");
+        log.info("[EMAIL START] Sending registration confirmation to: {}", email);
+
         try {
-            log.info("[EMAIL] ============================================");
-            log.info("[EMAIL] Starting registration confirmation email");
-            log.info("[EMAIL] To: {}, Event: {}", email, eventTitle);
+            String subject = "Registration Confirmed - " + eventTitle;
 
-            // ===== VALIDATE INPUTS =====
-            if (email == null || email.isBlank()) {
-                log.error("[EMAIL FAILED] Cannot send registration email - email is null or blank");
-                return;
-            }
-            if (name == null || name.isBlank()) {
-                log.error("[EMAIL FAILED] Cannot send registration email - name is null or blank");
-                return;
-            }
-            if (eventTitle == null || eventTitle.isBlank()) {
-                log.error("[EMAIL FAILED] Cannot send registration email - eventTitle is null or blank");
-                return;
-            }
-            if (eventDate == null) {
-                log.error("[EMAIL FAILED] Cannot send registration email - eventDate is null");
-                return;
-            }
-            if (qrCodeBase64 == null || qrCodeBase64.isBlank()) {
-                log.error("[EMAIL FAILED] Cannot send registration email - QR code is null or blank!");
-                log.error("[EMAIL FAILED] This likely means QR code generation failed earlier.");
-                return;
-            }
-            if (registrationToken == null || registrationToken.isBlank()) {
-                log.error("[EMAIL FAILED] Cannot send registration email - registrationToken is null");
-                return;
-            }
-
-            // ===== VALIDATE CONFIGURATION =====
-            if (resendApiKey == null || resendApiKey.isBlank()) {
-                log.error("[EMAIL FAILED] CRITICAL: Resend API key is NOT configured!");
-                log.error("[EMAIL FAILED] Check app.resend.api-key in application.yaml");
-                return;
-            }
-            if (fromEmail == null || fromEmail.isBlank()) {
-                log.error("[EMAIL FAILED] CRITICAL: From email is NOT configured!");
-                log.error("[EMAIL FAILED] Check app.email.from in application.yaml");
-                return;
-            }
-
-            log.info("[EMAIL] Configuration OK - API Key: {}..., From: {}",
-                    resendApiKey.substring(0, Math.min(8, resendApiKey.length())), fromEmail);
-
-            // ===== BUILD EMAIL CONTENT =====
-            String subject = "Registration Confirmed: " + eventTitle;
             String dateStr = eventDate.format(DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy"));
             String timeStr = eventTime != null ? eventTime.format(DateTimeFormatter.ofPattern("h:mm a")) : "TBA";
 
-            log.info("[EMAIL] Building email content with embedded QR code...");
-
-            // Ensure QR code has proper data URI prefix for embedding in HTML
-            String qrDataUri = qrCodeBase64;
-            if (!qrCodeBase64.startsWith("data:")) {
-                qrDataUri = "data:image/png;base64," + qrCodeBase64;
+            // Extract raw base64 for attachment
+            String rawBase64 = qrCodeBase64;
+            if (qrCodeBase64.startsWith("data:")) {
+                rawBase64 = qrCodeBase64.substring(qrCodeBase64.indexOf(",") + 1);
             }
 
-            // Extract raw base64 for attachment
-            String rawBase64 = qrDataUri.replace("data:image/png;base64,", "");
+            log.info("[EMAIL] QR code prepared (length: {} chars)", rawBase64.length());
 
-            log.info("[EMAIL] QR code prepared as data URI (length: {} chars)", qrDataUri.length());
-
-            // Build email content with embedded QR code (using CID)
+            // Build email content with CID reference for the QR code
             String content = buildRegistrationConfirmationEmailWithEmbeddedQR(
                     name, eventTitle, dateStr, timeStr, eventLocation, registrationToken, "cid:qrcode");
 
@@ -193,23 +95,28 @@ public class EmailServiceImpl implements EmailService {
                 log.error("[EMAIL FAILED] Email content generation returned empty!");
                 return;
             }
-            log.info("[EMAIL] Email content built successfully (length: {} chars)", content.length());
 
-            // ===== SEND EMAIL (with inline attachment for QR code) =====
-            log.info("[EMAIL] Sending email via Resend API (with inline QR attachment)...");
-            sendEmailWithInlineImage(email, subject, content, rawBase64, "qrcode", "qrcode.png");
+            // Send via HttpClient
+            Map<String, Object> payload = new HashMap<>();
+            payload.put("from", fromEmail);
+            payload.put("to", List.of(email));
+            payload.put("subject", subject);
+            payload.put("html", content);
 
-            log.info("[EMAIL SUCCESS] ============================================");
+            // Add CID attachment
+            Map<String, String> attachment = new HashMap<>();
+            attachment.put("content", rawBase64);
+            attachment.put("filename", "qrcode.png");
+            attachment.put("content_id", "qrcode");
+            payload.put("attachments", List.of(attachment));
+
+            log.info("[EMAIL] Sending request to Resend API...");
+            sendRawEmailRequest(payload);
+
             log.info("[EMAIL SUCCESS] Registration confirmation email sent!");
-            log.info("[EMAIL SUCCESS] To: {}, Event: {}", email, eventTitle);
 
         } catch (Exception e) {
-            log.error("[EMAIL FAILED] ============================================");
-            log.error("[EMAIL FAILED] Failed to send registration email to: {}", email);
-            log.error("[EMAIL FAILED] Event: {}", eventTitle);
-            log.error("[EMAIL FAILED] Error message: {}", e.getMessage());
-            log.error("[EMAIL FAILED] Full stack trace:", e);
-            // DO NOT re-throw - this would be lost in async thread anyway
+            log.error("[EMAIL FAILED] Failed to send registration email to: {}", email, e);
         }
     }
 
@@ -229,88 +136,46 @@ public class EmailServiceImpl implements EmailService {
     }
 
     private void sendEmail(String to, String subject, String htmlContent) {
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("from", fromEmail);
+        payload.put("to", List.of(to));
+        payload.put("subject", subject);
+        payload.put("html", htmlContent);
+
         try {
-            Resend resend = new Resend(resendApiKey);
-
-            SendEmailRequest request = SendEmailRequest.builder()
-                    .from(fromEmail)
-                    .to(to)
-                    .subject(subject)
-                    .html(htmlContent)
-                    .build();
-
-            SendEmailResponse response = resend.emails().send(request);
-
-            if (response.getId() != null) {
-                log.info("Email sent successfully via Resend. ID: {}, To: {}", response.getId(), to);
-            } else {
-                log.error("Failed to send email via Resend to: {}", to);
-                throw new EmailSendException("Failed to send email via Resend");
-            }
-
-        } catch (ResendException e) {
-            log.error("Resend API error when sending email to {}: {}", to, e.getMessage());
-            throw new EmailSendException("Failed to send email via Resend", e);
+            sendRawEmailRequest(payload);
         } catch (Exception e) {
-            log.error("Unexpected error when sending email to {}: {}", to, e.getMessage());
+            log.error("Failed to send email to {}: {}", to, e.getMessage());
             throw new EmailSendException("Failed to send email", e);
         }
     }
 
     /**
-     * Sends an email with an inline image attachment using Content-ID (CID).
-     * This ensures the image renders in email clients that block base64 data URIs.
-     *
-     * @param to          recipient email address
-     * @param subject     email subject
-     * @param htmlContent HTML content with cid: reference (e.g., src="cid:qrcode")
-     * @param imageBase64 base64 encoded image data (without data URI prefix)
-     * @param contentId   Content-ID for the image (e.g., "qrcode")
-     * @param filename    filename for the attachment (e.g., "qrcode.png")
+     * Sends a raw HTTP request to the Resend API.
+     * This bypasses SDK compatibility issues and gives full control over JSON payload.
      */
-    private void sendEmailWithInlineImage(String to, String subject, String htmlContent,
-            String imageBase64, String contentId, String filename) {
-        try {
-            Resend resend = new Resend(resendApiKey);
+    private void sendRawEmailRequest(Map<String, Object> payload) throws Exception {
+        String jsonBody = objectMapper.writeValueAsString(payload);
 
-            // Create inline attachment with Content-ID
-            Attachment qrAttachment = Attachment.builder()
-                    .fileName(filename)
-                    .content(imageBase64)
-                    .contentId(contentId) // Using contentId for inline embedding
+        try (HttpClient client = HttpClient.newHttpClient()) {
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("https://api.resend.com/emails"))
+                    .header("Authorization", "Bearer " + resendApiKey)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
                     .build();
 
-            SendEmailRequest request = SendEmailRequest.builder()
-                    .from(fromEmail)
-                    .to(to)
-                    .subject(subject)
-                    .html(htmlContent)
-                    .attachments(List.of(qrAttachment))
-                    .build();
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
 
-            SendEmailResponse response = resend.emails().send(request);
-
-            if (response.getId() != null) {
-                log.info("Email with inline image sent via Resend. ID: {}, To: {}", response.getId(), to);
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Resend API Success: {}", response.body());
             } else {
-                log.error("Failed to send email with inline image via Resend to: {}", to);
-                throw new EmailSendException("Failed to send email with inline image via Resend");
+                log.error("Resend API Error (Status {}): {}", response.statusCode(), response.body());
+                throw new EmailSendException("Resend API error: " + response.statusCode());
             }
-
-        } catch (ResendException e) {
-            log.error("Resend API error when sending email with image to {}: {}", to, e.getMessage());
-            throw new EmailSendException("Failed to send email with inline image via Resend", e);
-        } catch (Exception e) {
-            log.error("Unexpected error when sending email with image to {}: {}", to, e.getMessage());
-            throw new EmailSendException("Failed to send email with inline image", e);
         }
     }
 
-    /**
-     * Builds the registration confirmation email HTML content with embedded QR
-     * code.
-     * Uses data URI for QR code instead of CID attachment for better compatibility.
-     */
     private String buildRegistrationConfirmationEmailWithEmbeddedQR(String name, String eventTitle, String eventDate,
             String eventTime, String location, String registrationToken, String imageSrc) {
         return """
@@ -378,9 +243,6 @@ public class EmailServiceImpl implements EmailService {
                         location != null ? location : "TBA");
     }
 
-    /**
-     * Builds the event reminder email HTML content.
-     */
     private String buildEventReminderEmail(String name, String eventTitle, String eventDate,
             String eventTime, String location) {
         return """
@@ -442,7 +304,6 @@ public class EmailServiceImpl implements EmailService {
     public void sendTshirtOrderAdminEmail(String registrantName, String registrantEmail,
             String registrantPhone, String shirtSize, String eventTitle) {
 
-        // Admin email for T-shirt orders
         String adminEmail = "juliusadjeteysowah@gmail.com";
         String subject = "New T-Shirt Request – " + eventTitle;
 
@@ -450,12 +311,8 @@ public class EmailServiceImpl implements EmailService {
                 registrantPhone, shirtSize, eventTitle);
 
         sendEmail(adminEmail, subject, content);
-        log.info("T-shirt order admin email sent for registrant: {} - Size: {}", registrantName, shirtSize);
     }
 
-    /**
-     * Builds the T-shirt order admin notification email HTML content.
-     */
     private String buildTshirtOrderAdminEmail(String registrantName, String registrantEmail,
             String registrantPhone, String shirtSize, String eventTitle) {
         String timestamp = java.time.LocalDateTime.now()
