@@ -10,7 +10,12 @@ import com.merbsconnect.enums.ShirtColor;
 import com.merbsconnect.enums.ShirtSize;
 import com.merbsconnect.startright.repository.TShirtRequestRepository;
 import com.merbsconnect.startright.service.TShirtRequestService;
+import com.merbsconnect.email.service.EmailService;
+import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
+import com.merbsconnect.sms.service.SmsService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,11 +25,20 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class TShirtRequestServiceImpl implements TShirtRequestService {
 
     private final TShirtRequestRepository repository;
+    private final EmailService emailService;
+    private final SmsService smsService;
+
+    @Value("${app.admin.phone}")
+    private String adminPhone;
+
+    @Value("${app.admin.email}")
+    private String adminEmail;
 
     // Configurable price per shirt (can be moved to application.properties later)
     private static final BigDecimal PRICE_PER_SHIRT = new BigDecimal("50.00");
@@ -44,6 +58,42 @@ public class TShirtRequestServiceImpl implements TShirtRequestService {
                 .build();
 
         TShirtRequest savedRequest = repository.save(request);
+
+        // Send Notifications
+        try {
+            // SMS to User
+            String userSms = String.format("Hello %s, your request for %dx %s (%s) T-Shirt has been received. We will contact you shortly regarding payment.",
+                    request.getFullName(), request.getQuantity(), request.getTShirtColor(), request.getTShirtSize());
+            
+            smsService.sendBulkSms(BulkSmsRequest.builder()
+                    .sender("StartRight")
+                    .recipients(List.of(request.getPhoneNumber()))
+                    .message(userSms)
+                    .build());
+
+            // SMS to Admin
+            String adminSms = String.format("New T-Shirt Request:\n%s\n%s\n%dx %s %s\nPhone: %s",
+                    request.getFullName(), request.getEmail(), request.getQuantity(), request.getTShirtColor(), request.getTShirtSize(), request.getPhoneNumber());
+
+            smsService.sendBulkSms(BulkSmsRequest.builder()
+                    .sender("StartRight")
+                    .recipients(List.of(adminPhone))
+                    .message(adminSms)
+                    .build());
+
+            // Email to Admin
+            emailService.sendTshirtOrderAdminEmail(
+                    request.getFullName(),
+                    request.getEmail(),
+                    request.getPhoneNumber(),
+                    request.getTShirtSize().toString(),
+                    "Start Right Conference 2026"
+            );
+
+        } catch (Exception e) {
+            log.error("Failed to send T-Shirt request notifications", e);
+        }
+
         return mapToResponseDto(savedRequest);
     }
 
