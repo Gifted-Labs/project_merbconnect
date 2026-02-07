@@ -1,1 +1,2 @@
 2026-02-07 05:23:10.247 [main] INFO  c.m.sms.service.impl.SmsServiceImpl - HttpClient initialized for SmsService
+2026-02-07 05:26:06.872 [main] INFO  c.m.sms.service.impl.SmsServiceImpl - HttpClient initialized for SmsService

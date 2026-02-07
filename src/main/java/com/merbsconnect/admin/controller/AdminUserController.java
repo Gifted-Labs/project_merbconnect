@@ -40,7 +40,7 @@ public class AdminUserController {
      * @return Page of users
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<Page<UserResponse>> getAllUsers(Pageable pageable) {
         try {
             log.info("Fetching all users with pagination");
@@ -60,7 +60,7 @@ public class AdminUserController {
      * @return User response
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         try {
             log.info("Fetching user by ID: {}", id);

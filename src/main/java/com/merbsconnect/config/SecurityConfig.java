@@ -146,7 +146,7 @@ public class SecurityConfig {
                                         // Protected endpoints with specific role requirements
                                         EndpointUtils.PROTECTED_ENDPOINTS.forEach(endpoint -> auth
                                                         .requestMatchers(endpoint.getMethod(), endpoint.getPath())
-                                                        .hasRole("ADMIN"));
+                                                        .hasAnyRole("ADMIN", "SUPER_ADMIN", "SUPPORT_ADMIN"));
 
                                         // All other requests require authentication
                                         auth.anyRequest().authenticated();
