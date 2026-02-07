@@ -13,6 +13,9 @@ import com.merbsconnect.events.model.MerchandiseOrder;
 import com.merbsconnect.events.repository.EventRegistrationRepository;
 import com.merbsconnect.events.repository.EventRepository;
 import com.merbsconnect.events.service.CheckInService;
+import com.merbsconnect.startright.repository.TShirtRequestRepository;
+import com.merbsconnect.startright.entity.TShirtRequest;
+import com.merbsconnect.startright.enums.RequestStatus;
 
 import com.merbsconnect.exception.ResourceNotFoundException;
 import com.merbsconnect.enums.CheckInMethod;
@@ -43,6 +46,7 @@ public class CheckInServiceImpl implements CheckInService {
 
         private final EventRegistrationRepository registrationRepository;
         private final EventRepository eventRepository;
+        private final TShirtRequestRepository tShirtRequestRepository;
         private final QrCodeService qrCodeService;
         private final EmailService emailService;
         private final SmsService smsService;
@@ -145,6 +149,7 @@ public class CheckInServiceImpl implements CheckInService {
 
                 // If t-shirt selected, notify support admin
                 if (needsShirt && (registrationDto.getShirtSize() != null || !merchandiseOrders.isEmpty())) {
+                        createTShirtRequests(savedRegistration, merchandiseOrders);
                         notifyAdminAboutTshirtOrder(savedRegistration, event);
                 }
 
@@ -389,6 +394,50 @@ public class CheckInServiceImpl implements CheckInService {
                                 .qrScanCount(qrScanCount)
                                 .manualCount(manualCount)
                                 .build();
+        }
+
+        /**
+         * Creates T-Shirt requests in the separate table for dashboard visibility.
+         */
+        private void createTShirtRequests(EventRegistration registration, List<MerchandiseOrder> merchandiseOrders) {
+                try {
+                        List<TShirtRequest> requestsToSave = new ArrayList<>();
+
+                        if (merchandiseOrders != null && !merchandiseOrders.isEmpty()) {
+                                // Create request for each order item
+                                for (MerchandiseOrder order : merchandiseOrders) {
+                                        requestsToSave.add(TShirtRequest.builder()
+                                                        .fullName(registration.getName())
+                                                        .email(registration.getEmail())
+                                                        .phoneNumber(registration.getPhone())
+                                                        .tShirtColor(order.getColor())
+                                                        .tShirtSize(order.getSize())
+                                                        .quantity(order.getQuantity())
+                                                        .requestStatus(RequestStatus.PENDING)
+                                                        .createdAt(LocalDateTime.now())
+                                                        .build());
+                                }
+                        } else if (registration.getShirtSize() != null) {
+                                // Fallback for legacy format
+                                requestsToSave.add(TShirtRequest.builder()
+                                                .fullName(registration.getName())
+                                                .email(registration.getEmail())
+                                                .phoneNumber(registration.getPhone())
+                                                .tShirtColor(com.merbsconnect.enums.ShirtColor.BLACK) // Default or unknown
+                                                .tShirtSize(registration.getShirtSize())
+                                                .quantity(1)
+                                                .requestStatus(RequestStatus.PENDING)
+                                                .createdAt(LocalDateTime.now())
+                                                .build());
+                        }
+
+                        if (!requestsToSave.isEmpty()) {
+                                tShirtRequestRepository.saveAll(requestsToSave);
+                                log.info("Created {} T-Shirt request(s) for registration {}", requestsToSave.size(), registration.getId());
+                        }
+                } catch (Exception e) {
+                        log.error("Failed to create T-Shirt requests for registration {}: {}", registration.getId(), e.getMessage());
+                }
         }
 
         /**

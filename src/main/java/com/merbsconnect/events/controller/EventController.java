@@ -457,4 +457,41 @@ public class EventController {
         }
     }
 
+    /**
+     * Update an existing registration.
+     * Requires ADMIN, SUPER_ADMIN, or SUPPORT_ADMIN role.
+     */
+    @PutMapping("/{eventId:[0-9]+}/registrations/{registrationId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    public ResponseEntity<MessageResponse> updateRegistration(
+            @PathVariable Long eventId,
+            @PathVariable Long registrationId,
+            @RequestBody EventRegistrationDto registrationDto) {
+        try {
+            MessageResponse response = eventService.updateRegistration(eventId, registrationId, registrationDto);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(new MessageResponse(e.getMessage()), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    /**
+     * Manually register a participant (Admin override).
+     * Uses the same V2 logic as public registration but requires Auth.
+     */
+    @PostMapping("/{eventId:[0-9]+}/registrations/manual")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    public ResponseEntity<com.merbsconnect.events.dto.response.RegistrationDetailsResponse> manualRegister(
+            @PathVariable Long eventId,
+            @RequestBody EventRegistrationDto registrationDto) {
+        try {
+            log.info("Manual Admin Registration for event ID: {}", eventId);
+            com.merbsconnect.events.dto.response.RegistrationDetailsResponse response = checkInService
+                    .registerForEventV2(eventId, registrationDto);
+            return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (IllegalStateException e) {
+            throw new BusinessException(e.getMessage());
+        }
+    }
+
 }

@@ -65,4 +65,6 @@ public interface EventService {
     MessageResponse deleteMultipleRegistrations(Long eventId, java.util.List<String> emails);
 
     String uploadEventImage(Long eventId, org.springframework.web.multipart.MultipartFile image) throws IOException;
+
+    MessageResponse updateRegistration(Long eventId, Long registrationId, EventRegistrationDto registrationDto);
 }

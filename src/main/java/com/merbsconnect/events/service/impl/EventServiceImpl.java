@@ -678,4 +678,47 @@ public class EventServiceImpl implements EventService {
 
         return imageUrl;
     }
+
+    @Override
+    @Transactional
+    public MessageResponse updateRegistration(Long eventId, Long registrationId, EventRegistrationDto registrationDto) {
+        // Verify event exists
+        getEventByIdInternal(eventId);
+
+        com.merbsconnect.events.model.EventRegistration registration = eventRegistrationRepository.findById(registrationId)
+                .orElseThrow(() -> new BusinessException("Registration not found with id: " + registrationId));
+
+        if (!registration.getEvent().getId().equals(eventId)) {
+            throw new BusinessException("Registration does not belong to the specified event");
+        }
+
+        // Update basic fields
+        if (registrationDto.getName() != null && !registrationDto.getName().isBlank()) {
+            registration.setName(registrationDto.getName());
+        }
+        if (registrationDto.getEmail() != null && !registrationDto.getEmail().isBlank()) {
+            // Check uniqueness if email changed
+            if (!registration.getEmail().equalsIgnoreCase(registrationDto.getEmail()) &&
+                    eventRegistrationRepository.existsByEventIdAndEmail(eventId, registrationDto.getEmail())) {
+                throw new BusinessException("Email already pending/registered for this event");
+            }
+            registration.setEmail(registrationDto.getEmail());
+        }
+        if (registrationDto.getPhone() != null) {
+            registration.setPhone(registrationDto.getPhone());
+        }
+        if (registrationDto.getNote() != null) {
+            registration.setNote(registrationDto.getNote());
+        }
+
+        // Note: Updating shirt preference/orders is complex and left out for V1 of Edit.
+        // Can be added if needed.
+
+        eventRegistrationRepository.save(registration);
+        log.info("Updated registration ID: {}", registrationId);
+
+        return MessageResponse.builder()
+                .message("Registration updated successfully")
+                .build();
+    }
 }
