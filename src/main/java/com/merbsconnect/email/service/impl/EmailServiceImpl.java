@@ -31,13 +31,13 @@ public class EmailServiceImpl implements EmailService {
     private final EmailTemplateService templateService;
     private final ObjectMapper objectMapper;
 
-    @Value("${resend.api.key}")
+    @Value("${app.resend.api-key}")
     private String resendApiKey;
 
-    @Value("${resend.from.email}")
+    @Value("${app.email.from}")
     private String fromEmail;
 
-    @Value("${app.frontend.url}")
+    @Value("${app.base-url}")
     private String frontendUrl;
 
     @Override
