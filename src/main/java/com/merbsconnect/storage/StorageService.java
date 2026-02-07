@@ -21,7 +21,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Service for uploading and managing files in Railway S3-compatible storage
+ * Service for uploading and managing files in Cloudflare R2 storage
  * bucket.
  */
 @Slf4j
@@ -225,8 +225,6 @@ public class StorageService {
 
     /**
      * Generates the public URL for an object.
-     * Since Railway buckets are private, this returns a path-style URL.
-     * For public access, presigned URLs should be used.
      */
     private String generatePublicUrl(String key) {
         return String.format("%s/%s/%s", endpoint, bucketName, key);

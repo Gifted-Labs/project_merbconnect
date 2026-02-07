@@ -14,55 +14,54 @@ import software.amazon.awssdk.services.s3.presigner.S3Presigner;
 import java.net.URI;
 
 /**
- * Configuration for Railway S3-compatible storage bucket.
+ * Configuration for Cloudflare R2 storage bucket.
  * 
  * Required environment variables:
- * - RAILWAY_STORAGE_ENDPOINT: The S3 endpoint URL (e.g.,
- * https://storage.railway.app)
- * - RAILWAY_STORAGE_BUCKET: The bucket name
- * - RAILWAY_STORAGE_ACCESS_KEY_ID: The access key ID
- * - RAILWAY_STORAGE_SECRET_ACCESS_KEY: The secret access key
+ * - CLOUDFLARE_R2_ENDPOINT: The R2 endpoint URL
+ * - CLOUDFLARE_R2_BUCKET: The bucket name
+ * - CLOUDFLARE_R2_ACCESS_KEY_ID: The access key ID
+ * - CLOUDFLARE_R2_SECRET_ACCESS_KEY: The secret access key
  */
 @Slf4j
 @Configuration
 public class StorageConfig {
 
-    @Value("${railway.storage.endpoint:https://storage.railway.app}")
+    @Value("${cloudflare.r2.endpoint}")
     private String endpoint;
 
-    @Value("${railway.storage.bucket:functional-case-wjpzk8lgw}")
+    @Value("${cloudflare.r2.bucket}")
     private String bucketName;
 
-    @Value("${railway.storage.access-key-id:}")
+    @Value("${cloudflare.r2.access-key-id}")
     private String accessKeyId;
 
-    @Value("${railway.storage.secret-access-key:}")
+    @Value("${cloudflare.r2.secret-access-key}")
     private String secretAccessKey;
 
-    @Value("${railway.storage.region:auto}")
+    @Value("${cloudflare.r2.region:auto}")
     private String region;
 
     @Bean
     public S3Client s3Client() {
-        log.info("Initializing S3 client for Railway storage bucket: {} at {}", bucketName, endpoint);
+        log.info("Initializing S3 client for Cloudflare R2 storage bucket: {} at {}", bucketName, endpoint);
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
 
         S3Configuration s3Config = S3Configuration.builder()
-                .pathStyleAccessEnabled(true) // Required for S3-compatible services
+                .pathStyleAccessEnabled(true) 
                 .build();
 
         return S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .region(Region.of(region.equals("auto") ? "us-east-1" : region)) // Railway uses auto region
+                .region(Region.of(region.equals("auto") ? "us-east-1" : region))
                 .serviceConfiguration(s3Config)
                 .build();
     }
 
     @Bean
     public S3Presigner s3Presigner() {
-        log.info("Initializing S3 presigner for Railway storage bucket at {}", endpoint);
+        log.info("Initializing S3 presigner for Cloudflare R2 storage bucket at {}", endpoint);
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
 

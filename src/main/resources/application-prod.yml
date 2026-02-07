@@ -107,11 +107,10 @@ springdoc:
     path: ${SWAGGER_UI_PATH:/swagger-ui.html}
     enabled: ${SWAGGER_UI_ENABLED:false}
 
-railway:
-  storage:
-    endpoint: ${RAILWAY_STORAGE_ENDPOINT}
-    bucket: ${RAILWAY_STORAGE_BUCKET}
-    access-key-id: ${RAILWAY_STORAGE_ACCESS_KEY_ID}
-    secret-access-key: ${RAILWAY_STORAGE_SECRET_ACCESS_KEY}
-    region: ${RAILWAY_STORAGE_REGION:auto}
-
+cloudflare:
+  r2:
+    endpoint: ${CLOUDFLARE_R2_ENDPOINT}
+    bucket: ${CLOUDFLARE_R2_BUCKET}
+    access-key-id: ${CLOUDFLARE_R2_ACCESS_KEY_ID}
+    secret-access-key: ${CLOUDFLARE_R2_SECRET_ACCESS_KEY}
+    region: ${CLOUDFLARE_R2_REGION:auto}
