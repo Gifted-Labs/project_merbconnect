@@ -17,10 +17,19 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
         boolean existsByTitleAndDate(String title, LocalDate date);
 
-        @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
-                        "speakersV2", "speakers", "itinerary", "reviews", "articles",
-                        "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
-        })
+        long countByDateAfter(LocalDate date);
+
+        long countByDateBefore(LocalDate date);
+
+        List<Event> findByDateBetween(LocalDate startDate, LocalDate endDate);
+
+        @Query(value = "SELECT event_id FROM (" +
+                        "SELECT event_id FROM event_registrations " +
+                        "UNION ALL " +
+                        "SELECT event_id FROM event_registrations_v2" +
+                        ") combined GROUP BY event_id ORDER BY COUNT(*) DESC LIMIT :limit", nativeQuery = true)
+        List<Long> findTopEventIdsByRegistrationCount(@Param("limit") int limit);
+
         @Override
         org.springframework.data.domain.Page<Event> findAll(org.springframework.data.domain.Pageable pageable);
 
@@ -28,19 +37,11 @@ public interface EventRepository extends JpaRepository<Event, Long> {
                         "speakersV2", "speakers", "itinerary", "reviews", "articles",
                         "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
         })
-        @Override
-        java.util.Optional<Event> findById(Long id);
+        @Query("SELECT e FROM Event e WHERE e.id = :id")
+        java.util.Optional<Event> findWithDetailsById(@Param("id") Long id);
 
-        @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
-                        "speakersV2", "speakers", "itinerary", "reviews", "articles",
-                        "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
-        })
         Page<Event> findEventByDateAfter(LocalDate dateAfter, Pageable pageable);
 
-        @org.springframework.data.jpa.repository.EntityGraph(attributePaths = {
-                        "speakersV2", "speakers", "itinerary", "reviews", "articles",
-                        "galleryItems", "registrationsV2", "testimonials", "sponsors", "contacts"
-        })
         Page<Event> findEventByDateBefore(LocalDate dateBefore, Pageable pageable);
 
         @Query("SELECT e FROM Event e WHERE YEAR(e.date) = :year")

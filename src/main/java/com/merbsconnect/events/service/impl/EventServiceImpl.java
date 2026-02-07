@@ -111,7 +111,7 @@ public class EventServiceImpl implements EventService {
     public Page<EventResponse> getAllEvents(Pageable pageable) {
         Page<Event> events = eventRepository.findAll(pageable);
 
-        return events.map(event -> enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
+        return events.map(event -> enrichWithPresignedUrls(EventMapper.mapToEventSummary(event)));
     }
 
     /**
@@ -139,9 +139,11 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "events", key = "#eventId")
     public Optional<EventResponse> getEventById(Long eventId) {
-        Event event = getEventByIdInternal(eventId);
+        Event event = eventRepository.findWithDetailsById(eventId)
+                .orElseThrow(() -> new BusinessException("Event not found with id: " + eventId));
 
         return Optional.of(enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
     }
@@ -194,14 +196,15 @@ public class EventServiceImpl implements EventService {
     @Cacheable(value = "events", key = "'upcoming'")
     public Page<EventResponse> getUpcomingEvents(Pageable pageable) {
         return eventRepository.findEventByDateAfter(LocalDate.now(), pageable)
-                .map(event -> enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
+                .map(event -> enrichWithPresignedUrls(EventMapper.mapToEventSummary(event)));
     }
 
     @Override
+    @Transactional(readOnly = true)
     @Cacheable(value = "events", key = "'past'")
     public Page<EventResponse> getPastEvents(Pageable pageable) {
         return eventRepository.findEventByDateBefore(LocalDate.now(), pageable)
-                .map(event -> enrichWithPresignedUrls(EventMapper.mapToEventResponse(event)));
+                .map(event -> enrichWithPresignedUrls(EventMapper.mapToEventSummary(event)));
     }
 
     @Override
@@ -437,19 +440,13 @@ public class EventServiceImpl implements EventService {
     @Transactional(readOnly = true)
     public com.merbsconnect.events.dto.response.EventStatsResponse getEventStats() {
         long totalEvents = eventRepository.count();
-        long upcomingEvents = eventRepository.findEventByDateAfter(LocalDate.now(), Pageable.unpaged())
-                .getTotalElements();
-        long pastEvents = eventRepository.findEventByDateBefore(LocalDate.now(), Pageable.unpaged()).getTotalElements();
+        long upcomingEvents = eventRepository.countByDateAfter(LocalDate.now());
+        long pastEvents = eventRepository.countByDateBefore(LocalDate.now());
 
         // Calculate total registrations across all events (V1 + V2)
-        List<Event> allEvents = eventRepository.findAll();
-        long totalRegistrations = allEvents.stream()
-                .mapToLong(event -> {
-                    long v1Count = (event.getRegistrations() != null) ? event.getRegistrations().size() : 0;
-                    long v2Count = (event.getRegistrationsV2() != null) ? event.getRegistrationsV2().size() : 0;
-                    return v1Count + v2Count;
-                })
-                .sum();
+        long v1Count = eventRegistrationRepository.countAllV1Registrations();
+        long v2Count = eventRegistrationRepository.count();
+        long totalRegistrations = v1Count + v2Count;
 
         // Calculate average registrations per event
         double averageRegistrations = totalEvents > 0 ? (double) totalRegistrations / totalEvents : 0.0;
@@ -520,10 +517,9 @@ public class EventServiceImpl implements EventService {
 
         // Filter events by date range if provided
         if (startDate != null && endDate != null) {
-            events = eventRepository.findAll().stream()
-                    .filter(event -> !event.getDate().isBefore(startDate) && !event.getDate().isAfter(endDate))
-                    .toList();
+            events = eventRepository.findByDateBetween(startDate, endDate);
         } else {
+            // Still loading all events for summary, but now with LAZY loading it's much faster/leaner
             events = eventRepository.findAll();
         }
 
@@ -550,17 +546,12 @@ public class EventServiceImpl implements EventService {
                 })
                 .toList();
 
-        // Get top 5 events by registrations (V1 + V2)
-        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = events.stream()
-                .sorted((e1, e2) -> {
-                    long c1 = ((e1.getRegistrations() != null ? e1.getRegistrations().size() : 0) +
-                            (e1.getRegistrationsV2() != null ? e1.getRegistrationsV2().size() : 0));
-                    long c2 = ((e2.getRegistrations() != null ? e2.getRegistrations().size() : 0) +
-                            (e2.getRegistrationsV2() != null ? e2.getRegistrationsV2().size() : 0));
-                    return Long.compare(c2, c1);
-                })
-                .limit(5)
-                .map(event -> {
+        // Get top 5 events across all time for comparison
+        List<Long> topEventIds = eventRepository.findTopEventIdsByRegistrationCount(5);
+        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = topEventIds.stream()
+                .map(id -> {
+                    Event event = eventRepository.findById(id).orElse(null);
+                    if (event == null) return null;
                     long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
                             (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
                     return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
@@ -568,6 +559,7 @@ public class EventServiceImpl implements EventService {
                             .registrationCount(count)
                             .build();
                 })
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         return com.merbsconnect.events.dto.response.RegistrationStatsResponse.builder()
@@ -597,21 +589,15 @@ public class EventServiceImpl implements EventService {
                         org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC,
                                 "createdAt")))
                 .stream()
-                .map(EventMapper::mapToEventResponse)
+                .map(EventMapper::mapToEventSummary)
                 .toList();
 
-        // Get top 5 events by registrations (V1 + V2)
-        List<Event> allEvents = eventRepository.findAll();
-        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = allEvents.stream()
-                .sorted((e1, e2) -> {
-                    long count1 = ((e1.getRegistrations() != null ? e1.getRegistrations().size() : 0) +
-                            (e1.getRegistrationsV2() != null ? e1.getRegistrationsV2().size() : 0));
-                    long count2 = ((e2.getRegistrations() != null ? e2.getRegistrations().size() : 0) +
-                            (e2.getRegistrationsV2() != null ? e2.getRegistrationsV2().size() : 0));
-                    return Long.compare(count2, count1);
-                })
-                .limit(5)
-                .map(event -> {
+        // Get top 5 events by registrations (SQL optimized)
+        List<Long> topEventIds = eventRepository.findTopEventIdsByRegistrationCount(5);
+        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = topEventIds.stream()
+                .map(id -> {
+                    Event event = eventRepository.findById(id).orElse(null);
+                    if (event == null) return null;
                     long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
                             (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
                     return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
@@ -619,6 +605,7 @@ public class EventServiceImpl implements EventService {
                             .registrationCount(count)
                             .build();
                 })
+                .filter(java.util.Objects::nonNull)
                 .toList();
 
         // Determine system status (simple health check)

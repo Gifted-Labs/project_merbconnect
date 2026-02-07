@@ -60,4 +60,7 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkInMethod = :method")
     long countByEventIdAndCheckInMethod(@Param("eventId") Long eventId,
             @Param("method") com.merbsconnect.enums.CheckInMethod method);
+
+    @Query(value = "SELECT COUNT(*) FROM event_registrations", nativeQuery = true)
+    long countAllV1Registrations();
 }

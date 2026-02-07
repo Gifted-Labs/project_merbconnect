@@ -55,6 +55,23 @@ public class EventMapper {
                 .build();
     }
 
+    /**
+     * Maps an Event entity to an EventResponse but excludes all collection fields
+     * to avoid triggering lazy loads in list views.
+     */
+    public static EventResponse mapToEventSummary(Event event) {
+        return EventResponse.builder()
+                .id(event.getId())
+                .title(event.getTitle())
+                .description(event.getDescription())
+                .location(event.getLocation())
+                .date(event.getDate())
+                .time(event.getTime())
+                .imageUrl(event.getImageUrl())
+                .theme(event.getTheme())
+                .build();
+    }
+
     public static Registration mapToRegistration(EventRegistrationDto registrationDto) {
         return Registration.builder()
                 .name(registrationDto.getName())

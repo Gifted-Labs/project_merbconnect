@@ -47,7 +47,7 @@ public class Event {
     @OneToOne(mappedBy = "event", cascade = CascadeType.ALL)
     private Gallery gallery;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "event_sponsors", joinColumns = @JoinColumn(name = "event_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Sponsors> sponsors = new HashSet<>();
@@ -61,7 +61,7 @@ public class Event {
 
     private LocalDateTime updatedAt;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "event_speakers", joinColumns = @JoinColumn(name = "event_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Speaker> speakers = new HashSet<>();
@@ -72,7 +72,7 @@ public class Event {
     @Column(length = 2048)
     private String videoUrl;
 
-    @ElementCollection(fetch = FetchType.EAGER)
+    @ElementCollection(fetch = FetchType.LAZY)
     @CollectionTable(name = "event_contacts", joinColumns = @JoinColumn(name = "event_id"))
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Set<Contact> contacts = new HashSet<>();
