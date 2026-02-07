@@ -179,12 +179,11 @@ public class EventController {
 
     @GetMapping("/{eventId:[0-9]+}/registrations")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
-    public ResponseEntity<PageResponse<Registration>> getEventRegistrations(
+    public ResponseEntity<PageResponse<EventRegistrationDto>> getEventRegistrations(
             @PathVariable Long eventId, Pageable pageable) {
-        Page<Registration> registrations = eventService.getEventRegistrations(eventId, pageable);
-        PageResponse<Registration> response = convertToPageResponse(registrations);
+        Page<EventRegistrationDto> registrations = eventService.getEventRegistrations(eventId, pageable);
+        PageResponse<EventRegistrationDto> response = convertToPageResponse(registrations);
         return new ResponseEntity<>(response, HttpStatus.OK);
-
     }
 
     /**
@@ -347,12 +346,38 @@ public class EventController {
      */
     @DeleteMapping("/{eventId:[0-9]+}/registrations/{email}")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-    public ResponseEntity<MessageResponse> deleteRegistration(
+    public ResponseEntity<MessageResponse> deleteRegistrationByEmail(
             @PathVariable Long eventId,
             @PathVariable String email) {
         try {
             log.info("Deleting registration with email {} from event ID {}", email, eventId);
             MessageResponse response = eventService.deleteRegistration(eventId, email);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (BusinessException e) {
+            log.error("Error deleting registration: {}", e.getMessage());
+            return new ResponseEntity<>(new MessageResponse(e.getMessage()), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("Error deleting registration: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    /**
+     * Delete a specific registration from an event by ID.
+     * Requires ADMIN or SUPER_ADMIN role.
+     *
+     * @param eventId        The ID of the event
+     * @param registrationId The ID of the registration to delete
+     * @return ResponseEntity containing success message
+     */
+    @DeleteMapping("/{eventId:[0-9]+}/registrations/id/{registrationId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<MessageResponse> deleteRegistration(
+            @PathVariable Long eventId,
+            @PathVariable Long registrationId) {
+        try {
+            log.info("Deleting registration with ID {} from event ID {}", registrationId, eventId);
+            MessageResponse response = eventService.deleteRegistrationById(eventId, registrationId);
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (BusinessException e) {
             log.error("Error deleting registration: {}", e.getMessage());

@@ -42,7 +42,7 @@ public interface EventService {
 
     MessageResponse registerForEvent(Long eventId, EventRegistrationDto registrationDto);
 
-    Page<Registration> getEventRegistrations(Long eventId, Pageable pageable);
+    Page<EventRegistrationDto> getEventRegistrations(Long eventId, Pageable pageable);
 
     void writeRegistrationsToCsv(Long eventId, OutputStream outputStream) throws IOException;
 
@@ -54,6 +54,8 @@ public interface EventService {
     com.merbsconnect.events.dto.response.EventAnalyticsResponse getEventAnalytics(Long eventId);
 
     MessageResponse deleteRegistration(Long eventId, String email);
+
+    MessageResponse deleteRegistrationById(Long eventId, Long registrationId);
 
     com.merbsconnect.events.dto.response.RegistrationStatsResponse getRegistrationStats(
             java.time.LocalDate startDate, java.time.LocalDate endDate);

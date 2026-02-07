@@ -257,18 +257,25 @@ public class EventServiceImpl implements EventService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "registrations", key = "#eventId")
-    public Page<Registration> getEventRegistrations(Long eventId, Pageable pageable) {
+    public Page<EventRegistrationDto> getEventRegistrations(Long eventId, Pageable pageable) {
         // Fetch V2 registrations from the new repository
         Page<com.merbsconnect.events.model.EventRegistration> v2Registrations = eventRegistrationRepository
                 .findByEventId(eventId, pageable);
 
-        // Map V2 entity to V1 Registration embeddable for backward compatibility
-        return v2Registrations.map(v2Reg -> Registration.builder()
+        // Map V2 entity to DTO including ID
+        return v2Registrations.map(v2Reg -> EventRegistrationDto.builder()
+                .id(v2Reg.getId())
                 .name(v2Reg.getName())
                 .email(v2Reg.getEmail())
                 .phone(v2Reg.getPhone())
                 .note(v2Reg.getNote())
+                .program(v2Reg.getProgram())
+                .academicLevel(v2Reg.getAcademicLevel())
+                .university(v2Reg.getUniversity())
+                .referralSource(v2Reg.getReferralSource())
+                .referralSourceOther(v2Reg.getReferralSourceOther())
+                .needsShirt(v2Reg.isNeedsShirt())
+                .shirtSize(v2Reg.getShirtSize())
                 .build());
     }
 
@@ -719,6 +726,28 @@ public class EventServiceImpl implements EventService {
 
         return MessageResponse.builder()
                 .message("Registration updated successfully")
+                .build();
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = { "events", "registrations" }, key = "#eventId")
+    public MessageResponse deleteRegistrationById(Long eventId, Long registrationId) {
+        // Verify event exists
+        getEventByIdInternal(eventId);
+
+        com.merbsconnect.events.model.EventRegistration registration = eventRegistrationRepository.findById(registrationId)
+                .orElseThrow(() -> new BusinessException("Registration not found with id: " + registrationId));
+
+        if (!registration.getEvent().getId().equals(eventId)) {
+            throw new BusinessException("Registration does not belong to the specified event");
+        }
+
+        eventRegistrationRepository.delete(registration);
+        log.info("Deleted registration ID: {} from event ID: {}", registrationId, eventId);
+
+        return MessageResponse.builder()
+                .message("Registration deleted successfully")
                 .build();
     }
 }
