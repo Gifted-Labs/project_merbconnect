@@ -130,7 +130,7 @@ public class AnalyticsServiceImpl implements AnalyticsService {
             List<TShirtRequest> requests = tshirtRequestRepository.findAll();
             return requests.stream()
                     .collect(Collectors.groupingBy(
-                            req -> req.getTshirtSize() != null ? req.getTshirtSize().name() : "UNKNOWN",
+                            req -> req.getTShirtSize() != null ? req.getTShirtSize().name() : "UNKNOWN",
                             Collectors.counting()));
         } catch (Exception e) {
             log.error("Error fetching T-shirt size breakdown: {}", e.getMessage());
