@@ -152,7 +152,8 @@ public class EmailServiceImpl implements EmailService {
 
     /**
      * Sends a raw HTTP request to the Resend API.
-     * This bypasses SDK compatibility issues and gives full control over JSON payload.
+     * This bypasses SDK compatibility issues and gives full control over JSON
+     * payload.
      */
     private void sendRawEmailRequest(Map<String, Object> payload) throws Exception {
         String jsonBody = objectMapper.writeValueAsString(payload);
@@ -304,7 +305,7 @@ public class EmailServiceImpl implements EmailService {
     public void sendTshirtOrderAdminEmail(String registrantName, String registrantEmail,
             String registrantPhone, String shirtSize, String eventTitle) {
 
-        String adminEmail = "juliusadjeteysowah@gmail.com";
+        String adminEmail = "merblinasare10@gmail.com";
         String subject = "New T-Shirt Request – " + eventTitle;
 
         String content = buildTshirtOrderAdminEmail(registrantName, registrantEmail,
