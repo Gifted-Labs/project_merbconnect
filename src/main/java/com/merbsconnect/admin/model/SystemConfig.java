@@ -29,6 +29,12 @@ public class SystemConfig {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String configValue;
 
+    @Column(nullable = false)
+    private String category; // GENERAL, EVENTS, NOTIFICATIONS, SECURITY, SYSTEM
+
+    @Column(nullable = false)
+    private String type; // TEXT, BOOLEAN, NUMBER, LIST, PASSWORD (masked)
+
     @Column(columnDefinition = "TEXT")
     private String description;
 

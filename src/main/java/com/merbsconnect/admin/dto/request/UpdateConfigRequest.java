@@ -22,4 +22,8 @@ public class UpdateConfigRequest {
     private String configValue;
 
     private String description;
+
+    private String category;
+
+    private String type;
 }
