@@ -272,9 +272,12 @@ public class EventServiceImpl implements EventService {
             }
         }
 
+        // Format search pattern for SQL LIKE
+        String searchPattern = (search != null && !search.isBlank()) ? "%" + search.toLowerCase() + "%" : null;
+
         // Fetch registrations with filters (V2 only as requested)
         Page<com.merbsconnect.events.model.EventRegistration> v2Registrations = eventRegistrationRepository
-                .findByEventIdWithFilters(eventId, search, checkInStatus, shirtSizeEnum, pageable);
+                .findByEventIdWithFilters(eventId, searchPattern, checkInStatus, shirtSizeEnum, pageable);
 
         // Map V2 entity to DTO including ID and check-in fields
         return v2Registrations.map(v2Reg -> EventRegistrationDto.builder()
