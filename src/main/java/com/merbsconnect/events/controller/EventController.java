@@ -180,8 +180,13 @@ public class EventController {
     @GetMapping("/{eventId:[0-9]+}/registrations")
     @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
     public ResponseEntity<PageResponse<EventRegistrationDto>> getEventRegistrations(
-            @PathVariable Long eventId, Pageable pageable) {
-        Page<EventRegistrationDto> registrations = eventService.getEventRegistrations(eventId, pageable);
+            @PathVariable Long eventId,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) Boolean checkInStatus,
+            @RequestParam(required = false) String shirtSize,
+            Pageable pageable) {
+        Page<EventRegistrationDto> registrations = eventService.getEventRegistrations(eventId, pageable, search,
+                checkInStatus, shirtSize);
         PageResponse<EventRegistrationDto> response = convertToPageResponse(registrations);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

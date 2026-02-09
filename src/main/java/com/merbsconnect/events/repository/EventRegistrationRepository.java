@@ -23,6 +23,21 @@ public interface EventRegistrationRepository extends JpaRepository<EventRegistra
     Page<EventRegistration> findByEventId(Long eventId, Pageable pageable);
 
     /**
+     * Find registrations for an event with filtering.
+     */
+    @Query("SELECT r FROM EventRegistration r WHERE r.event.id = :eventId " +
+            "AND (:search IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(r.email) LIKE LOWER(CONCAT('%', :search, '%'))) "
+            +
+            "AND (:checkedIn IS NULL OR r.checkedIn = :checkedIn) " +
+            "AND (:shirtSize IS NULL OR r.shirtSize = :shirtSize)")
+    Page<EventRegistration> findByEventIdWithFilters(
+            @Param("eventId") Long eventId,
+            @Param("search") String search,
+            @Param("checkedIn") Boolean checkedIn,
+            @Param("shirtSize") com.merbsconnect.enums.ShirtSize shirtSize,
+            Pageable pageable);
+
+    /**
      * Find registration by unique token (for QR code scanning).
      */
     Optional<EventRegistration> findByRegistrationToken(String registrationToken);

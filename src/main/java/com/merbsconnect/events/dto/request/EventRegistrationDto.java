@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Builder
@@ -29,4 +30,7 @@ public class EventRegistrationDto {
     private com.merbsconnect.enums.University university;
     private ReferralSource referralSource;
     private String referralSourceOther;
+    private boolean checkedIn;
+    private LocalDateTime checkInTime;
+    private LocalDateTime registeredAt;
 }

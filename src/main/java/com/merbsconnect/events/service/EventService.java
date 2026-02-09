@@ -42,7 +42,8 @@ public interface EventService {
 
     MessageResponse registerForEvent(Long eventId, EventRegistrationDto registrationDto);
 
-    Page<EventRegistrationDto> getEventRegistrations(Long eventId, Pageable pageable);
+    Page<EventRegistrationDto> getEventRegistrations(Long eventId, Pageable pageable, String search,
+            Boolean checkInStatus, String shirtSize);
 
     void writeRegistrationsToCsv(Long eventId, OutputStream outputStream) throws IOException;
 

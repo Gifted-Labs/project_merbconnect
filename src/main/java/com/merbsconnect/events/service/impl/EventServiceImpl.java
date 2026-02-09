@@ -260,12 +260,23 @@ public class EventServiceImpl implements EventService {
     }
 
     @Transactional(readOnly = true)
-    public Page<EventRegistrationDto> getEventRegistrations(Long eventId, Pageable pageable) {
-        // Fetch V2 registrations from the new repository
-        Page<com.merbsconnect.events.model.EventRegistration> v2Registrations = eventRegistrationRepository
-                .findByEventId(eventId, pageable);
+    public Page<EventRegistrationDto> getEventRegistrations(Long eventId, Pageable pageable, String search,
+            Boolean checkInStatus, String shirtSize) {
+        // Convert shirtSize string to enum if present
+        com.merbsconnect.enums.ShirtSize shirtSizeEnum = null;
+        if (shirtSize != null && !shirtSize.isBlank()) {
+            try {
+                shirtSizeEnum = com.merbsconnect.enums.ShirtSize.valueOf(shirtSize.toUpperCase());
+            } catch (IllegalArgumentException e) {
+                log.warn("Invalid shirt size filter: {}", shirtSize);
+            }
+        }
 
-        // Map V2 entity to DTO including ID
+        // Fetch registrations with filters (V2 only as requested)
+        Page<com.merbsconnect.events.model.EventRegistration> v2Registrations = eventRegistrationRepository
+                .findByEventIdWithFilters(eventId, search, checkInStatus, shirtSizeEnum, pageable);
+
+        // Map V2 entity to DTO including ID and check-in fields
         return v2Registrations.map(v2Reg -> EventRegistrationDto.builder()
                 .id(v2Reg.getId())
                 .name(v2Reg.getName())
@@ -279,6 +290,9 @@ public class EventServiceImpl implements EventService {
                 .referralSourceOther(v2Reg.getReferralSourceOther())
                 .needsShirt(v2Reg.isNeedsShirt())
                 .shirtSize(v2Reg.getShirtSize())
+                .checkedIn(v2Reg.isCheckedIn())
+                .checkInTime(v2Reg.getCheckInTime())
+                .registeredAt(v2Reg.getRegisteredAt())
                 .build());
     }
 
@@ -519,7 +533,8 @@ public class EventServiceImpl implements EventService {
         if (startDate != null && endDate != null) {
             events = eventRepository.findByDateBetween(startDate, endDate);
         } else {
-            // Still loading all events for summary, but now with LAZY loading it's much faster/leaner
+            // Still loading all events for summary, but now with LAZY loading it's much
+            // faster/leaner
             events = eventRepository.findAll();
         }
 
@@ -548,10 +563,12 @@ public class EventServiceImpl implements EventService {
 
         // Get top 5 events across all time for comparison
         List<Long> topEventIds = eventRepository.findTopEventIdsByRegistrationCount(5);
-        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = topEventIds.stream()
+        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = topEventIds
+                .stream()
                 .map(id -> {
                     Event event = eventRepository.findById(id).orElse(null);
-                    if (event == null) return null;
+                    if (event == null)
+                        return null;
                     long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
                             (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
                     return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
@@ -594,10 +611,12 @@ public class EventServiceImpl implements EventService {
 
         // Get top 5 events by registrations (SQL optimized)
         List<Long> topEventIds = eventRepository.findTopEventIdsByRegistrationCount(5);
-        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = topEventIds.stream()
+        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = topEventIds
+                .stream()
                 .map(id -> {
                     Event event = eventRepository.findById(id).orElse(null);
-                    if (event == null) return null;
+                    if (event == null)
+                        return null;
                     long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
                             (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
                     return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
@@ -679,7 +698,8 @@ public class EventServiceImpl implements EventService {
         // Verify event exists
         getEventByIdInternal(eventId);
 
-        com.merbsconnect.events.model.EventRegistration registration = eventRegistrationRepository.findById(registrationId)
+        com.merbsconnect.events.model.EventRegistration registration = eventRegistrationRepository
+                .findById(registrationId)
                 .orElseThrow(() -> new BusinessException("Registration not found with id: " + registrationId));
 
         if (!registration.getEvent().getId().equals(eventId)) {
@@ -705,7 +725,8 @@ public class EventServiceImpl implements EventService {
             registration.setNote(registrationDto.getNote());
         }
 
-        // Note: Updating shirt preference/orders is complex and left out for V1 of Edit.
+        // Note: Updating shirt preference/orders is complex and left out for V1 of
+        // Edit.
         // Can be added if needed.
 
         eventRegistrationRepository.save(registration);
@@ -723,7 +744,8 @@ public class EventServiceImpl implements EventService {
         // Verify event exists
         getEventByIdInternal(eventId);
 
-        com.merbsconnect.events.model.EventRegistration registration = eventRegistrationRepository.findById(registrationId)
+        com.merbsconnect.events.model.EventRegistration registration = eventRegistrationRepository
+                .findById(registrationId)
                 .orElseThrow(() -> new BusinessException("Registration not found with id: " + registrationId));
 
         if (!registration.getEvent().getId().equals(eventId)) {
