@@ -17,65 +17,65 @@ import java.util.Optional;
 @Repository
 public interface EventRegistrationRepository extends JpaRepository<EventRegistration, Long> {
 
-    /**
-     * Find all registrations for an event with pagination.
-     */
-    Page<EventRegistration> findByEventId(Long eventId, Pageable pageable);
+        /**
+         * Find all registrations for an event with pagination.
+         */
+        Page<EventRegistration> findByEventId(Long eventId, Pageable pageable);
 
-    /**
-     * Find registrations for an event with filtering.
-     */
-    @Query("SELECT r FROM EventRegistration r WHERE r.event.id = :eventId " +
-            "AND (:search IS NULL OR LOWER(r.name) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(r.email) LIKE LOWER(CONCAT('%', :search, '%'))) "
-            +
-            "AND (:checkedIn IS NULL OR r.checkedIn = :checkedIn) " +
-            "AND (:shirtSize IS NULL OR r.shirtSize = :shirtSize)")
-    Page<EventRegistration> findByEventIdWithFilters(
-            @Param("eventId") Long eventId,
-            @Param("search") String search,
-            @Param("checkedIn") Boolean checkedIn,
-            @Param("shirtSize") com.merbsconnect.enums.ShirtSize shirtSize,
-            Pageable pageable);
+        /**
+         * Find registrations for an event with filtering.
+         */
+        @Query("SELECT r FROM EventRegistration r WHERE r.event.id = :eventId " +
+                        "AND (:searchPattern IS NULL OR LOWER(r.name) LIKE :searchPattern OR LOWER(r.email) LIKE :searchPattern) "
+                        +
+                        "AND (:checkedIn IS NULL OR r.checkedIn = :checkedIn) " +
+                        "AND (:shirtSize IS NULL OR r.shirtSize = :shirtSize)")
+        Page<EventRegistration> findByEventIdWithFilters(
+                        @Param("eventId") Long eventId,
+                        @Param("searchPattern") String searchPattern,
+                        @Param("checkedIn") Boolean checkedIn,
+                        @Param("shirtSize") com.merbsconnect.enums.ShirtSize shirtSize,
+                        Pageable pageable);
 
-    /**
-     * Find registration by unique token (for QR code scanning).
-     */
-    Optional<EventRegistration> findByRegistrationToken(String registrationToken);
+        /**
+         * Find registration by unique token (for QR code scanning).
+         */
+        Optional<EventRegistration> findByRegistrationToken(String registrationToken);
 
-    /**
-     * Find registration by event and email.
-     */
-    Optional<EventRegistration> findByEventIdAndEmail(Long eventId, String email);
+        /**
+         * Find registration by event and email.
+         */
+        Optional<EventRegistration> findByEventIdAndEmail(Long eventId, String email);
 
-    /**
-     * Check if email is already registered for an event.
-     */
-    boolean existsByEventIdAndEmail(Long eventId, String email);
+        /**
+         * Check if email is already registered for an event.
+         */
+        boolean existsByEventIdAndEmail(Long eventId, String email);
 
-    /**
-     * Find list of registrations by event ID and a list of emails.
-     * Used for bulk operations like SMS sending.
-     */
-    java.util.List<EventRegistration> findByEventIdAndEmailIn(Long eventId, java.util.List<String> emails);
+        /**
+         * Find list of registrations by event ID and a list of emails.
+         * Used for bulk operations like SMS sending.
+         */
+        java.util.List<EventRegistration> findByEventIdAndEmailIn(Long eventId, java.util.List<String> emails);
 
-    /**
-     * Count checked-in registrations for an event.
-     */
-    @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkedIn = :checkedIn")
-    long countByEventIdAndCheckedInStatus(@Param("eventId") Long eventId, @Param("checkedIn") boolean checkedIn);
+        /**
+         * Count checked-in registrations for an event.
+         */
+        @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkedIn = :checkedIn")
+        long countByEventIdAndCheckedInStatus(@Param("eventId") Long eventId, @Param("checkedIn") boolean checkedIn);
 
-    /**
-     * Count total registrations for an event.
-     */
-    long countByEventId(Long eventId);
+        /**
+         * Count total registrations for an event.
+         */
+        long countByEventId(Long eventId);
 
-    /**
-     * Count check-ins by method for an event.
-     */
-    @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkInMethod = :method")
-    long countByEventIdAndCheckInMethod(@Param("eventId") Long eventId,
-            @Param("method") com.merbsconnect.enums.CheckInMethod method);
+        /**
+         * Count check-ins by method for an event.
+         */
+        @Query("SELECT COUNT(r) FROM EventRegistration r WHERE r.event.id = :eventId AND r.checkInMethod = :method")
+        long countByEventIdAndCheckInMethod(@Param("eventId") Long eventId,
+                        @Param("method") com.merbsconnect.enums.CheckInMethod method);
 
-    @Query(value = "SELECT COUNT(*) FROM event_registrations", nativeQuery = true)
-    long countAllV1Registrations();
+        @Query(value = "SELECT COUNT(*) FROM event_registrations", nativeQuery = true)
+        long countAllV1Registrations();
 }
