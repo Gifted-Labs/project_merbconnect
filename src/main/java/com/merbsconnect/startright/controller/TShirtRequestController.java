@@ -69,6 +69,15 @@ public class TShirtRequestController {
     }
 
     /**
+     * Delete a request (ADMIN only)
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteRequest(@PathVariable Long id) {
+        service.deleteRequest(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    /**
      * Export all T-shirt requests as CSV (ADMIN only)
      */
     @GetMapping("/export")

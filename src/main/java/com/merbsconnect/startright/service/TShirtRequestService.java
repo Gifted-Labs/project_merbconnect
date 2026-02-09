@@ -26,4 +26,6 @@ public interface TShirtRequestService {
 
     // Dashboard metrics
     TShirtDashboardDto getDashboardMetrics();
+
+    void deleteRequest(Long requestId);
 }

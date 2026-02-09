@@ -62,9 +62,10 @@ public class TShirtRequestServiceImpl implements TShirtRequestService {
         // Send Notifications
         try {
             // SMS to User
-            String userSms = String.format("Hello %s, your request for %dx %s (%s) T-Shirt has been received. We will contact you shortly regarding payment.",
+            String userSms = String.format(
+                    "Hello %s, your request for %dx %s (%s) T-Shirt has been received. We will contact you shortly regarding payment.",
                     request.getFullName(), request.getQuantity(), request.getTShirtColor(), request.getTShirtSize());
-            
+
             smsService.sendBulkSms(BulkSmsRequest.builder()
                     .sender("StartRight")
                     .recipients(List.of(request.getPhoneNumber()))
@@ -73,7 +74,8 @@ public class TShirtRequestServiceImpl implements TShirtRequestService {
 
             // SMS to Admin
             String adminSms = String.format("New T-Shirt Request:\n%s\n%s\n%dx %s %s\nPhone: %s",
-                    request.getFullName(), request.getEmail(), request.getQuantity(), request.getTShirtColor(), request.getTShirtSize(), request.getPhoneNumber());
+                    request.getFullName(), request.getEmail(), request.getQuantity(), request.getTShirtColor(),
+                    request.getTShirtSize(), request.getPhoneNumber());
 
             smsService.sendBulkSms(BulkSmsRequest.builder()
                     .sender("StartRight")
@@ -87,8 +89,7 @@ public class TShirtRequestServiceImpl implements TShirtRequestService {
                     request.getEmail(),
                     request.getPhoneNumber(),
                     request.getTShirtSize().toString(),
-                    "Start Right Conference 2026"
-            );
+                    "Start Right Conference 2026");
 
         } catch (Exception e) {
             log.error("Failed to send T-Shirt request notifications", e);
@@ -177,6 +178,15 @@ public class TShirtRequestServiceImpl implements TShirtRequestService {
                 .completedRequests(completedCount)
                 .declinedRequests(declinedCount)
                 .build();
+    }
+
+    @Override
+    @Transactional
+    public void deleteRequest(Long requestId) {
+        if (!repository.existsById(requestId)) {
+            throw new RuntimeException("Request not found with ID: " + requestId);
+        }
+        repository.deleteById(requestId);
     }
 
     private TShirtRequestResponseDto mapToResponseDto(TShirtRequest request) {
