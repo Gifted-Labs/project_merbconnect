@@ -93,6 +93,12 @@ public class SecurityConfig {
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/registration")
                                                         .permitAll();
 
+                                        // Public Storage endpoints for presigned URL generation
+                                        auth.requestMatchers(HttpMethod.GET, "/api/v1/storage/presigned-url")
+                                                        .permitAll();
+                                        auth.requestMatchers(HttpMethod.POST, "/api/v1/storage/presigned-urls")
+                                                        .permitAll();
+
                                         // Public T-shirt request submission - no login required
                                         auth.requestMatchers(HttpMethod.POST, "/api/v1/tshirt-requests").permitAll();
 

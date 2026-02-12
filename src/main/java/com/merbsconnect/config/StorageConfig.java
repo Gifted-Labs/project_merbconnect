@@ -17,7 +17,10 @@ import java.net.URI;
  * Configuration for Cloudflare R2 storage bucket.
  * 
  * Required environment variables:
- * - CLOUDFLARE_R2_ENDPOINT: The R2 endpoint URL
+ * - CLOUDFLARE_R2_ENDPOINT: The R2 endpoint URL (must include .eu for WEUR
+ * region)
+ * Example: https://<account-id>.eu.r2.cloudflarestorage.com
+ * - CLOUDFLARE_R2_REGION: The bucket region (e.g., weur, use, apac)
  * - CLOUDFLARE_R2_BUCKET: The bucket name
  * - CLOUDFLARE_R2_ACCESS_KEY_ID: The access key ID
  * - CLOUDFLARE_R2_SECRET_ACCESS_KEY: The secret access key
@@ -38,30 +41,36 @@ public class StorageConfig {
     @Value("${cloudflare.r2.secret-access-key}")
     private String secretAccessKey;
 
-    @Value("${cloudflare.r2.region:auto}")
+    @Value("${cloudflare.r2.region:weur}")
     private String region;
 
     @Bean
     public S3Client s3Client() {
-        log.info("Initializing S3 client for Cloudflare R2 storage bucket: {} at {}", bucketName, endpoint);
+        log.info("Initializing S3 client for Cloudflare R2 storage bucket: {} at {} with region: {}", bucketName,
+                endpoint, region);
+
+        // Validate endpoint matches region
+        if ("weur".equalsIgnoreCase(region) && !endpoint.contains(".eu.r2.cloudflarestorage.com")) {
+            log.warn("WEUR region requires .eu in endpoint URL. Current endpoint: {}", endpoint);
+        }
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
 
         S3Configuration s3Config = S3Configuration.builder()
-                .pathStyleAccessEnabled(true) 
+                .pathStyleAccessEnabled(true)
                 .build();
 
         return S3Client.builder()
                 .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .region(Region.of(region.equals("auto") ? "us-east-1" : region))
+                .region(Region.of(region))
                 .serviceConfiguration(s3Config)
                 .build();
     }
 
     @Bean
     public S3Presigner s3Presigner() {
-        log.info("Initializing S3 presigner for Cloudflare R2 storage bucket at {}", endpoint);
+        log.info("Initializing S3 presigner for Cloudflare R2 storage bucket at {} with region: {}", endpoint, region);
 
         AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
 
@@ -72,7 +81,7 @@ public class StorageConfig {
         return S3Presigner.builder()
                 .endpointOverride(URI.create(endpoint))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
-                .region(Region.of(region.equals("auto") ? "us-east-1" : region))
+                .region(Region.of(region))
                 .serviceConfiguration(s3Config)
                 .build();
     }

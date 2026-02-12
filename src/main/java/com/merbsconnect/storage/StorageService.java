@@ -19,6 +19,15 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import javax.imageio.IIOImage;
+import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.util.Iterator;
 
 /**
  * Service for uploading and managing files in Cloudflare R2 storage
@@ -55,17 +64,22 @@ public class StorageService {
     /**
      * Generates a presigned URL for accessing a private S3 object.
      * The URL is valid for 1 hour.
+     * 
+     * This method handles both:
+     * - Object paths/keys (e.g., "events/1/gallery/images/file.jpg")
+     * - Legacy full URLs (will extract the key automatically)
      *
-     * @param storedUrl The URL or key stored in the database
+     * @param pathOrUrl The object path/key or legacy URL stored in the database
      * @return A presigned URL for accessing the object
      */
-    public String generatePresignedUrl(String storedUrl) {
-        if (storedUrl == null || storedUrl.isEmpty()) {
+    public String generatePresignedUrl(String pathOrUrl) {
+        if (pathOrUrl == null || pathOrUrl.isEmpty()) {
             return null;
         }
 
         try {
-            String key = extractKeyFromUrl(storedUrl);
+            // Extract key from URL if it's a full URL, otherwise use as-is
+            String key = pathOrUrl.startsWith("http") ? extractKeyFromUrl(pathOrUrl) : pathOrUrl;
 
             GetObjectRequest getObjectRequest = GetObjectRequest.builder()
                     .bucket(bucketName)
@@ -83,18 +97,22 @@ public class StorageService {
             log.debug("Generated presigned URL for key: {}", key);
             return presignedUrl;
         } catch (Exception e) {
-            log.error("Failed to generate presigned URL for: {}", storedUrl, e);
-            return storedUrl; // Fall back to original URL
+            log.error("Failed to generate presigned URL for: {}", pathOrUrl, e);
+            return null; // Return null instead of falling back to potentially invalid URL
         }
     }
 
     /**
      * Uploads a file to the storage bucket for an event gallery.
+     * 
+     * IMPORTANT: Returns the object path/key, NOT a public URL.
+     * Use generatePresignedUrl() to get a temporary access URL.
      *
      * @param eventId   The event ID
      * @param file      The file to upload
      * @param mediaType The type of media (IMAGE or VIDEO)
-     * @return The public URL of the uploaded file
+     * @return The object key/path in the bucket (e.g.,
+     *         "events/1/gallery/images/file.jpg")
      */
     public String uploadGalleryItem(Long eventId, MultipartFile file, MediaType mediaType) throws IOException {
         validateFile(file, mediaType);
@@ -104,18 +122,28 @@ public class StorageService {
 
         log.info("Uploading file to bucket: {} with key: {}", bucketName, key);
 
+        byte[] content = compressImage(file);
+
+        if (content.length < file.getSize()) {
+            log.info("Image compressed: {} -> {} bytes ({}%)",
+                    file.getSize(), content.length,
+                    (int) ((1 - (double) content.length / file.getSize()) * 100));
+        } else {
+            log.info("Image upload size: {} bytes", content.length);
+        }
+
         PutObjectRequest putRequest = PutObjectRequest.builder()
                 .bucket(bucketName)
                 .key(key)
                 .contentType(contentType)
                 .build();
 
-        s3Client.putObject(putRequest, RequestBody.fromBytes(file.getBytes()));
+        s3Client.putObject(putRequest, RequestBody.fromBytes(content));
 
-        String publicUrl = generatePublicUrl(key);
-        log.info("File uploaded successfully: {}", publicUrl);
+        log.info("File uploaded successfully. Object key: {}", key);
 
-        return publicUrl;
+        // Return the object key/path, NOT the full URL
+        return key;
     }
 
     /**
@@ -243,6 +271,78 @@ public class StorageService {
         } catch (Exception e) {
             log.error("Bucket not accessible: {}", bucketName, e);
             return false;
+        }
+    }
+
+    /**
+     * Compresses and/or resizes an image file.
+     * - Resizes if dimensions > 2048px
+     * - Compresses JPEGs to 0.7 quality
+     */
+    private byte[] compressImage(MultipartFile file) throws IOException {
+        String contentType = file.getContentType();
+
+        // Skip non-image files or GIFs (formatting/animation issues)
+        if (contentType == null || !contentType.startsWith("image/") || contentType.equals("image/gif")) {
+            return file.getBytes();
+        }
+
+        try {
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image == null) {
+                return file.getBytes(); // Could not read image, upload original
+            }
+
+            // Resize if too big (max 2048px)
+            int maxWidth = 2048;
+            if (image.getWidth() > maxWidth || image.getHeight() > maxWidth) {
+                double scale = Math.min((double) maxWidth / image.getWidth(), (double) maxWidth / image.getHeight());
+                int newWidth = (int) (image.getWidth() * scale);
+                int newHeight = (int) (image.getHeight() * scale);
+
+                // Use ARGB for PNGs to preserve transparency, RGB for JPEGs
+                int type = contentType.contains("png") ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+
+                BufferedImage resized = new BufferedImage(newWidth, newHeight, type);
+                Graphics2D g = resized.createGraphics();
+                g.drawImage(image, 0, 0, newWidth, newHeight, null);
+                g.dispose();
+                image = resized;
+            }
+
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+            // Compress JPEG
+            if (contentType.contains("jpeg") || contentType.contains("jpg")) {
+                Iterator<ImageWriter> writers = ImageIO.getImageWritersByFormatName("jpg");
+                if (writers.hasNext()) {
+                    ImageWriter writer = writers.next();
+                    ImageOutputStream ios = ImageIO.createImageOutputStream(os);
+                    writer.setOutput(ios);
+
+                    ImageWriteParam param = writer.getDefaultWriteParam();
+                    if (param.canWriteCompressed()) {
+                        param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+                        param.setCompressionQuality(0.7f); // 70% quality
+                    }
+
+                    writer.write(null, new IIOImage(image, null, null), param);
+                    writer.dispose();
+                    ios.close();
+                } else {
+                    // Fallback if no writer found
+                    ImageIO.write(image, "jpg", os);
+                }
+            } else {
+                // For PNG or others, just write normally (resizing applied if needed)
+                String formatName = contentType.contains("png") ? "png" : "jpg";
+                ImageIO.write(image, formatName, os);
+            }
+
+            return os.toByteArray();
+        } catch (Exception e) {
+            log.error("Failed to compress image: {}", file.getOriginalFilename(), e);
+            return file.getBytes(); // Fallback to original on error
         }
     }
 }
