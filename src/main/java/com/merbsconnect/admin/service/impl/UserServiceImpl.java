@@ -161,6 +161,9 @@ public class UserServiceImpl implements UserService {
         if (request.getIsEnabled() != null) {
             user.setEnabled(request.getIsEnabled());
         }
+        if (request.getPassword() != null && !request.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
 
         User updatedUser = userRepository.save(user);
 

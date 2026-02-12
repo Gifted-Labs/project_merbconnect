@@ -23,6 +23,8 @@ public class UpdateUserRequest {
     @Email(message = "Email must be valid")
     private String email;
 
+    private String password;
+
     private String phoneNumber;
     private UserRole role;
     private UserStatus status;

@@ -304,7 +304,7 @@ public class EventController {
      * @return ResponseEntity containing event statistics
      */
     @GetMapping("/admin/stats")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN', 'CHECKIN_ADMIN')")
     public ResponseEntity<com.merbsconnect.events.dto.response.EventStatsResponse> getEventStats() {
         try {
             log.info("Fetching event statistics");
@@ -414,7 +414,7 @@ public class EventController {
      * @return ResponseEntity containing registration statistics
      */
     @GetMapping("/admin/registrations/stats")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN', 'CHECKIN_ADMIN')")
     public ResponseEntity<com.merbsconnect.events.dto.response.RegistrationStatsResponse> getRegistrationStats(
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate startDate,
             @RequestParam(required = false) @org.springframework.format.annotation.DateTimeFormat(iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE) java.time.LocalDate endDate) {
@@ -459,7 +459,7 @@ public class EventController {
      * @return ResponseEntity containing dashboard data
      */
     @GetMapping("/admin/dashboard")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN', 'CHECKIN_ADMIN')")
     public ResponseEntity<com.merbsconnect.events.dto.response.DashboardResponse> getDashboardData() {
         try {
             log.info("Fetching dashboard data");
