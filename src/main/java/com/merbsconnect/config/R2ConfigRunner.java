@@ -67,7 +67,13 @@ public class R2ConfigRunner implements CommandLineRunner {
             log.info("Successfully configured CORS for R2 bucket: {}", bucketName);
 
         } catch (S3Exception e) {
-            log.error("Failed to configure CORS for bucket: {}. Error: {}", bucketName, e.getMessage());
+            if (e.statusCode() == 403) {
+                log.warn(
+                        "Access Denied when configuring CORS for bucket: {}. This is expected if using a restricted API Token. Assuming CORS is already configured.",
+                        bucketName);
+            } else {
+                log.error("Failed to configure CORS for bucket: {}. Error: {}", bucketName, e.getMessage());
+            }
             // Don't throw exception to avoid preventing app startup, just log error
         }
     }
