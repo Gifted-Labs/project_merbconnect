@@ -27,4 +27,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     long countByStatus(com.merbsconnect.enums.UserStatus status);
 
     Page<User> findByRole(com.merbsconnect.enums.UserRole role, Pageable pageable);
+
+    long countByRole(com.merbsconnect.enums.UserRole role);
 }
