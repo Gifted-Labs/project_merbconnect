@@ -394,6 +394,18 @@ public class EventController {
     }
 
     /**
+     * Standard REST endpoint for deleting a registration by ID.
+     * Fallback for frontend clients using standard path.
+     */
+    @DeleteMapping("/{eventId:[0-9]+}/registrations/{registrationId:[0-9]+}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+    public ResponseEntity<MessageResponse> deleteRegistrationStandard(
+            @PathVariable Long eventId,
+            @PathVariable Long registrationId) {
+        return deleteRegistration(eventId, registrationId);
+    }
+
+    /**
      * Get registration statistics with optional date filtering.
      * Requires ADMIN, SUPER_ADMIN, or SUPPORT_ADMIN role.
      *

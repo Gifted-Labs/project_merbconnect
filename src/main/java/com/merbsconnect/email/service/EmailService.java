@@ -64,4 +64,13 @@ public interface EmailService {
          */
         void sendTshirtOrderAdminEmail(String registrantName, String registrantEmail,
                         String registrantPhone, String shirtSize, String eventTitle);
+
+        /**
+         * Sends an account created email with credentials
+         * 
+         * @param name     name of the user
+         * @param email    email of the user
+         * @param password password of the user
+         */
+        void sendAccountCreatedEmail(String name, String email, String password);
 }

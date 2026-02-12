@@ -390,4 +390,68 @@ public class EmailServiceImpl implements EmailService {
                         registrantPhone != null ? registrantPhone : "Not provided",
                         eventTitle, shirtSize, timestamp);
     }
+
+    @Override
+    @Async
+    public void sendAccountCreatedEmail(String name, String email, String password) {
+        String subject = "Welcome to MerbsConnect Admin Panel";
+        String content = buildAccountCreatedEmail(name, email, password);
+        sendEmail(email, subject, content);
+    }
+
+    private String buildAccountCreatedEmail(String name, String email, String password) {
+        return """
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <style>
+                        body { font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.6; color: #333; }
+                        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+                        .header { background: linear-gradient(135deg, #1a1a2e, #16213e); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+                        .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+                        .credentials-box { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #ddd; }
+                        .credential-row { margin-bottom: 10px; }
+                        .label { font-weight: bold; color: #555; display: inline-block; width: 80px; }
+                        .value { font-family: monospace; background: #eee; padding: 2px 6px; border-radius: 4px; color: #000; }
+                        .button { display: inline-block; background: #c41e3a; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold; margin-top: 20px; }
+                        .footer { text-align: center; padding: 20px; color: #666; font-size: 12px; }
+                    </style>
+                </head>
+                <body>
+                    <div class="container">
+                        <div class="header">
+                            <h1 style="margin: 0;">Welcome Aboard! 🚀</h1>
+                            <p style="margin: 10px 0 0;">Your Admin Account has been created</p>
+                        </div>
+                        <div class="content">
+                            <p>Hi <strong>%s</strong>,</p>
+                            <p>An administrator account has been created for you on the MerbsConnect platform.</p>
+
+                            <div class="credentials-box">
+                                <h3 style="margin-top: 0; color: #1a1a2e;">🔐 Your Login Credentials</h3>
+                                <div class="credential-row">
+                                    <span class="label">Email:</span>
+                                    <span class="value">%s</span>
+                                </div>
+                                <div class="credential-row">
+                                    <span class="label">Password:</span>
+                                    <span class="value">%s</span>
+                                </div>
+                            </div>
+
+                            <p>Please log in and assume your duties. We recommend changing your password after your first login.</p>
+
+                            <center>
+                                <a href="%s" class="button">Log In to Dashboard</a>
+                            </center>
+                        </div>
+                        <div class="footer">
+                            <p>This email was sent automatically by the MerbsConnect System.</p>
+                        </div>
+                    </div>
+                </body>
+                </html>
+                """
+                .formatted(name, email, password, frontendUrl != null ? frontendUrl : "https://admin.merbsconnect.com");
+    }
 }

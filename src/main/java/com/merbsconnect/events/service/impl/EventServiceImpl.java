@@ -600,35 +600,59 @@ public class EventServiceImpl implements EventService {
     @Transactional(readOnly = true)
     @Cacheable(value = "dashboard", unless = "#result == null")
     public com.merbsconnect.events.dto.response.DashboardResponse getDashboardData() {
-        // Get overall stats
-        com.merbsconnect.events.dto.response.EventStatsResponse stats = getEventStats();
+        // Get overall stats with safety check
+        com.merbsconnect.events.dto.response.EventStatsResponse stats;
+        try {
+            stats = getEventStats();
+        } catch (Exception e) {
+            log.error("Failed to fetch event stats for dashboard: {}", e.getMessage());
+            // Return empty stats to prevent crash
+            stats = com.merbsconnect.events.dto.response.EventStatsResponse.builder()
+                    .totalEvents(0L)
+                    .upcomingEvents(0L)
+                    .pastEvents(0L)
+                    .totalRegistrations(0L)
+                    .averageRegistrationsPerEvent(0.0)
+                    .build();
+        }
 
         // Get recent 5 events (sorted by creation date)
-        List<EventResponse> recentEvents = eventRepository.findAll(
-                org.springframework.data.domain.PageRequest.of(0, 5,
-                        org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC,
-                                "createdAt")))
-                .stream()
-                .map(EventMapper::mapToEventSummary)
-                .toList();
+        List<EventResponse> recentEvents = new ArrayList<>();
+        try {
+            recentEvents = eventRepository.findAll(
+                    org.springframework.data.domain.PageRequest.of(0, 5,
+                            org.springframework.data.domain.Sort.by(org.springframework.data.domain.Sort.Direction.DESC,
+                                    "createdAt")))
+                    .stream()
+                    .map(EventMapper::mapToEventSummary)
+                    .toList();
+        } catch (Exception e) {
+            log.error("Failed to fetch recent events for dashboard: {}", e.getMessage());
+        }
 
-        // Get top 5 events by registrations (SQL optimized)
-        List<Long> topEventIds = eventRepository.findTopEventIdsByRegistrationCount(5);
-        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = topEventIds
-                .stream()
-                .map(id -> {
-                    Event event = eventRepository.findById(id).orElse(null);
-                    if (event == null)
-                        return null;
-                    long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
-                            (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
-                    return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
-                            .eventTitle(event.getTitle())
-                            .registrationCount(count)
-                            .build();
-                })
-                .filter(java.util.Objects::nonNull)
-                .toList();
+        // Get top 5 events by registrations
+        List<com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto> topEvents = new ArrayList<>();
+        try {
+            List<Long> topEventIds = eventRepository.findTopEventIdsByRegistrationCount(5);
+            if (topEventIds != null && !topEventIds.isEmpty()) {
+                topEvents = topEventIds.stream()
+                        .map(id -> {
+                            Event event = eventRepository.findById(id).orElse(null);
+                            if (event == null)
+                                return null;
+                            long count = ((event.getRegistrations() != null ? event.getRegistrations().size() : 0) +
+                                    (event.getRegistrationsV2() != null ? event.getRegistrationsV2().size() : 0));
+                            return com.merbsconnect.events.dto.response.RegistrationStatsResponse.TopEventDto.builder()
+                                    .eventTitle(event.getTitle())
+                                    .registrationCount(count)
+                                    .build();
+                        })
+                        .filter(java.util.Objects::nonNull)
+                        .toList();
+            }
+        } catch (Exception e) {
+            log.error("Failed to fetch top events for dashboard: {}", e.getMessage());
+        }
 
         // Determine system status (simple health check)
         String systemStatus = "HEALTHY";

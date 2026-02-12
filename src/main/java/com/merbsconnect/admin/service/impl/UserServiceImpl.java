@@ -7,7 +7,11 @@ import com.merbsconnect.admin.dto.response.UserResponse;
 import com.merbsconnect.admin.model.ActivityLog;
 import com.merbsconnect.admin.repository.ActivityLogRepository;
 import com.merbsconnect.admin.service.AuditService;
+import com.merbsconnect.admin.service.AuditService;
 import com.merbsconnect.admin.service.UserService;
+import com.merbsconnect.email.service.EmailService;
+import com.merbsconnect.sms.service.SmsService;
+import com.merbsconnect.sms.dtos.request.BulkSmsRequest;
 import com.merbsconnect.authentication.domain.User;
 import com.merbsconnect.authentication.dto.response.MessageResponse;
 import com.merbsconnect.authentication.repository.UserRepository;
@@ -37,6 +41,8 @@ public class UserServiceImpl implements UserService {
     private final ActivityLogRepository activityLogRepository;
     private final AuditService auditService;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
+    private final SmsService smsService;
 
     @Override
     @Transactional(readOnly = true)
@@ -88,6 +94,34 @@ public class UserServiceImpl implements UserService {
                 "Created user: " + savedUser.getEmail());
 
         log.info("Successfully created user with ID: {}", savedUser.getId());
+
+        // Send email notification with credentials
+        try {
+            emailService.sendAccountCreatedEmail(
+                    savedUser.getFirstName() + " " + savedUser.getLastName(),
+                    savedUser.getEmail(),
+                    request.getPassword());
+        } catch (Exception e) {
+            log.error("Failed to send welcome email to {}: {}", savedUser.getEmail(), e.getMessage());
+        }
+
+        // Send SMS notification
+        try {
+            String smsMessage = String.format(
+                    "Hello %s, your admin account for MerbsConnect has been created. CHECK YOUR EMAIL for login credentials.",
+                    savedUser.getFirstName());
+
+            BulkSmsRequest smsRequest = BulkSmsRequest.builder()
+                    .recipients(List.of(savedUser.getPhoneNumber()))
+                    .message(smsMessage)
+                    .sender("MerbsConn") // Adjust sender ID if needed
+                    .build();
+
+            smsService.sendBulkSmsAsync(smsRequest);
+        } catch (Exception e) {
+            log.error("Failed to send welcome SMS to {}: {}", savedUser.getPhoneNumber(), e.getMessage());
+        }
+
         return mapToUserResponse(savedUser);
     }
 
