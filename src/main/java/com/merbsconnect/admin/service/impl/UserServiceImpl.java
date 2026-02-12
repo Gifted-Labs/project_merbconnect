@@ -180,16 +180,22 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new BusinessException("User not found with ID: " + id));
 
-        // Soft delete - set status to DELETED
-        user.setStatus(UserStatus.DELETED);
-        user.setEnabled(false);
-        userRepository.save(user);
+        // Prevent deleting the last super admin
+        if (user.getRole() == com.merbsconnect.enums.UserRole.ROLE_SUPER_ADMIN) {
+            long superAdminCount = userRepository.countByRole(com.merbsconnect.enums.UserRole.ROLE_SUPER_ADMIN);
+            if (superAdminCount <= 1) {
+                throw new BusinessException("Cannot delete the last Super Admin");
+            }
+        }
+
+        // Hard delete - remove from database
+        userRepository.delete(user);
 
         // Log audit trail
         auditService.logAction("DELETE", "User", id,
-                "Soft deleted user: " + user.getEmail());
+                "Hard deleted user: " + user.getEmail());
 
-        log.info("Successfully deleted user with ID: {}", id);
+        log.info("Successfully hard deleted user with ID: {}", id);
         return MessageResponse.builder()
                 .message("User successfully deleted")
                 .build();

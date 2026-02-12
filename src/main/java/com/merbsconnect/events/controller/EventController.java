@@ -178,7 +178,7 @@ public class EventController {
     }
 
     @GetMapping("/{eventId:[0-9]+}/registrations")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN', 'CHECKIN_ADMIN')")
     public ResponseEntity<PageResponse<EventRegistrationDto>> getEventRegistrations(
             @PathVariable Long eventId,
             @RequestParam(required = false) String search,

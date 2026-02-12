@@ -48,7 +48,7 @@ public class CheckInController {
      * Staff-only operation.
      */
     @PostMapping("/{eventId:[0-9]+}/check-in")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN', 'CHECKIN_ADMIN')")
     @Operation(summary = "Check in participant", description = "Check in a participant using their QR code token (staff-only)")
     public ResponseEntity<CheckInResponse> checkIn(
             @PathVariable Long eventId,
@@ -64,7 +64,7 @@ public class CheckInController {
      * Staff-only operation.
      */
     @GetMapping("/{eventId:[0-9]+}/check-in/stats")
-    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN', 'SUPPORT_ADMIN', 'CHECKIN_ADMIN')")
     @Operation(summary = "Get check-in stats", description = "Get check-in statistics for an event (staff-only)")
     public ResponseEntity<CheckInStatsResponse> getCheckInStats(@PathVariable Long eventId) {
         log.debug("Fetching check-in stats for event {}", eventId);

@@ -132,12 +132,23 @@ public class SecurityConfig {
                                         auth.requestMatchers(HttpMethod.PUT, "/api/v1/events/*/gallery/drive-link")
                                                         .hasAnyRole("ADMIN",
                                                                         "SUPER_ADMIN", "SUPPORT_ADMIN");
+                                        // Check-in Operations (Admin, Super Admin, Support Admin, AND Check-in Staff)
                                         auth.requestMatchers(HttpMethod.POST, "/api/v1/events/*/check-in").hasAnyRole(
                                                         "ADMIN",
-                                                        "SUPER_ADMIN", "SUPPORT_ADMIN");
+                                                        "SUPER_ADMIN", "SUPPORT_ADMIN", "CHECKIN_ADMIN");
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/check-in/stats")
                                                         .hasAnyRole("ADMIN",
-                                                                        "SUPER_ADMIN", "SUPPORT_ADMIN");
+                                                                        "SUPER_ADMIN", "SUPPORT_ADMIN",
+                                                                        "CHECKIN_ADMIN");
+                                        auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/registrations")
+                                                        .hasAnyRole("ADMIN",
+                                                                        "SUPER_ADMIN", "SUPPORT_ADMIN",
+                                                                        "CHECKIN_ADMIN");
+                                        // Specific registration lookup (for QR verification)
+                                        auth.requestMatchers(HttpMethod.GET, "/api/v1/events/*/registration")
+                                                        .hasAnyRole("ADMIN",
+                                                                        "SUPER_ADMIN", "SUPPORT_ADMIN",
+                                                                        "CHECKIN_ADMIN");
 
                                         // Other public endpoints (swagger, static files, etc.)
                                         EndpointUtils.PUBLIC_ENDPOINTS.forEach(
