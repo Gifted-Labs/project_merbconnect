@@ -20,13 +20,37 @@ import java.util.Map;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final com.merbsconnect.admin.service.ConfigService configService;
+
+    /**
+     * Check if Q&A feature is enabled (PUBLIC)
+     */
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Boolean>> getQaStatus() {
+        boolean isEnabled = Boolean.parseBoolean(
+                configService.getConfig("QA_FEATURE_ENABLED")
+                        .map(com.merbsconnect.admin.dto.response.ConfigResponse::getConfigValue)
+                        .orElse("true"));
+        return ResponseEntity.ok(Map.of("enabled", isEnabled));
+    }
 
     /**
      * Submit a new question (PUBLIC - no auth required)
      */
     @PostMapping
-    public ResponseEntity<QuestionResponseDto> submitQuestion(
+    public ResponseEntity<?> submitQuestion(
             @Valid @RequestBody QuestionRequestDto requestDto) {
+
+        boolean isEnabled = Boolean.parseBoolean(
+                configService.getConfig("QA_FEATURE_ENABLED")
+                        .map(com.merbsconnect.admin.dto.response.ConfigResponse::getConfigValue)
+                        .orElse("true"));
+
+        if (!isEnabled) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(Map.of("message", "Q&A session is currently closed."));
+        }
+
         QuestionResponseDto response = questionService.submitQuestion(requestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }

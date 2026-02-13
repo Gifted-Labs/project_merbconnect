@@ -105,7 +105,10 @@ public class ConfigServiceImpl implements ConfigService {
 
         seedConfig("MAINTENANCE_MODE", "false", "System", "BOOLEAN", "Maintenance Mode");
         seedConfig("SESSION_TIMEOUT_MINUTES", "30", "Security", "NUMBER", "Session Timeout (Minutes)");
+        seedConfig("SESSION_TIMEOUT_MINUTES", "30", "Security", "NUMBER", "Session Timeout (Minutes)");
         seedConfig("REQUIRE_STRONG_PASSWORD", "true", "Security", "BOOLEAN", "Require Strong Passwords");
+
+        seedConfig("QA_FEATURE_ENABLED", "true", "StartRight", "BOOLEAN", "Enable Live Q&A Feature");
     }
 
     private void seedConfig(String key, String value, String category, String type, String description) {
