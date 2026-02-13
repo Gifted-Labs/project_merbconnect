@@ -102,6 +102,10 @@ public class SecurityConfig {
                                         // Public T-shirt request submission - no login required
                                         auth.requestMatchers(HttpMethod.POST, "/api/v1/tshirt-requests").permitAll();
 
+                                        // Public: Q&A submission for StartRight
+                                        auth.requestMatchers(HttpMethod.POST, "/api/v1/startright/questions")
+                                                        .permitAll();
+
                                         // Admin-only T-shirt request management
                                         auth.requestMatchers(HttpMethod.GET, "/api/v1/tshirt-requests/**")
                                                         .hasAnyRole("ADMIN", "SUPER_ADMIN", "SUPPORT_ADMIN");
