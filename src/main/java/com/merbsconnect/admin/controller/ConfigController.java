@@ -46,6 +46,21 @@ public class ConfigController {
     }
 
     /**
+     * Get a single configuration entry by key.
+     * Requires SUPER_ADMIN role.
+     *
+     * @param key Configuration key
+     * @return Configuration entry
+     */
+    @GetMapping("/{key}")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
+    public ResponseEntity<ConfigResponse> getConfigByKey(@PathVariable String key) {
+        return configService.getConfig(key)
+                .map(config -> new ResponseEntity<>(config, HttpStatus.OK))
+                .orElse(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    /**
      * Update or create a configuration entry.
      * Requires SUPER_ADMIN role.
      *
