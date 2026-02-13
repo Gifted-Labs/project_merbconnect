@@ -72,10 +72,41 @@ public class AnalyticsServiceImpl implements AnalyticsService {
         // Recent activity (last 10 audit logs)
         List<AuditLogResponse> recentActivity = getRecentActivity(10);
 
-        // Calculate growth percentages (simplified - comparing to theoretical baseline)
+        // Calculate legacy growth percentages (simplified - comparing to theoretical
+        // baseline)
         Double userGrowthPercent = 5.0; // Placeholder - would compare to last period
         Double eventGrowthPercent = 12.0;
         Double registrationGrowthPercent = 8.0;
+
+        // Calculate distributions
+        Map<String, Long> academicLevelDistribution = new HashMap<>();
+        Map<String, Long> programDistribution = new HashMap<>();
+        Map<String, Long> referralSourceDistribution = new HashMap<>();
+
+        // Helper to update distribution maps
+        for (Event event : eventRepository.findAll()) {
+            // Process V1 registrations
+            if (event.getRegistrations() != null) {
+                event.getRegistrations().forEach(reg -> {
+                    updateDistribution(programDistribution, reg.getProgram());
+                    updateDistribution(academicLevelDistribution,
+                            reg.getAcademicLevel() != null ? reg.getAcademicLevel().getDisplayName() : null);
+                    updateDistribution(referralSourceDistribution,
+                            reg.getReferralSource() != null ? reg.getReferralSource().getDisplayName() : null);
+                });
+            }
+
+            // Process V2 registrations
+            if (event.getRegistrationsV2() != null) {
+                event.getRegistrationsV2().forEach(reg -> {
+                    updateDistribution(programDistribution, reg.getProgram());
+                    updateDistribution(academicLevelDistribution,
+                            reg.getAcademicLevel() != null ? reg.getAcademicLevel().getDisplayName() : null);
+                    updateDistribution(referralSourceDistribution,
+                            reg.getReferralSource() != null ? reg.getReferralSource().getDisplayName() : null);
+                });
+            }
+        }
 
         return AnalyticsResponse.builder()
                 .totalUsers(totalUsers)
@@ -92,6 +123,9 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .tshirtSizeBreakdown(tshirtSizeBreakdown)
                 .registrationTrend(registrationTrend)
                 .recentActivity(recentActivity)
+                .academicLevelDistribution(academicLevelDistribution)
+                .programDistribution(programDistribution)
+                .referralSourceDistribution(referralSourceDistribution)
                 .build();
     }
 
@@ -199,5 +233,10 @@ public class AnalyticsServiceImpl implements AnalyticsService {
                 .details(log.getDetails())
                 .ipAddress(log.getIpAddress())
                 .build();
+    }
+
+    private void updateDistribution(Map<String, Long> distribution, String key) {
+        String safeKey = (key != null && !key.trim().isEmpty()) ? key.trim() : "Unknown";
+        distribution.put(safeKey, distribution.getOrDefault(safeKey, 0L) + 1);
     }
 }

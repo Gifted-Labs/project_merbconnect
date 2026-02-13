@@ -42,4 +42,9 @@ public class AnalyticsResponse {
 
     // Recent activity
     private List<AuditLogResponse> recentActivity;
+
+    // Distributions
+    private Map<String, Long> academicLevelDistribution;
+    private Map<String, Long> programDistribution;
+    private Map<String, Long> referralSourceDistribution;
 }
